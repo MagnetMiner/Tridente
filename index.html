@@ -3,73 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TRIDENTE-1 | Vigilancia Marítima Soberana</title>
+    <title>TRIDENTE-1 | Tactical Precision Link</title>
     <style>
         :root { --glow: #00f2ff; --bg: #00080f; --alert: #ff0000; }
         body { background-color: var(--bg); color: var(--glow); font-family: 'Consolas', monospace; margin: 0; padding: 5px; overflow: hidden; }
         .header { text-align: center; border-bottom: 2px solid var(--glow); padding: 5px; background: rgba(0,242,255,0.1); font-size: 12px; }
         
-        /* Contenedor con la imagen real de fondo */
         .map-container { 
-            width: 100%; 
-            height: 750px; /* Ajuste para visualización móvil/escritorio */
+            width: 100%; height: 750px; 
             border: 1px solid #003344; position: relative; overflow: hidden;
             background-image: url('mapa_real.jpg'); 
             background-size: cover;
-            background-position: right center; /* Alineamos a la derecha para ver la costa */
+            background-position: right center;
         }
 
-        /* Boyas - Posicionadas en el MAR (izquierdas de la costa) */
         .buoy { position: absolute; width: 10px; height: 10px; background: var(--glow); border-radius: 50%; border: 1px solid #fff; box-shadow: 0 0 10px var(--glow); z-index: 100; }
         .buoy::after { content: attr(data-label); position: absolute; top: -18px; left: -10px; font-size: 10px; font-weight: bold; background: rgba(0,0,0,0.7); padding: 1px 4px; border-radius: 2px; white-space: nowrap; }
         
-        /* Radios de Escucha - Ajustados para tocar la costa pero no cubrir Santiago */
         .range { 
             position: absolute; border: 1px dashed rgba(0, 242, 255, 0.4); 
             border-radius: 50%; background: radial-gradient(circle, rgba(0, 242, 255, 0.2) 0%, transparent 75%);
             transform: translate(-50%, -50%); pointer-events: none;
         }
 
-        /* Blanco Oscuro - Invisible por defecto */
+        /* Blanco Oscuro - Movimiento suavizado */
         .target { 
             position: absolute; width: 10px; height: 10px; background: var(--alert); 
             border-radius: 50%; box-shadow: 0 0 20px var(--alert); z-index: 150; border: 1px solid #fff;
-            opacity: 0; transition: opacity 0.4s ease-in-out;
+            opacity: 0; transition: opacity 1s ease-in-out;
         }
 
         .data-overlay { 
             position: absolute; bottom: 10px; left: 10px; width: 310px;
-            background: rgba(0, 15, 30, 0.9); border: 1px solid var(--glow);
-            padding: 10px; font-size: 11px; z-index: 200; border-radius: 4px; box-shadow: 0 0 15px rgba(0,0,0,0.5);
+            background: rgba(0, 15, 30, 0.95); border: 1px solid var(--glow);
+            padding: 10px; font-size: 11px; z-index: 200; border-radius: 4px; border-left: 4px solid var(--glow);
         }
         @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
     </style>
 </head>
 <body>
     <div class="header">
-        <strong>TRIDENTE-1 | MONITORIZACIÓN ZEE CENTRAL</strong> | CIFRADO PQC
+        <strong>SISTEMA TRIDENTE-1</strong> | MONITORIZACIÓN TÁCTICA EN TIEMPO REAL
     </div>
     
     <div id="main-map" class="map-container">
-        <div id="b1-r" class="range" style="width: 160px; height: 160px; top: 18%; left: 58%;"></div>
-        <div id="b1" class="buoy" data-label="B1-LOS_VILOS" style="top: 18%; left: 58%;"></div>
+        <div class="range" style="width: 170px; height: 170px; top: 18%; left: 58%;"></div>
+        <div class="buoy" data-label="B1-LOS_VILOS" style="top: 18%; left: 58%;"></div>
 
-        <div id="b2-r" class="range" style="width: 160px; height: 160px; top: 38%; left: 60%;"></div>
-        <div id="b2" class="buoy" data-label="B2-PAPUDO" style="top: 38%; left: 60%;"></div>
+        <div class="range" style="width: 170px; height: 170px; top: 38%; left: 60%;"></div>
+        <div class="buoy" data-label="B2-PAPUDO" style="top: 38%; left: 60%;"></div>
 
-        <div id="b3-r" class="range" style="width: 160px; height: 160px; top: 56%; left: 54%;"></div>
-        <div id="b3" class="buoy" data-label="B3-VALPARAISO" style="top: 56%; left: 54%;"></div>
+        <div class="range" style="width: 170px; height: 170px; top: 56%; left: 54%;"></div>
+        <div class="buoy" data-label="B3-VALPARAISO" style="top: 56%; left: 54%;"></div>
 
-        <div id="b4-r" class="range" style="width: 160px; height: 160px; top: 78%; left: 56%;"></div>
-        <div id="b4" class="buoy" data-label="B4-SAN_ANTONIO" style="top: 78%; left: 56%;"></div>
+        <div class="range" style="width: 170px; height: 170px; top: 78%; left: 56%;"></div>
+        <div class="buoy" data-label="B4-SAN_ANTONIO" style="top: 78%; left: 56%;"></div>
 
         <div id="tgt" class="target"></div>
     </div>
 
     <div class="data-overlay">
         > ESTADO: <span id="sys-status" style="color: #0f0;">VIGILANCIA PASIVA</span><br>
-        > MODO: DETECCIÓN ACINT (SONAR PASIVO)<br>
-        > INFO: <span id="target-info">RANGO DESPEJADO</span><br>
+        > VELOCIDAD TGT: <span id="target-speed">0.0 KTS</span><br>
+        > ANÁLISIS: <span id="target-info">SCANNING SECTOR CENTRAL...</span><br>
         > POSICIÓN GPS: <span id="coords" style="color: #ffaa00;">---</span><br>
         > ALERTAS: <span id="alert-count">0 ACTIVAS</span>
     </div>
@@ -79,9 +75,8 @@
         const coords = document.getElementById('coords');
         const status = document.getElementById('sys-status');
         const info = document.getElementById('target-info');
-        const alertCount = document.getElementById('alert-count');
+        const speedLabel = document.getElementById('target-speed');
         
-        // Coordenadas de las boyas en % (deben coincidir con el CSS)
         const buoys = [
             { top: 18, left: 58 }, { top: 38, left: 60 },
             { top: 56, left: 54 }, { top: 78, left: 56 }
@@ -89,35 +84,31 @@
 
         let t = 0;
         function update() {
-            t += 0.0025;
+            // VELOCIDAD REDUCIDA: t aumenta mucho más lento (0.0003 vs 0.0025)
+            // Esto permite que el blanco se mueva de forma realista
+            t += 0.00035; 
             
-            // Trayectoria: El intruso navega de Norte a Sur por el mar (Left < 50%)
-            // x: se mueve entre el mar profundo y el borde de los radios
-            const x = 35 + Math.sin(t * 1.5) * 15; 
-            const y = (t * 50) % 90; // Ciclo de Norte a Sur
+            const x = 38 + Math.sin(t * 3) * 12; // Oscilación suave
+            const y = (10 + (t * 40)) % 95; // Descenso pausado
             
             tgt.style.left = x + '%';
             tgt.style.top = y + '%';
 
-            // LÓGICA DE DETECCIÓN: Solo visible si está dentro de un radio de boya
             let detected = false;
             buoys.forEach(b => {
-                // Cálculo de distancia simplificado para el radio visual (~8% del mapa)
                 const dx = x - b.left;
                 const dy = y - b.top;
                 const dist = Math.sqrt(dx*dx + dy*dy);
-                
                 if (dist < 10) detected = true; 
             });
 
             if (detected) {
                 tgt.style.opacity = '1';
-                status.innerHTML = '<span style="color: red; animation: blink 0.5s infinite;">¡INCURSIÓN DETECTADA!</span>';
-                info.innerHTML = 'BLANCO OSCURO EN PERÍMETRO B3/B4';
-                alertCount.innerHTML = '1 ACTIVA';
-                alertCount.style.color = 'red';
+                status.innerHTML = '<span style="color: red; animation: blink 0.5s infinite;">¡ALERTA DE INCURSIÓN!</span>';
+                info.innerHTML = 'IDENTIFICADO: CONTACTO NO CATALOGADO';
+                speedLabel.innerHTML = '32.4 KTS (ESTIMADO)';
+                speedLabel.style.color = 'red';
                 
-                // Conversión de GPS dinámica basada en la zona central de Chile
                 const lat = (-31.5 - (y/100)*2.5).toFixed(4);
                 const lon = (-71.4 - (x/100)*0.8).toFixed(4);
                 coords.innerText = `${lat}°S, ${lon}°W`;
@@ -125,8 +116,8 @@
                 tgt.style.opacity = '0';
                 status.innerHTML = '<span style="color: #0f0;">VIGILANCIA PASIVA</span>';
                 info.innerHTML = 'RANGO DESPEJADO';
-                alertCount.innerHTML = '0 ACTIVAS';
-                alertCount.style.color = '#0f0';
+                speedLabel.innerHTML = '0.0 KTS';
+                speedLabel.style.color = '#0f0';
                 coords.innerText = '---';
             }
             
