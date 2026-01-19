@@ -37,6 +37,7 @@
             background: rgba(0, 15, 30, 0.95); border: 1px solid var(--glow);
             padding: 10px; font-size: 11px; z-index: 200; border-radius: 4px; border-left: 4px solid var(--glow);
         }
+        .disclaimer { color: #ff3333; font-weight: bold; font-size: 9px; margin-top: 5px; display: block; border-top: 1px solid #440000; padding-top: 5px; }
         @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
     </style>
 </head>
@@ -46,8 +47,8 @@
     </div>
     
     <div id="main-map" class="map-container">
-        <div class="range" style="width: 170px; height: 170px; top: 18%; left: 58%;"></div>
-        <div class="buoy" data-label="B1-LOS_VILOS" style="top: 18%; left: 58%;"></div>
+        <div class="range" style="width: 170px; height: 170px; top: 18%; left: 60%;"></div>
+        <div class="buoy" data-label="B1-LOS_VILOS" style="top: 18%; left: 60%;"></div>
 
         <div class="range" style="width: 170px; height: 170px; top: 38%; left: 60%;"></div>
         <div class="buoy" data-label="B2-PAPUDO" style="top: 38%; left: 60%;"></div>
@@ -67,6 +68,7 @@
         > ANÁLISIS: <span id="target-info">SCANNING SECTOR CENTRAL...</span><br>
         > POSICIÓN GPS: <span id="coords" style="color: #ffaa00;">---</span><br>
         > ALERTAS: <span id="alert-count">0 ACTIVAS</span>
+        <span class="disclaimer">* NOTA: VELOCIDAD DE DESPLAZAMIENTO EN MAPA ES REFERENCIAL PARA FINES DE DEMOSTRACIÓN TÁCTICA.</span>
     </div>
 
     <script>
@@ -76,7 +78,7 @@
         const info = document.getElementById('target-info');
         const speedLabel = document.getElementById('target-speed');
         
-        // CORRECCIÓN: Los valores de left ahora coinciden con el CSS y la trayectoria
+        // SINCRONIZACIÓN DE POSICIONES PARA DETECCIÓN
         const buoys = [
             { top: 18, left: 60 }, { top: 38, left: 60 },
             { top: 56, left: 54 }, { top: 78, left: 56 }
@@ -86,9 +88,8 @@
         function update() {
             t += 0.00035; 
             
-            // CORRECCIÓN DE TRAYECTORIA: 
-            // Ahora centrado en 57% de 'left' para que pase sobre las boyas
-            const x = 57 + Math.sin(t * 3) * 8; 
+            // TRAYECTORIA CRUZANDO LAS LÍNEAS DE 54% A 60%
+            const x = 57 + Math.sin(t * 3) * 6; 
             const y = (10 + (t * 40)) % 95; 
             
             tgt.style.left = x + '%';
@@ -99,8 +100,7 @@
                 const dx = x - b.left;
                 const dy = y - b.top;
                 const dist = Math.sqrt(dx*dx + dy*dy);
-                // El valor '10' es el radio de detección en porcentaje
-                if (dist < 8) detected = true; 
+                if (dist < 9) detected = true; 
             });
 
             if (detected) {
