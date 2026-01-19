@@ -3,98 +3,120 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TRIDENTE-1 | Real-Time Tactical Chart</title>
+    <title>TRIDENTE-1 | Inteligencia Acústica Soberana</title>
     <style>
-        :root { --glow: #00f2ff; --bg: #00080f; --alert: #ff0000; --range-bg: rgba(0, 242, 255, 0.15); }
+        :root { --glow: #00f2ff; --bg: #00080f; --alert: #ff0000; }
         body { background-color: var(--bg); color: var(--glow); font-family: 'Consolas', monospace; margin: 0; padding: 5px; overflow: hidden; }
         .header { text-align: center; border-bottom: 2px solid var(--glow); padding: 5px; background: rgba(0,242,255,0.1); font-size: 12px; }
         
-        /* --- CONFIGURACIÓN DEL MAPA REAL --- */
+        /* Contenedor con la imagen real de fondo */
         .map-container { 
             width: 100%; 
-            height: 600px; /* Ajusta esto si tu mapa es más alto o más bajo */
+            height: 650px; /* Ajustado al aspecto de la imagen enviada */
             border: 1px solid #003344; position: relative; overflow: hidden;
-            
-            /* ¡IMPORTANTE! Reemplaza 'mapa_real.jpg' con el nombre exacto de tu archivo de imagen */
             background-image: url('mapa_real.jpg'); 
-            
-            background-size: cover; /* Asegura que el mapa cubra todo el contenedor */
-            background-position: center; /* Centra el mapa */
+            background-size: cover;
+            background-position: center;
         }
 
-        /* Estilos Tácticos */
-        .buoy { position: absolute; width: 12px; height: 12px; background: var(--glow); border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 10px var(--glow); z-index: 100; }
-        .buoy::after { content: attr(data-label); position: absolute; top: -15px; left: -20px; font-size: 11px; font-weight: bold; text-shadow: 1px 1px 2px black; background: rgba(0,0,0,0.5); padding: 1px 4px; }
+        /* Estilos de Boyas - Posicionadas mar adentro */
+        .buoy { position: absolute; width: 10px; height: 10px; background: var(--glow); border-radius: 50%; border: 1px solid #fff; box-shadow: 0 0 10px var(--glow); z-index: 100; }
+        .buoy::after { content: attr(data-label); position: absolute; top: -18px; left: -10px; font-size: 10px; font-weight: bold; background: rgba(0,0,0,0.6); padding: 1px 4px; border-radius: 2px; }
         
+        /* Radios de Escucha */
         .range { 
-            position: absolute; border: 2px solid rgba(0, 242, 255, 0.5); 
-            border-radius: 50%; background: var(--range-bg);
-            transform: translate(-50%, -50%); pointer-events: none; mix-blend-mode: screen;
+            position: absolute; border: 1px dashed rgba(0, 242, 255, 0.4); 
+            border-radius: 50%; background: radial-gradient(circle, rgba(0, 242, 255, 0.15) 0%, transparent 70%);
+            transform: translate(-50%, -50%); pointer-events: none;
         }
 
+        /* Blanco Oscuro - Lógica de visibilidad controlada por JS */
         .target { 
             position: absolute; width: 10px; height: 10px; background: var(--alert); 
-            border-radius: 50%; box-shadow: 0 0 25px var(--alert); z-index: 150; border: 1px solid #fff;
-            animation: pulse 0.8s infinite alternate; 
+            border-radius: 50%; box-shadow: 0 0 20px var(--alert); z-index: 150; border: 1px solid #fff;
+            opacity: 0; transition: opacity 0.5s; /* Invisible por defecto */
         }
 
         .data-overlay { 
-            position: absolute; bottom: 10px; left: 10px; width: 300px;
+            position: absolute; bottom: 10px; left: 10px; width: 310px;
             background: rgba(0, 15, 30, 0.9); border: 1px solid var(--glow);
-            padding: 10px; font-size: 11px; z-index: 200; border-radius: 4px; box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            padding: 10px; font-size: 11px; z-index: 200; border-radius: 4px;
         }
-        @keyframes pulse { from { transform: scale(1); opacity: 1; } to { transform: scale(1.8); opacity: 0.6; } }
     </style>
 </head>
 <body>
     <div class="header">
-        <strong>TRIDENTE-1 | CARTA TÁCTICA OFICIAL</strong> | ZEE CENTRAL
+        <strong>TRIDENTE-1 | MONITORIZACIÓN ZEE CENTRAL</strong> | CIFRADO PQC
     </div>
     
-    <div class="map-container">
-        <div class="range" style="width: 200px; height: 200px; top: 15%; left: 65%;"></div>
-        <div class="buoy" data-label="B1 (VILOS)" style="top: 15%; left: 65%;"></div>
+    <div id="main-map" class="map-container">
+        <div id="b1-r" class="range" style="width: 180px; height: 180px; top: 18%; left: 55%;"></div>
+        <div id="b1" class="buoy" data-label="B1-VILOS" style="top: 18%; left: 55%;"></div>
 
-        <div class="range" style="width: 200px; height: 200px; top: 38%; left: 68%;"></div>
-        <div class="buoy" data-label="B2 (PAPUDO)" style="top: 38%; left: 68%;"></div>
+        <div id="b2-r" class="range" style="width: 180px; height: 180px; top: 40%; left: 57%;"></div>
+        <div id="b2" class="buoy" data-label="B2-PAPUDO" style="top: 40%; left: 57%;"></div>
 
-        <div class="range" style="width: 200px; height: 200px; top: 61%; left: 63%;"></div>
-        <div class="buoy" data-label="B3 (VALPO)" style="top: 61%; left: 63%;"></div>
+        <div id="b3-r" class="range" style="width: 180px; height: 180px; top: 58%; left: 52%;"></div>
+        <div id="b3" class="buoy" data-label="B3-VALPO" style="top: 58%; left: 52%;"></div>
 
-        <div class="range" style="width: 200px; height: 200px; top: 84%; left: 66%;"></div>
-        <div class="buoy" data-label="B4 (SAN ANTO)" style="top: 84%; left: 66%;"></div>
+        <div id="b4-r" class="range" style="width: 180px; height: 180px; top: 78%; left: 54%;"></div>
+        <div id="b4" class="buoy" data-label="B4-SAN_ANTO" style="top: 78%; left: 54%;"></div>
 
         <div id="tgt" class="target"></div>
     </div>
 
     <div class="data-overlay">
-        > ESTADO RED: <span style="color: #0f0;">ENLACE SATELITAL OK</span><br>
-        > MODO: VIGILANCIA SOBRE CARTA NÁUTICA<br>
-        > ALERTA: <span style="color: var(--alert);">CONTACTO DESCONOCIDO</span><br>
-        > POSICIÓN GPS: <span id="coords" style="color: #ffaa00;">CALCULANDO...</span><br>
-        > INTERCEPCIÓN: ZONA DE TRASLAPE B2-B3
+        > ESTADO: <span id="sys-status" style="color: #0f0;">VIGILANCIA PASIVA</span><br>
+        > MODO: DETECCIÓN ACINT (SONAR PASIVO)<br>
+        > INFO: <span id="target-info">NO SE DETECTAN INCURSIONES</span><br>
+        > POSICIÓN: <span id="coords" style="color: #ffaa00;">---</span><br>
+        > FILTRO: LISTA BLANCA ACTIVA (CORRELACIÓN DGAC/SHOA)
     </div>
 
     <script>
         const tgt = document.getElementById('tgt');
         const coords = document.getElementById('coords');
-        let t = 0;
+        const status = document.getElementById('sys-status');
+        const info = document.getElementById('target-info');
+        
+        const buoys = [
+            { top: 18, left: 55 }, { top: 40, left: 57 },
+            { top: 58, left: 52 }, { top: 78, left: 54 }
+        ];
 
+        let t = 0;
         function update() {
-            t += 0.004;
-            // Trayectoria serpenteante que cruza los radios B2 y B3 sobre el mapa
-            // Ajusta estos valores si el blanco se sale de tu mapa específico
-            const x = 60 + Math.sin(t * 1.5) * 8; // Movimiento horizontal
-            const y = 30 + (t * 40) % 60; // Movimiento vertical (de norte a sur)
+            t += 0.003;
+            // Trayectoria del objetivo: Viene del Pacífico hacia la costa
+            const x = 40 + Math.sin(t * 2) * 20;
+            const y = 10 + (t * 60) % 80;
             
             tgt.style.left = x + '%';
             tgt.style.top = y + '%';
 
-            // Simulación de Coordenadas Reales basadas en la posición en pantalla
-            // (Ajustadas para la latitud de la zona central de Chile)
-            const lat = (-31.5 - (y / 100) * 2.5).toFixed(4);
-            const lon = (-71.2 - (x / 100) * 0.8).toFixed(4);
-            coords.innerText = `${lat}°S, ${lon}°W`;
+            // Lógica de Invisibilidad: Solo aparece si está cerca de una boya
+            let detected = false;
+            buoys.forEach(b => {
+                const dx = x - b.left;
+                const dy = y - b.top;
+                // Distancia euclidiana aproximada en %
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                if (dist < 10) detected = true; // El radio de detección es ~10% del mapa
+            });
+
+            if (detected) {
+                tgt.style.opacity = '1';
+                status.innerHTML = '<span style="color: red; animation: blink 0.5s infinite;">¡ALERTA DE INCURSIÓN!</span>';
+                info.innerHTML = 'BLANCO OSCURO DETECTADO (FIRMA NO IDENTIFICADA)';
+                const lat = (-31.5 - (y/100)*2.5).toFixed(4);
+                const lon = (-71.2 - (x/100)*0.8).toFixed(4);
+                coords.innerText = `${lat}°S, ${lon}°W`;
+            } else {
+                tgt.style.opacity = '0';
+                status.innerHTML = '<span style="color: #0f0;">VIGILANCIA PASIVA</span>';
+                info.innerHTML = 'NO SE DETECTAN INCURSIONES';
+                coords.innerText = '---';
+            }
             
             requestAnimationFrame(update);
         }
