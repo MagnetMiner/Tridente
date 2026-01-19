@@ -67,7 +67,7 @@
         > VELOCIDAD TGT: <span id="target-speed">0.0 KTS</span><br>
         > ANÁLISIS: <span id="target-info">SCANNING SECTOR CENTRAL...</span><br>
         > POSICIÓN GPS: <span id="coords" style="color: #ffaa00;">---</span><br>
-        > ALERTAS: <span id="alert-count">0 ACTIVAS</span>
+        > ALERTAS: <span id="alert-count">1 ACTIVAS</span>
         <span class="disclaimer">* NOTA: VELOCIDAD DE DESPLAZAMIENTO EN MAPA ES REFERENCIAL PARA FINES DE DEMOSTRACIÓN TÁCTICA.</span>
     </div>
 
@@ -107,7 +107,7 @@
                 tgt.style.opacity = '1';
                 status.innerHTML = '<span style="color: red; animation: blink 0.5s infinite;">¡ALERTA DE INCURSIÓN!</span>';
                 info.innerHTML = 'IDENTIFICADO: CONTACTO NO CATALOGADO';
-                speedLabel.innerHTML = '32.4 KTS (ESTIMADO)';
+                speedLabel.innerHTML = '40.5 KTS (ESTIMADO)';
                 speedLabel.style.color = 'red';
                 
                 const lat = (-31.5 - (y/100)*2.5).toFixed(4);
