@@ -26,7 +26,6 @@
             transform: translate(-50%, -50%); pointer-events: none;
         }
 
-        /* Blanco Oscuro - Movimiento suavizado */
         .target { 
             position: absolute; width: 10px; height: 10px; background: var(--alert); 
             border-radius: 50%; box-shadow: 0 0 20px var(--alert); z-index: 150; border: 1px solid #fff;
@@ -50,14 +49,14 @@
         <div class="range" style="width: 170px; height: 170px; top: 18%; left: 58%;"></div>
         <div class="buoy" data-label="B1-LOS_VILOS" style="top: 18%; left: 58%;"></div>
 
-        <div class="range" style="width: 170px; height: 170px; top: 38%; left: 58%;"></div>
-        <div class="buoy" data-label="B2-PAPUDO" style="top: 38%; left: 58%;"></div>
+        <div class="range" style="width: 170px; height: 170px; top: 38%; left: 60%;"></div>
+        <div class="buoy" data-label="B2-PAPUDO" style="top: 38%; left: 60%;"></div>
 
         <div class="range" style="width: 170px; height: 170px; top: 56%; left: 54%;"></div>
         <div class="buoy" data-label="B3-VALPARAISO" style="top: 56%; left: 54%;"></div>
 
         <div class="range" style="width: 170px; height: 170px; top: 78%; left: 56%;"></div>
-        <div class="buoy" data-label="B4-SAN_ANTONIO" style="top: 80%; left: 56%;"></div>
+        <div class="buoy" data-label="B4-SAN_ANTONIO" style="top: 78%; left: 56%;"></div>
 
         <div id="tgt" class="target"></div>
     </div>
@@ -77,6 +76,7 @@
         const info = document.getElementById('target-info');
         const speedLabel = document.getElementById('target-speed');
         
+        // CORRECCIÓN: Los valores de left ahora coinciden con el CSS y la trayectoria
         const buoys = [
             { top: 18, left: 58 }, { top: 38, left: 60 },
             { top: 56, left: 54 }, { top: 78, left: 56 }
@@ -84,12 +84,12 @@
 
         let t = 0;
         function update() {
-            // VELOCIDAD REDUCIDA: t aumenta mucho más lento (0.0003 vs 0.0025)
-            // Esto permite que el blanco se mueva de forma realista
             t += 0.00035; 
             
-            const x = 38 + Math.sin(t * 3) * 12; // Oscilación suave
-            const y = (10 + (t * 40)) % 95; // Descenso pausado
+            // CORRECCIÓN DE TRAYECTORIA: 
+            // Ahora centrado en 57% de 'left' para que pase sobre las boyas
+            const x = 57 + Math.sin(t * 3) * 8; 
+            const y = (10 + (t * 40)) % 95; 
             
             tgt.style.left = x + '%';
             tgt.style.top = y + '%';
@@ -99,7 +99,8 @@
                 const dx = x - b.left;
                 const dy = y - b.top;
                 const dist = Math.sqrt(dx*dx + dy*dy);
-                if (dist < 10) detected = true; 
+                // El valor '10' es el radio de detección en porcentaje
+                if (dist < 8) detected = true; 
             });
 
             if (detected) {
