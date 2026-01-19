@@ -3,91 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TRIDENTE-1 | High-Precision Tactical Link</title>
+    <title>TRIDENTE-1 | Real-Time Tactical Chart</title>
     <style>
-        :root { --glow: #00f2ff; --bg: #00080f; --alert: #ff0000; }
-        body { background-color: var(--bg); color: var(--glow); font-family: 'Consolas', monospace; margin: 0; padding: 10px; overflow: hidden; }
-        .header { text-align: center; border-bottom: 2px solid var(--glow); padding: 5px; margin-bottom: 10px; background: rgba(0,242,255,0.1); }
+        :root { --glow: #00f2ff; --bg: #00080f; --alert: #ff0000; --range-bg: rgba(0, 242, 255, 0.15); }
+        body { background-color: var(--bg); color: var(--glow); font-family: 'Consolas', monospace; margin: 0; padding: 5px; overflow: hidden; }
+        .header { text-align: center; border-bottom: 2px solid var(--glow); padding: 5px; background: rgba(0,242,255,0.1); font-size: 12px; }
         
-        /* Contenedor del Mapa con Relación de Aspecto Real */
+        /* --- CONFIGURACIÓN DEL MAPA REAL --- */
         .map-container { 
-            width: 100%; height: 550px; border: 1px solid #003344; position: relative;
-            background: linear-gradient(90deg, #00121d 0%, #001a2b 60%, #002b3d 100%);
-            overflow: hidden;
+            width: 100%; 
+            height: 600px; /* Ajusta esto si tu mapa es más alto o más bajo */
+            border: 1px solid #003344; position: relative; overflow: hidden;
+            
+            /* ¡IMPORTANTE! Reemplaza 'mapa_real.jpg' con el nombre exacto de tu archivo de imagen */
+            background-image: url('mapa_real.jpg'); 
+            
+            background-size: cover; /* Asegura que el mapa cubra todo el contenedor */
+            background-position: center; /* Centra el mapa */
         }
 
-        /* Representación Real del Litoral Central */
-        .coastline {
-            position: absolute; right: 0; top: 0; width: 45%; height: 100%;
-            background: #111; 
-            clip-path: polygon(30% 0%, 25% 10%, 45% 22%, 20% 35%, 35% 50%, 15% 65%, 40% 80%, 25% 90%, 35% 100%, 100% 100%, 100% 0%);
-            border-left: 2px solid #224400;
-        }
-
-        /* Sistema de Boyas - Espaciado de 40km (Escalado) */
-        .buoy { position: absolute; width: 10px; height: 10px; background: var(--glow); border-radius: 50%; box-shadow: 0 0 15px var(--glow); z-index: 100; }
-        .buoy::after { content: attr(data-label); position: absolute; top: -18px; left: -10px; font-size: 10px; font-weight: bold; }
+        /* Estilos Tácticos */
+        .buoy { position: absolute; width: 12px; height: 12px; background: var(--glow); border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 10px var(--glow); z-index: 100; }
+        .buoy::after { content: attr(data-label); position: absolute; top: -15px; left: -20px; font-size: 11px; font-weight: bold; text-shadow: 1px 1px 2px black; background: rgba(0,0,0,0.5); padding: 1px 4px; }
         
-        /* Radios de Escucha (Interconectados) */
         .range { 
-            position: absolute; border: 1px dashed rgba(0, 242, 255, 0.3); 
-            border-radius: 50%; background: radial-gradient(circle, rgba(0, 242, 255, 0.1) 0%, transparent 75%);
-            transform: translate(-50%, -50%); pointer-events: none;
+            position: absolute; border: 2px solid rgba(0, 242, 255, 0.5); 
+            border-radius: 50%; background: var(--range-bg);
+            transform: translate(-50%, -50%); pointer-events: none; mix-blend-mode: screen;
         }
 
-        /* Blanco Oscuro (Detección Positiva) */
         .target { 
-            position: absolute; width: 8px; height: 8px; background: var(--alert); 
-            border-radius: 50%; box-shadow: 0 0 20px var(--alert); z-index: 150; 
-            animation: pulse 0.5s infinite alternate; 
+            position: absolute; width: 10px; height: 10px; background: var(--alert); 
+            border-radius: 50%; box-shadow: 0 0 25px var(--alert); z-index: 150; border: 1px solid #fff;
+            animation: pulse 0.8s infinite alternate; 
         }
 
         .data-overlay { 
-            position: absolute; bottom: 10px; left: 10px; width: 320px;
-            background: rgba(0, 10, 20, 0.85); border: 1px solid var(--glow);
-            padding: 10px; font-size: 11px; z-index: 200; border-radius: 4px;
+            position: absolute; bottom: 10px; left: 10px; width: 300px;
+            background: rgba(0, 15, 30, 0.9); border: 1px solid var(--glow);
+            padding: 10px; font-size: 11px; z-index: 200; border-radius: 4px; box-shadow: 0 0 20px rgba(0,0,0,0.5);
         }
-
-        @keyframes pulse { from { transform: scale(1); opacity: 1; } to { transform: scale(1.5); opacity: 0.5; } }
-        .city { position: absolute; right: 10px; font-size: 10px; color: #aaa; font-weight: bold; }
+        @keyframes pulse { from { transform: scale(1); opacity: 1; } to { transform: scale(1.8); opacity: 0.6; } }
     </style>
 </head>
 <body>
     <div class="header">
-        <strong>TRIDENTE-1 | DEPLOYMENT: LITORAL CENTRAL</strong><br>
-        <small>ZORD S.p.A. - SOBERANÍA TECNOLÓGICA 2026</small>
+        <strong>TRIDENTE-1 | CARTA TÁCTICA OFICIAL</strong> | ZEE CENTRAL
     </div>
     
     <div class="map-container">
-        <div class="coastline"></div>
-        
-        <div class="city" style="top: 20px;">LOS VILOS</div>
-        <div class="city" style="top: 180px;">PAPUDO</div>
-        <div class="city" style="top: 310px;">VALPARAÍSO</div>
-        <div class="city" style="top: 480px;">SAN ANTONIO</div>
+        <div class="range" style="width: 200px; height: 200px; top: 15%; left: 65%;"></div>
+        <div class="buoy" data-label="B1 (VILOS)" style="top: 15%; left: 65%;"></div>
 
-        <div class="range" style="width: 220px; height: 220px; top: 50px; left: 70%;"></div>
-        <div class="buoy" data-label="B1-VILOS" style="top: 50px; left: 70%;"></div>
+        <div class="range" style="width: 200px; height: 200px; top: 38%; left: 68%;"></div>
+        <div class="buoy" data-label="B2 (PAPUDO)" style="top: 38%; left: 68%;"></div>
 
-        <div class="range" style="width: 220px; height: 220px; top: 190px; left: 75%;"></div>
-        <div class="buoy" data-label="B2-PAPUDO" style="top: 190px; left: 75%;"></div>
+        <div class="range" style="width: 200px; height: 200px; top: 61%; left: 63%;"></div>
+        <div class="buoy" data-label="B3 (VALPO)" style="top: 61%; left: 63%;"></div>
 
-        <div class="range" style="width: 220px; height: 220px; top: 330px; left: 68%;"></div>
-        <div class="buoy" data-label="B3-VALPO" style="top: 330px; left: 68%;"></div>
-
-        <div class="range" style="width: 220px; height: 220px; top: 470px; left: 73%;"></div>
-        <div class="buoy" data-label="B4-SAN_ANTO" style="top: 470px; left: 73%;"></div>
+        <div class="range" style="width: 200px; height: 200px; top: 84%; left: 66%;"></div>
+        <div class="buoy" data-label="B4 (SAN ANTO)" style="top: 84%; left: 66%;"></div>
 
         <div id="tgt" class="target"></div>
     </div>
 
     <div class="data-overlay">
-        > RED: <span style="color: #0f0;">OPERATIVA (4 NODOS)</span><br>
-        > DISTANCIA INTER-NODO: 40.0 KM (CALIBRADO)<br>
-        > ALERTA: <span style="color: var(--alert);">BLANCO OSCURO DETECTADO</span><br>
-        > POSICIÓN: <span id="coords" style="color: #ffaa00;">-32.95, -71.85</span><br>
-        > FIRMA: MOTOR PESQUERO DE ALTA POTENCIA (NON-AIS)<br>
-        > ESCUCHA: TRIANGULACIÓN ACTIVA B2-B3
+        > ESTADO RED: <span style="color: #0f0;">ENLACE SATELITAL OK</span><br>
+        > MODO: VIGILANCIA SOBRE CARTA NÁUTICA<br>
+        > ALERTA: <span style="color: var(--alert);">CONTACTO DESCONOCIDO</span><br>
+        > POSICIÓN GPS: <span id="coords" style="color: #ffaa00;">CALCULANDO...</span><br>
+        > INTERCEPCIÓN: ZONA DE TRASLAPE B2-B3
     </div>
 
     <script>
@@ -96,17 +81,19 @@
         let t = 0;
 
         function update() {
-            t += 0.005;
-            // Trayectoria que cruza los radios de B2 y B3 (Papudo y Valparaíso)
-            const x = 55 + Math.sin(t) * 10;
-            const y = 200 + (t * 50) % 200; 
+            t += 0.004;
+            // Trayectoria serpenteante que cruza los radios B2 y B3 sobre el mapa
+            // Ajusta estos valores si el blanco se sale de tu mapa específico
+            const x = 60 + Math.sin(t * 1.5) * 8; // Movimiento horizontal
+            const y = 30 + (t * 40) % 60; // Movimiento vertical (de norte a sur)
             
             tgt.style.left = x + '%';
-            tgt.style.top = y + 'px';
+            tgt.style.top = y + '%';
 
-            // Coordenadas Reales (Transformación de coordenadas de pantalla a GPS)
-            const lat = (-31.9 - (y / 250)).toFixed(4);
-            const lon = (-71.5 - (x / 100)).toFixed(4);
+            // Simulación de Coordenadas Reales basadas en la posición en pantalla
+            // (Ajustadas para la latitud de la zona central de Chile)
+            const lat = (-31.5 - (y / 100) * 2.5).toFixed(4);
+            const lon = (-71.2 - (x / 100) * 0.8).toFixed(4);
             coords.innerText = `${lat}°S, ${lon}°W`;
             
             requestAnimationFrame(update);
