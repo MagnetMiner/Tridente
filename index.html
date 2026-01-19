@@ -6,42 +6,19 @@
     <title>TRIDENTE-1 | Tactical Precision Link</title>
     <style>
         :root { --glow: #00f2ff; --bg: #00080f; --alert: #ff0000; }
-        body { 
-            background-color: var(--bg); 
-            color: var(--glow); 
-            font-family: 'Consolas', monospace; 
-            margin: 0; 
-            padding: 0; 
-            overflow-x: hidden; 
-        }
+        body { background-color: var(--bg); color: var(--glow); font-family: 'Consolas', monospace; margin: 0; padding: 5px; overflow: hidden; }
+        .header { text-align: center; border-bottom: 2px solid var(--glow); padding: 5px; background: rgba(0,242,255,0.1); font-size: 12px; }
         
-        .header { 
-            text-align: center; 
-            border-bottom: 2px solid var(--glow); 
-            padding: 10px 5px; 
-            background: rgba(0,242,255,0.1); 
-            font-size: 11px;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
-
-        /* CONTENEDOR RESPONSIVE: Mantiene la proporción del mapa */
         .map-container { 
-            width: 100vw; 
-            height: calc(100vw * 1.4); /* Proporción 1:1.4 (Típica de mapa vertical) */
-            max-height: 80vh;
-            border-bottom: 1px solid #003344; 
-            position: relative; 
-            overflow: hidden;
+            width: 100%; height: 750px; 
+            border: 1px solid #003344; position: relative; overflow: hidden;
             background-image: url('mapa_real.jpg'); 
-            background-size: 100% 100%; /* FUERZA A QUE EL MAPA NO SE RECORTE */
-            background-position: center;
-            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: right center;
         }
 
-        .buoy { position: absolute; width: 8px; height: 8px; background: var(--glow); border-radius: 50%; border: 1px solid #fff; box-shadow: 0 0 10px var(--glow); z-index: 100; transform: translate(-50%, -50%); }
-        .buoy::after { content: attr(data-label); position: absolute; top: -18px; left: 0; font-size: 8px; font-weight: bold; background: rgba(0,0,0,0.8); padding: 1px 4px; border-radius: 2px; white-space: nowrap; }
+        .buoy { position: absolute; width: 10px; height: 10px; background: var(--glow); border-radius: 50%; border: 1px solid #fff; box-shadow: 0 0 10px var(--glow); z-index: 100; }
+        .buoy::after { content: attr(data-label); position: absolute; top: -18px; left: -10px; font-size: 10px; font-weight: bold; background: rgba(0,0,0,0.7); padding: 1px 4px; border-radius: 2px; white-space: nowrap; }
         
         .range { 
             position: absolute; border: 1px dashed rgba(0, 242, 255, 0.4); 
@@ -52,51 +29,35 @@
         .target { 
             position: absolute; width: 10px; height: 10px; background: var(--alert); 
             border-radius: 50%; box-shadow: 0 0 20px var(--alert); z-index: 150; border: 1px solid #fff;
-            opacity: 0; transition: opacity 0.5s; transform: translate(-50%, -50%);
+            opacity: 0; transition: opacity 1s ease-in-out;
         }
 
-        /* OVERLAY AJUSTADO PARA MÓVIL */
         .data-overlay { 
-            position: relative; 
-            width: 90%; 
-            margin: 10px auto;
-            background: rgba(0, 15, 30, 0.95); 
-            border: 1px solid var(--glow);
-            padding: 12px; 
-            font-size: 10px; 
-            z-index: 200; 
-            border-radius: 4px; 
-            border-left: 4px solid var(--glow);
-            box-sizing: border-box;
+            position: absolute; bottom: 10px; left: 10px; width: 310px;
+            background: rgba(0, 15, 30, 0.95); border: 1px solid var(--glow);
+            padding: 10px; font-size: 11px; z-index: 200; border-radius: 4px; border-left: 4px solid var(--glow);
         }
-
-        .disclaimer { color: #ff3333; font-weight: bold; font-size: 8px; margin-top: 5px; display: block; border-top: 1px solid #440000; padding-top: 5px; }
-        
-        @media (min-width: 768px) {
-            .map-container { height: 700px; width: 500px; margin: 0 auto; }
-            .data-overlay { position: absolute; bottom: 20px; left: 20px; width: 310px; }
-        }
-
+        .disclaimer { color: #ff3333; font-weight: bold; font-size: 9px; margin-top: 5px; display: block; border-top: 1px solid #440000; padding-top: 5px; }
         @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
     </style>
 </head>
 <body>
     <div class="header">
-        <strong>SISTEMA TRIDENTE-1</strong> | MONITORIZACIÓN TÁCTICA
+        <strong>SISTEMA TRIDENTE-1</strong> | MONITORIZACIÓN TÁCTICA EN TIEMPO REAL
     </div>
     
     <div id="main-map" class="map-container">
-        <div class="range" style="width: 140px; height: 140px; top: 18%; left: 60%;"></div>
-        <div class="buoy" data-label="B1-VILOS" style="top: 18%; left: 60%;"></div>
+        <div class="range" style="width: 170px; height: 170px; top: 18%; left: 60%;"></div>
+        <div class="buoy" data-label="B1-LOS_VILOS" style="top: 18%; left: 60%;"></div>
 
-        <div class="range" style="width: 140px; height: 140px; top: 38%; left: 60%;"></div>
+        <div class="range" style="width: 170px; height: 170px; top: 38%; left: 60%;"></div>
         <div class="buoy" data-label="B2-PAPUDO" style="top: 38%; left: 60%;"></div>
 
-        <div class="range" style="width: 140px; height: 140px; top: 56%; left: 54%;"></div>
-        <div class="buoy" data-label="B3-VALPO" style="top: 56%; left: 54%;"></div>
+        <div class="range" style="width: 170px; height: 170px; top: 56%; left: 54%;"></div>
+        <div class="buoy" data-label="B3-VALPARAISO" style="top: 56%; left: 54%;"></div>
 
-        <div class="range" style="width: 140px; height: 140px; top: 78%; left: 56%;"></div>
-        <div class="buoy" data-label="B4-S.ANTO" style="top: 78%; left: 56%;"></div>
+        <div class="range" style="width: 170px; height: 170px; top: 78%; left: 56%;"></div>
+        <div class="buoy" data-label="B4-SAN_ANTONIO" style="top: 78%; left: 56%;"></div>
 
         <div id="tgt" class="target"></div>
     </div>
@@ -107,7 +68,7 @@
         > ANÁLISIS: <span id="target-info">SCANNING SECTOR CENTRAL...</span><br>
         > POSICIÓN GPS: <span id="coords" style="color: #ffaa00;">---</span><br>
         > ALERTAS: <span id="alert-count">0 ACTIVAS</span>
-        <span class="disclaimer">* NOTA: VELOCIDAD EN MAPA ES REFERENCIAL PARA DEMOSTRACIÓN TÁCTICA.</span>
+        <span class="disclaimer">* NOTA: VELOCIDAD DE DESPLAZAMIENTO EN MAPA ES REFERENCIAL PARA FINES DE DEMOSTRACIÓN TÁCTICA.</span>
     </div>
 
     <script>
@@ -117,6 +78,7 @@
         const info = document.getElementById('target-info');
         const speedLabel = document.getElementById('target-speed');
         
+        // SINCRONIZACIÓN DE POSICIONES PARA DETECCIÓN
         const buoys = [
             { top: 18, left: 60 }, { top: 38, left: 60 },
             { top: 56, left: 54 }, { top: 78, left: 56 }
@@ -126,8 +88,8 @@
         function update() {
             t += 0.00035; 
             
-            // Ajustamos X para que intercepte los rangos en móvil
-            const x = 57 + Math.sin(t * 3) * 7; 
+            // TRAYECTORIA CRUZANDO LAS LÍNEAS DE 54% A 60%
+            const x = 57 + Math.sin(t * 3) * 6; 
             const y = (10 + (t * 40)) % 95; 
             
             tgt.style.left = x + '%';
@@ -137,7 +99,7 @@
             buoys.forEach(b => {
                 const dx = x - b.left;
                 const dy = y - b.top;
-                const dist = Math.sqrt(dx*dx + (dy*dy * 1.5)); // Compensación de aspecto
+                const dist = Math.sqrt(dx*dx + dy*dy);
                 if (dist < 9) detected = true; 
             });
 
@@ -145,8 +107,9 @@
                 tgt.style.opacity = '1';
                 status.innerHTML = '<span style="color: red; animation: blink 0.5s infinite;">¡ALERTA DE INCURSIÓN!</span>';
                 info.innerHTML = 'IDENTIFICADO: CONTACTO NO CATALOGADO';
-                speedLabel.innerHTML = '40.5 KTS (ESTIMADO)';
+                speedLabel.innerHTML = '32.4 KTS (ESTIMADO)';
                 speedLabel.style.color = 'red';
+                
                 const lat = (-31.5 - (y/100)*2.5).toFixed(4);
                 const lon = (-71.4 - (x/100)*0.8).toFixed(4);
                 coords.innerText = `${lat}°S, ${lon}°W`;
@@ -158,6 +121,7 @@
                 speedLabel.style.color = '#0f0';
                 coords.innerText = '---';
             }
+            
             requestAnimationFrame(update);
         }
         update();
