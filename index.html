@@ -3,105 +3,115 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ZORD S.p.A. - TRIDENTE-1 Coastal Surveillance</title>
+    <title>TRIDENTE-1 | High-Precision Tactical Link</title>
     <style>
-        body { background-color: #000b14; color: #00f2ff; font-family: 'Courier New', Courier, monospace; margin: 0; padding: 10px; overflow: hidden; }
-        .header { text-align: center; border-bottom: 1px solid #00f2ff; padding-bottom: 5px; margin-bottom: 10px; background: rgba(0, 242, 255, 0.05); }
+        :root { --glow: #00f2ff; --bg: #00080f; --alert: #ff0000; }
+        body { background-color: var(--bg); color: var(--glow); font-family: 'Consolas', monospace; margin: 0; padding: 10px; overflow: hidden; }
+        .header { text-align: center; border-bottom: 2px solid var(--glow); padding: 5px; margin-bottom: 10px; background: rgba(0,242,255,0.1); }
         
-        /* Contenedor del Mapa */
-        .tactical-map { 
-            width: 100%; height: 480px; 
-            border: 1px solid #004466; position: relative; 
-            background-color: #001a2b; /* Color del mar profundo */
+        /* Contenedor del Mapa con Relación de Aspecto Real */
+        .map-container { 
+            width: 100%; height: 550px; border: 1px solid #003344; position: relative;
+            background: linear-gradient(90deg, #00121d 0%, #001a2b 60%, #002b3d 100%);
             overflow: hidden;
         }
 
-        /* Representación de la Costa (Basada en tu imagen) */
+        /* Representación Real del Litoral Central */
         .coastline {
-            position: absolute; right: 0; top: 0; width: 40%; height: 100%;
-            background: #1a1a00; /* Color tierra oscura */
-            clip-path: polygon(20% 0%, 10% 10%, 25% 25%, 5% 40%, 15% 55%, 0% 70%, 15% 85%, 5% 100%, 100% 100%, 100% 0%);
-            border-left: 2px solid #33cc33;
-            box-shadow: -10px 0 20px rgba(0,0,0,0.5);
+            position: absolute; right: 0; top: 0; width: 45%; height: 100%;
+            background: #111; 
+            clip-path: polygon(30% 0%, 25% 10%, 45% 22%, 20% 35%, 35% 50%, 15% 65%, 40% 80%, 25% 90%, 35% 100%, 100% 100%, 100% 0%);
+            border-left: 2px solid #224400;
         }
 
-        /* Etiquetas de Ciudades */
-        .city-label { position: absolute; right: 10px; color: #fff; font-size: 9px; font-weight: bold; text-shadow: 1px 1px 2px #000; z-index: 100; }
-
-        /* Boyas: Posicionadas cerca de la costa */
-        .buoy-marker { position: absolute; width: 12px; height: 12px; background: #00f2ff; border-radius: 50%; box-shadow: 0 0 8px #00f2ff; z-index: 50; border: 1px solid #fff; }
-        .buoy-label { position: absolute; font-size: 8px; margin-top: -15px; margin-left: -5px; color: #00f2ff; font-weight: bold; }
-
-        /* Radio de Escucha: Ahora toca la costa */
-        .listen-radius { 
-            position: absolute; border: 1px solid rgba(0, 242, 255, 0.25); 
-            border-radius: 50%; background: radial-gradient(circle, rgba(0, 242, 255, 0.1) 0%, transparent 70%); 
-            z-index: 5; transform: translate(-50%, -50%);
+        /* Sistema de Boyas - Espaciado de 40km (Escalado) */
+        .buoy { position: absolute; width: 10px; height: 10px; background: var(--glow); border-radius: 50%; box-shadow: 0 0 15px var(--glow); z-index: 100; }
+        .buoy::after { content: attr(data-label); position: absolute; top: -18px; left: -10px; font-size: 10px; font-weight: bold; }
+        
+        /* Radios de Escucha (Interconectados) */
+        .range { 
+            position: absolute; border: 1px dashed rgba(0, 242, 255, 0.3); 
+            border-radius: 50%; background: radial-gradient(circle, rgba(0, 242, 255, 0.1) 0%, transparent 75%);
+            transform: translate(-50%, -50%); pointer-events: none;
         }
 
-        /* Blanco Oscuro (Enemigo) */
-        .target-marker { position: absolute; width: 8px; height: 8px; background: #ff0000; border-radius: 50%; box-shadow: 0 0 15px #ff0000; z-index: 60; animation: blink 0.6s infinite; }
+        /* Blanco Oscuro (Detección Positiva) */
+        .target { 
+            position: absolute; width: 8px; height: 8px; background: var(--alert); 
+            border-radius: 50%; box-shadow: 0 0 20px var(--alert); z-index: 150; 
+            animation: pulse 0.5s infinite alternate; 
+        }
 
-        .status-box { border: 1px solid #00f2ff; padding: 10px; font-size: 10px; margin-top: 10px; background: rgba(0, 50, 80, 0.6); border-radius: 4px; }
-        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.2; } 100% { opacity: 1; } }
+        .data-overlay { 
+            position: absolute; bottom: 10px; left: 10px; width: 320px;
+            background: rgba(0, 10, 20, 0.85); border: 1px solid var(--glow);
+            padding: 10px; font-size: 11px; z-index: 200; border-radius: 4px;
+        }
+
+        @keyframes pulse { from { transform: scale(1); opacity: 1; } to { transform: scale(1.5); opacity: 0.5; } }
+        .city { position: absolute; right: 10px; font-size: 10px; color: #aaa; font-weight: bold; }
     </style>
 </head>
 <body>
     <div class="header">
-        <strong>TRIDENTE-1: VIGILANCIA LITORAL SOBERANA</strong><br>
-        <small>ZORD S.p.A. | ENLACE TÁCTICO 2026</small>
+        <strong>TRIDENTE-1 | DEPLOYMENT: LITORAL CENTRAL</strong><br>
+        <small>ZORD S.p.A. - SOBERANÍA TECNOLÓGICA 2026</small>
     </div>
     
-    <div class="tactical-map">
+    <div class="map-container">
         <div class="coastline"></div>
         
-        <div class="city-label" style="top: 30px;">LOS VILOS</div>
-        <div class="city-label" style="top: 155px;">PAPUDO</div>
-        <div class="city-label" style="top: 235px;">VALPARAÍSO</div>
-        <div class="city-label" style="top: 360px;">SAN ANTONIO</div>
+        <div class="city" style="top: 20px;">LOS VILOS</div>
+        <div class="city" style="top: 180px;">PAPUDO</div>
+        <div class="city" style="top: 310px;">VALPARAÍSO</div>
+        <div class="city" style="top: 480px;">SAN ANTONIO</div>
 
-        <div class="listen-radius" style="width: 140px; height: 140px; top: 40px; left: 75%;"></div>
-        <div class="buoy-marker" style="top: 40px; left: 75%;"><span class="buoy-label">B1</span></div>
+        <div class="range" style="width: 220px; height: 220px; top: 50px; left: 70%;"></div>
+        <div class="buoy" data-label="B1-VILOS" style="top: 50px; left: 70%;"></div>
 
-        <div class="listen-radius" style="width: 140px; height: 140px; top: 165px; left: 82%;"></div>
-        <div class="buoy-marker" style="top: 165px; left: 82%;"><span class="buoy-label">B2</span></div>
+        <div class="range" style="width: 220px; height: 220px; top: 190px; left: 75%;"></div>
+        <div class="buoy" data-label="B2-PAPUDO" style="top: 190px; left: 75%;"></div>
 
-        <div class="listen-radius" style="width: 140px; height: 140px; top: 245px; left: 70%;"></div>
-        <div class="buoy-marker" style="top: 245px; left: 70%;"><span class="buoy-label">B3</span></div>
+        <div class="range" style="width: 220px; height: 220px; top: 330px; left: 68%;"></div>
+        <div class="buoy" data-label="B3-VALPO" style="top: 330px; left: 68%;"></div>
 
-        <div class="listen-radius" style="width: 140px; height: 140px; top: 370px; left: 78%;"></div>
-        <div class="buoy-marker" style="top: 370px; left: 78%;"><span class="buoy-label">B4</span></div>
+        <div class="range" style="width: 220px; height: 220px; top: 470px; left: 73%;"></div>
+        <div class="buoy" data-label="B4-SAN_ANTO" style="top: 470px; left: 73%;"></div>
 
-        <div id="target" class="target-marker"></div>
+        <div id="tgt" class="target"></div>
     </div>
 
-    <div class="status-box">
-        > SISTEMA: <span style="color: #0f0;">LISTO</span> | ALERTA: <span style="color: #f00;">INCURSIÓN DETECTADA</span><br>
-        > POSICIÓN TGT: <span id="gps-coord" style="color: #ff9900;">33°01'S 71°42'W</span><br>
-        > DISTANCIA A COSTA: <span id="dist-coast">12.4 NM</span><br>
-        > ANÁLISIS ACINT: POSIBLE NARCO-SUBMARINO / FIRMA DIESEL-ELÉCTRICA
+    <div class="data-overlay">
+        > RED: <span style="color: #0f0;">OPERATIVA (4 NODOS)</span><br>
+        > DISTANCIA INTER-NODO: 40.0 KM (CALIBRADO)<br>
+        > ALERTA: <span style="color: var(--alert);">BLANCO OSCURO DETECTADO</span><br>
+        > POSICIÓN: <span id="coords" style="color: #ffaa00;">-32.95, -71.85</span><br>
+        > FIRMA: MOTOR PESQUERO DE ALTA POTENCIA (NON-AIS)<br>
+        > ESCUCHA: TRIANGULACIÓN ACTIVA B2-B3
     </div>
 
     <script>
-        let target = document.getElementById('target');
-        let x = 40; let y = 200; // Posición inicial
-        
-        setInterval(() => {
-            // Movimiento hacia la costa (de izquierda a derecha)
-            x += 0.5;
-            y += (Math.random() - 0.5) * 4;
-            
-            if (x > 68) x = 20; // Reset si llega muy cerca de la costa
-            
-            target.style.left = x + "%";
-            target.style.top = y + "px";
+        const tgt = document.getElementById('tgt');
+        const coords = document.getElementById('coords');
+        let t = 0;
 
-            // GPS Dinámico (Valores realistas para la zona de Valparaíso)
-            let latMin = (1 + (y/100)).toFixed(2);
-            let lonMin = (42 - (x/5)).toFixed(2);
-            document.getElementById('gps-coord').innerHTML = `33°${latMin}'S 71°${lonMin}'W`;
-            document.getElementById('dist-coast').innerHTML = `${(70 - x).toFixed(1)} NM`;
-        }, 1000);
+        function update() {
+            t += 0.005;
+            // Trayectoria que cruza los radios de B2 y B3 (Papudo y Valparaíso)
+            const x = 55 + Math.sin(t) * 10;
+            const y = 200 + (t * 50) % 200; 
+            
+            tgt.style.left = x + '%';
+            tgt.style.top = y + 'px';
+
+            // Coordenadas Reales (Transformación de coordenadas de pantalla a GPS)
+            const lat = (-31.9 - (y / 250)).toFixed(4);
+            const lon = (-71.5 - (x / 100)).toFixed(4);
+            coords.innerText = `${lat}°S, ${lon}°W`;
+            
+            requestAnimationFrame(update);
+        }
+        update();
     </script>
 </body>
 </html>
