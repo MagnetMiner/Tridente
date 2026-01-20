@@ -4,129 +4,390 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ZORD S.p.A. | Monitor Táctico TRIDENTE</title>
-    
-    <!-- Librería Leaflet CSS (El estilo del mapa) -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-     crossorigin=""/>
-
     <style>
-        /* ESTILO TÁCTICO DE ALTA LEY */
-        body { 
-            margin: 0; 
-            padding: 0; 
-            background-color: #0d1117; /* Fondo oscuro estilo CIC */
+        /* ESTILO TÁCTICO MILITAR (CIC) */
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #050a10;
+            color: #00ffff;
             font-family: 'Courier New', Courier, monospace;
+            overflow: hidden;
+            display: flex;
+            height: 100vh;
+        }
+
+        /* PANEL LATERAL DE INTELIGENCIA */
+        #intel-panel {
+            width: 350px;
+            background: #0b121d;
+            border-right: 2px solid #004444;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 5px 0 15px rgba(0,0,0,0.5);
+            z-index: 10;
+        }
+
+        .header-box {
+            border-bottom: 1px solid #00ffff;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        h1 { margin: 0; font-size: 24px; letter-spacing: 2px; }
+        h2 { margin: 5px 0 0 0; font-size: 12px; color: #88aaaa; }
+
+        .data-block {
+            background: #001111;
+            border: 1px solid #004444;
+            padding: 10px;
+            margin-bottom: 15px;
+        }
+
+        .label { font-size: 10px; color: #008888; text-transform: uppercase; }
+        .value { font-size: 16px; font-weight: bold; color: #ccffff; }
+        .alert { color: #ff3333; animation: blink 1s infinite; }
+
+        #log-terminal {
+            flex-grow: 1;
+            background: black;
+            border: 1px solid #333;
+            padding: 10px;
+            font-size: 11px;
+            overflow-y: auto;
+            color: #00ff00;
+            font-family: Consolas, monospace;
+        }
+
+        /* MAPA TÁCTICO */
+        #map-container {
+            flex-grow: 1;
+            position: relative;
+            background: radial-gradient(circle at 80% 50%, #001a33 0%, #000810 100%);
+            overflow: hidden;
+        }
+
+        /* Grid del Mapa */
+        .grid-line {
+            position: absolute;
+            background: rgba(0, 255, 255, 0.05);
+        }
+        .grid-x { width: 100%; height: 1px; }
+        .grid-y { height: 100%; width: 1px; }
+
+        /* COSTA DE CHILE (Simplificada) */
+        .coastline {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 15%;
+            background: #1a1a1a;
+            border-left: 2px solid #005555;
+        }
+        .city-label {
+            position: absolute;
+            right: 10px;
+            color: #888;
+            font-size: 10px;
+            text-align: right;
+        }
+
+        /* BOYAS TRIDENTE */
+        .buoy {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #00ffff;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 10px #00ffff;
+            z-index: 5;
         }
         
-        /* IMPORTANTE: Esto soluciona la página en blanco. 
-           El mapa debe tener una altura definida. */
-        #map { 
-            height: 100vh; /* 100% del alto de la ventana */
-            width: 100%; 
-        }
-
-        /* Cuadro de Información Flotante */
-        .info-panel {
+        /* Anillos de Detección */
+        .radar-ring {
             position: absolute;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
-            background: rgba(0, 0, 0, 0.8);
-            color: #00ffff; /* Cian Táctico */
-            padding: 15px;
-            border: 1px solid #00ffff;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
-            max-width: 300px;
+            border: 1px dashed rgba(0, 255, 255, 0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
         }
 
-        h2 { margin: 0 0 10px 0; font-size: 18px; text-transform: uppercase; }
-        p { font-size: 12px; color: #cccccc; }
-        .status { color: #00ff00; font-weight: bold; }
+        /* BLANCO INTRUSO */
+        #target {
+            position: absolute;
+            width: 0; 
+            height: 0; 
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-bottom: 16px solid #ff3333;
+            transform: translate(-50%, -50%) rotate(-90deg);
+            display: none; /* Invisible al inicio */
+            filter: drop-shadow(0 0 5px red);
+            z-index: 6;
+        }
+
+        .target-trail {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: rgba(255, 50, 50, 0.5);
+            border-radius: 50%;
+        }
+
+        /* LINEAS DE TRIANGULACION */
+        .triangulation-line {
+            position: absolute;
+            height: 1px;
+            background: yellow;
+            transform-origin: 0 0;
+            opacity: 0;
+            z-index: 4;
+        }
+
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+        
+        button {
+            background: #003333;
+            color: #00ffff;
+            border: 1px solid #00ffff;
+            padding: 10px;
+            cursor: pointer;
+            margin-top: 10px;
+            font-family: inherit;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        button:hover { background: #00ffff; color: #000; }
+
     </style>
 </head>
 <body>
 
-    <!-- Panel de Estado -->
-    <div class="info-panel">
-        <h2>Proyecto Tridente</h2>
-        <p>Estado: <span class="status">OPERATIVO (SIM)</span></p>
-        <p>Red: Escudo Soberano Central (8 Nodos)</p>
-        <p>Cobertura: Pichidangui - Topocalma</p>
-        <hr style="border-color: #444;">
-        <p style="color: #00ffff;">■ Zona Identificación (35km)</p>
-        <p style="color: #FFD700;">-- Alerta Temprana (70km)</p>
+    <!-- PANEL DE DATOS -->
+    <div id="intel-panel">
+        <div class="header-box">
+            <h1>ZORD S.p.A.</h1>
+            <h2>SISTEMA TRIDENTE | DEFENSA ACÚSTICA</h2>
+        </div>
+
+        <div class="data-block">
+            <div class="label">ESTADO DE LA RED</div>
+            <div class="value" id="status-text" style="color:#00ff00;">ACTIVO - VIGILANCIA</div>
+        </div>
+
+        <div class="data-block">
+            <div class="label">DATOS DEL BLANCO (Z-FOLDING)</div>
+            <div id="target-data">
+                <div style="margin-top:5px;">ID: <span id="t-id">---</span></div>
+                <div>CLASE: <span id="t-class">---</span></div>
+                <div>RPM: <span id="t-rpm">---</span></div>
+                <div>VELOCIDAD: <span id="t-spd">0</span> kts</div>
+            </div>
+        </div>
+
+        <div class="data-block">
+            <div class="label">ENCRIPTACIÓN Z-SUSY</div>
+            <div class="value" style="font-size:12px;">PQC: <span id="pqc-status">SECURE</span></div>
+        </div>
+
+        <div id="log-terminal">
+            > SISTEMA INICIADO...<br>
+            > BOYAS T-01 A T-04 EN LÍNEA<br>
+            > FILTRO DIRAC: ACTIVADO<br>
+            > ESCANEANDO RUIDO DE FONDO...
+        </div>
+
+        <button onclick="startSimulation()">INICIAR SIMULACIÓN DE INTRUSIÓN</button>
     </div>
 
-    <!-- Contenedor del Mapa -->
-    <div id="map"></div>
+    <!-- MAPA TÁCTICO -->
+    <div id="map-container">
+        <!-- Grilla -->
+        <div class="grid-line grid-x" style="top:20%"></div>
+        <div class="grid-line grid-x" style="top:40%"></div>
+        <div class="grid-line grid-x" style="top:60%"></div>
+        <div class="grid-line grid-x" style="top:80%"></div>
+        <div class="grid-line grid-y" style="left:20%"></div>
+        <div class="grid-line grid-y" style="left:40%"></div>
+        <div class="grid-line grid-y" style="left:60%"></div>
+        <div class="grid-line grid-y" style="left:80%"></div>
 
-    <!-- Librería Leaflet JS (La lógica del mapa) -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-     crossorigin=""></script>
+        <!-- Costa -->
+        <div class="coastline">
+            <div class="city-label" style="top:15%">QUINTERO</div>
+            <div class="city-label" style="top:25%">CONCÓN</div>
+            <div class="city-label" style="top:35%">VALPARAÍSO</div>
+            <div class="city-label" style="top:45%">LAGUNA VERDE</div>
+            <div class="city-label" style="top:70%">SAN ANTONIO</div>
+        </div>
+
+        <!-- Boyas (Estaciones) -->
+        <div class="buoy" id="b1" style="top:25%; right:25%;"></div> <!-- Concón -->
+        <div class="radar-ring" style="top:25%; right:25%; width:150px; height:150px;"></div>
+        
+        <div class="buoy" id="b2" style="top:45%; right:22%;"></div> <!-- Valpo/Laguna -->
+        <div class="radar-ring" style="top:45%; right:22%; width:150px; height:150px;"></div>
+
+        <div class="buoy" id="b3" style="top:70%; right:28%;"></div> <!-- San Antonio -->
+        <div class="radar-ring" style="top:70%; right:28%; width:150px; height:150px;"></div>
+
+        <!-- Blanco -->
+        <div id="target"></div>
+
+        <!-- Líneas de Triangulación -->
+        <div id="line1" class="triangulation-line"></div>
+        <div id="line2" class="triangulation-line"></div>
+        <div id="line3" class="triangulation-line"></div>
+    </div>
 
     <script>
-        // 1. Inicializar el Mapa (Centrado en Valparaíso)
-        var map = L.map('map').setView([-33.100, -71.900], 8);
-
-        // 2. Capa Base Oscura (Estilo CartoDB Dark Matter para contraste táctico)
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; ZORD S.p.A. | OpenStreetMap | CARTO',
-            subdomains: 'abcd',
-            maxZoom: 19
-        }).addTo(map);
-
-        // 3. ESTRATEGIA: ESCUDO SOBERANO CENTRAL (8 NODOS)
-        var buoys = [
-            { name: "TRIDENTE-01 [Norte Profundo]", lat: -32.143, lon: -71.550, desc: "Sector Pichidangui - Alerta Temprana Norte" },
-            { name: "TRIDENTE-02 [Acceso Quintero]", lat: -32.707, lon: -71.520, desc: "Sector Horcón - Control Tráfico Hidrocarburos" },
-            { name: "TRIDENTE-03 [Defensa Concón]", lat: -32.923, lon: -71.580, desc: "Bahía de Concón - Protección Refinería" },
-            { name: "TRIDENTE-04 [Nodo Valparaíso]", lat: -33.018, lon: -71.650, desc: "Punta Ángeles - Control Puerto Principal" },
-            { name: "TRIDENTE-05 [Pivote Táctico]", lat: -33.110, lon: -71.750, desc: "Punta Curaumilla - Cobertura de Sombra Acústica" },
-            { name: "TRIDENTE-06 [Enlace Litoral]", lat: -33.360, lon: -71.710, desc: "Algarrobo Norte - Conexión Inter-Puertos" },
-            { name: "TRIDENTE-07 [Nodo San Antonio]", lat: -33.577, lon: -71.640, desc: "Punta Panul - Control Puerto Gran Escala" },
-            { name: "TRIDENTE-08 [Cierre Sur]", lat: -34.133, lon: -72.020, desc: "Punta Topocalma - Alerta Temprana Sur" }
+        let running = false;
+        const terminal = document.getElementById('log-terminal');
+        const target = document.getElementById('target');
+        const statusText = document.getElementById('status-text');
+        
+        // Coordenadas de las boyas (en % del contenedor)
+        const buoys = [
+            {id: 'b1', x: 75, y: 25},
+            {id: 'b2', x: 78, y: 45},
+            {id: 'b3', x: 72, y: 70}
         ];
 
-        // 4. Renderizado de Sensores
-        buoys.forEach(function(buoy) {
+        function log(msg) {
+            terminal.innerHTML += `> ${msg}<br>`;
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+
+        function startSimulation() {
+            if(running) return;
+            running = true;
+            log("INICIANDO PROTOCOLO DE SIMULACIÓN...");
             
-            // Marcador Central (Icono de la Boya)
-            L.circleMarker([buoy.lat, buoy.lon], {
-                color: '#00FFFF', // Cian Táctico
-                fillColor: '#FFFFFF',
-                fillOpacity: 1,
-                radius: 4
-            }).addTo(map).bindPopup("<strong style='color:#000'>" + buoy.name + "</strong><br>" + buoy.desc);
+            // Posición inicial del intruso (Mar adentro, Noroeste)
+            let tx = 10; 
+            let ty = 10;
+            let step = 0;
 
-            // Zona Primaria: Identificación ZFolding (35 km / ~19 MN)
-            L.circle([buoy.lat, buoy.lon], {
-                color: '#00FFFF',
-                fillColor: '#00FFFF',
-                fillOpacity: 0.08,
-                radius: 35000, 
-                weight: 1
-            }).addTo(map);
+            target.style.display = 'block';
+            target.style.left = tx + '%';
+            target.style.top = ty + '%';
 
-            // Zona Secundaria: Alerta Temprana Dirac (70 km / ~38 MN)
-            L.circle([buoy.lat, buoy.lon], {
-                color: '#FFD700', // Amarillo Alerta
-                fill: false,
-                dashArray: '5, 10', // Línea punteada
-                radius: 70000, 
-                weight: 1
-            }).addTo(map);
-        });
+            statusText.innerText = "ESCANEO ACTIVO";
+            statusText.style.color = "#00ff00";
 
-        // 5. Línea de Costa Simplificada (Referencia Visual)
-        var latlngs = [
-            [-32.143, -71.530], [-32.707, -71.500], [-32.923, -71.540], 
-            [-33.018, -71.620], [-33.577, -71.610], [-34.133, -71.990]
-        ];
-        L.polyline(latlngs, {color: 'gray', weight: 2, dashArray: '4'}).addTo(map);
+            const interval = setInterval(() => {
+                step++;
+                
+                // Movimiento del blanco (Hacia el sureste, hacia la costa)
+                tx += 0.4;
+                ty += 0.5;
+                
+                target.style.left = tx + '%';
+                target.style.top = ty + '%';
+                target.style.transform = `translate(-50%, -50%) rotate(135deg)`; // Rumbo SE
 
+                // Dibujar estela
+                if(step % 5 === 0) {
+                    let trail = document.createElement('div');
+                    trail.className = 'target-trail';
+                    trail.style.left = tx + '%';
+                    trail.style.top = ty + '%';
+                    document.getElementById('map-container').appendChild(trail);
+                    setTimeout(() => trail.remove(), 2000);
+                }
+
+                // DETECCION (Simulada por proximidad)
+                checkDetection(tx, ty, step, interval);
+
+                // Fin de simulación
+                if(ty > 90 || tx > 80) {
+                    clearInterval(interval);
+                    running = false;
+                    log("BLANCO SALIÓ DEL ÁREA. SIMULACIÓN TERMINADA.");
+                }
+
+            }, 100);
+        }
+
+        let detected = false;
+
+        function checkDetection(tx, ty, step, interval) {
+            // Calcular distancias a las boyas (Pitágoras simple en %)
+            let d1 = Math.sqrt(Math.pow(tx - buoys.x, 2) + Math.pow(ty - buoys.y, 2));
+            let d2 = Math.sqrt(Math.pow(tx - buoys[1].x, 2) + Math.pow(ty - buoys[1].y, 2));
+            let d3 = Math.sqrt(Math.pow(tx - buoys[2].x, 2) + Math.pow(ty - buoys[2].y, 2));
+
+            // Umbral de detección (Radio del círculo visual)
+            let detectionThreshold = 25; 
+
+            if ((d1 < detectionThreshold || d2 < detectionThreshold || d3 < detectionThreshold) && !detected) {
+                // PRIMERA DETECCION!
+                detected = true;
+                statusText.innerText = "!!! ALERTA DE INTRUSIÓN !!!";
+                statusText.className = "value alert"; // Parpadeo rojo
+                
+                log("ANOMALÍA DETECTADA EN SECTOR NORTE");
+                log("FILTRO DIRAC: ELIMINANDO RUIDO DE FONDO...");
+                
+                setTimeout(() => {
+                    log("ZFOLDING: FIRMA MECÁNICA CONFIRMADA");
+                    document.getElementById('t-id').innerText = "TGT-ALPHA-01";
+                    document.getElementById('t-class').innerText = "PESQUERO INDUSTRIAL";
+                    document.getElementById('t-class').style.color = "red";
+                    document.getElementById('t-rpm').innerText = "85 CONSTANTE";
+                    
+                    // Dibujar líneas de triangulación
+                    drawLine('line1', tx, ty, buoys.x, buoys.y);
+                    drawLine('line2', tx, ty, buoys[1].x, buoys[1].y);
+                }, 1000);
+            }
+
+            if (detected) {
+                // Actualizar velocidad simulada
+                document.getElementById('t-spd').innerText = (12 + Math.random()).toFixed(1);
+                
+                // Actualizar líneas dinámicas
+                updateLine('line1', tx, ty, buoys.x, buoys.y);
+                updateLine('line2', tx, ty, buoys[1].x, buoys[1].y);
+                if(d3 < detectionThreshold) updateLine('line3', tx, ty, buoys[2].x, buoys[2].y);
+            }
+        }
+
+        function drawLine(id, x1, y1, x2, y2) {
+            let line = document.getElementById(id);
+            line.style.opacity = 1;
+            updateLine(id, x1, y1, x2, y2);
+        }
+
+        function updateLine(id, x1, y1, x2, y2) {
+            let line = document.getElementById(id);
+            let length = Math.sqrt((x2-x1)**2 + (y2-y1)**2);
+            let angle = Math.atan2(y2-y1, x2-x1) * 180 / Math.PI;
+            
+            // Ajustar al contenedor (suponiendo aspect ratio, simplificado)
+            // Para precisión real se necesitaría getBoundingClientRect
+            // Aquí usamos % directos para la demo
+            
+            // Usamos JS para calcular pixeles reales para la rotación correcta
+            const mapW = document.getElementById('map-container').offsetWidth;
+            const mapH = document.getElementById('map-container').offsetHeight;
+            
+            let X1 = (x1/100)*mapW;
+            let Y1 = (y1/100)*mapH;
+            let X2 = (x2/100)*mapW;
+            let Y2 = (y2/100)*mapH;
+            
+            let dist = Math.sqrt((X2-X1)**2 + (Y2-Y1)**2);
+            let ang = Math.atan2(Y2-Y1, X2-X1) * 180 / Math.PI;
+
+            line.style.width = dist + 'px';
+            line.style.left = X1 + 'px';
+            line.style.top = Y1 + 'px';
+            line.style.transform = `rotate(${ang}deg)`;
+        }
     </script>
 </body>
 </html>
