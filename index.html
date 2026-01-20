@@ -3,391 +3,265 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ZORD S.p.A. | Monitor Táctico TRIDENTE</title>
+    <title>ZORD S.p.A. | Proyecto Tridente</title>
     <style>
-        /* ESTILO TÁCTICO MILITAR (CIC) */
+        :root {
+            --navy-dark: #021a2b;
+            --navy-light: #004e7c;
+            --accent-cyan: #00f2ff;
+            --text-grey: #b0c4de;
+            --alert-red: #ff3333;
+        }
+
         body {
             margin: 0;
             padding: 0;
-            background-color: #050a10;
-            color: #00ffff;
-            font-family: 'Courier New', Courier, monospace;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #000;
+            color: white;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: linear-gradient(135deg, var(--navy-dark) 0%, #000912 100%);
+            box-shadow: 0 0 50px rgba(0, 242, 255, 0.1);
+            min-height: 100vh;
+            border-left: 1px solid #333;
+            border-right: 1px solid #333;
+        }
+
+        /* HEADER */
+        header {
+            padding: 40px;
+            border-bottom: 2px solid var(--accent-cyan);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            color: white;
+        }
+
+        .logo span { color: var(--accent-cyan); }
+
+        .classification {
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: var(--alert-red);
+            border: 1px solid var(--alert-red);
+            padding: 5px 10px;
+            letter-spacing: 1px;
+        }
+
+        /* HERO SECTION */
+        .hero {
+            padding: 60px 40px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 48px;
+            text-transform: uppercase;
+            margin: 0;
+            letter-spacing: 2px;
+            background: linear-gradient(to right, #fff, #b0c4de);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .tagline {
+            font-size: 18px;
+            color: var(--accent-cyan);
+            margin-top: 10px;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+        }
+
+        /* IMAGE PLACEHOLDER */
+        .image-placeholder {
+            width: 100%;
+            height: 350px;
+            background: radial-gradient(circle, #002b45 0%, #000 100%);
+            margin: 30px 0;
+            border-top: 1px solid var(--navy-light);
+            border-bottom: 1px solid var(--navy-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
             overflow: hidden;
-            display: flex;
-            height: 100vh;
         }
 
-        /* PANEL LATERAL DE INTELIGENCIA */
-        #intel-panel {
-            width: 350px;
-            background: #0b121d;
-            border-right: 2px solid #004444;
+        .grid-overlay {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: linear-gradient(rgba(0, 242, 255, 0.1) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0, 242, 255, 0.1) 1px, transparent 1px);
+            background-size: 40px 40px;
+            opacity: 0.3;
+        }
+
+        .placeholder-text {
+            color: var(--accent-cyan);
+            font-family: 'Courier New', monospace;
+            border: 1px dashed var(--accent-cyan);
             padding: 20px;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 5px 0 15px rgba(0,0,0,0.5);
-            z-index: 10;
+            background: rgba(0,0,0,0.5);
+            z-index: 2;
         }
 
-        .header-box {
-            border-bottom: 1px solid #00ffff;
+        /* CONTENT GRID */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            padding: 40px;
+        }
+
+        .section-title {
+            font-size: 14px;
+            color: var(--accent-cyan);
+            text-transform: uppercase;
+            border-bottom: 1px solid #333;
             padding-bottom: 10px;
             margin-bottom: 20px;
+            letter-spacing: 1px;
         }
 
-        h1 { margin: 0; font-size: 24px; letter-spacing: 2px; }
-        h2 { margin: 5px 0 0 0; font-size: 12px; color: #88aaaa; }
+        p { color: var(--text-grey); font-size: 15px; margin-bottom: 20px; }
 
-        .data-block {
-            background: #001111;
-            border: 1px solid #004444;
-            padding: 10px;
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .feature-list li {
             margin-bottom: 15px;
-        }
-
-        .label { font-size: 10px; color: #008888; text-transform: uppercase; }
-        .value { font-size: 16px; font-weight: bold; color: #ccffff; }
-        .alert { color: #ff3333; animation: blink 1s infinite; }
-
-        #log-terminal {
-            flex-grow: 1;
-            background: black;
-            border: 1px solid #333;
-            padding: 10px;
-            font-size: 11px;
-            overflow-y: auto;
-            color: #00ff00;
-            font-family: Consolas, monospace;
-        }
-
-        /* MAPA TÁCTICO */
-        #map-container {
-            flex-grow: 1;
+            padding-left: 20px;
             position: relative;
-            background: radial-gradient(circle at 80% 50%, #001a33 0%, #000810 100%);
-            overflow: hidden;
+            color: white;
         }
 
-        /* Grid del Mapa */
-        .grid-line {
+        .feature-list li::before {
+            content: "►";
+            color: var(--accent-cyan);
             position: absolute;
-            background: rgba(0, 255, 255, 0.05);
-        }
-        .grid-x { width: 100%; height: 1px; }
-        .grid-y { height: 100%; width: 1px; }
-
-        /* COSTA DE CHILE (Simplificada) */
-        .coastline {
-            position: absolute;
-            right: 0;
-            top: 0;
-            bottom: 0;
-            width: 15%;
-            background: #1a1a1a;
-            border-left: 2px solid #005555;
-        }
-        .city-label {
-            position: absolute;
-            right: 10px;
-            color: #888;
+            left: 0;
             font-size: 10px;
-            text-align: right;
+            top: 4px;
         }
 
-        /* BOYAS TRIDENTE */
-        .buoy {
-            position: absolute;
-            width: 10px;
-            height: 10px;
-            background: #00ffff;
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            box-shadow: 0 0 10px #00ffff;
-            z-index: 5;
-        }
-        
-        /* Anillos de Detección */
-        .radar-ring {
-            position: absolute;
-            border: 1px dashed rgba(0, 255, 255, 0.3);
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            pointer-events: none;
+        /* TECH BOX */
+        .tech-box {
+            background: rgba(255,255,255,0.03);
+            padding: 20px;
+            border-left: 3px solid var(--accent-cyan);
+            margin-top: 20px;
         }
 
-        /* BLANCO INTRUSO */
-        #target {
-            position: absolute;
-            width: 0; 
-            height: 0; 
-            border-left: 8px solid transparent;
-            border-right: 8px solid transparent;
-            border-bottom: 16px solid #ff3333;
-            transform: translate(-50%, -50%) rotate(-90deg);
-            display: none; /* Invisible al inicio */
-            filter: drop-shadow(0 0 5px red);
-            z-index: 6;
-        }
-
-        .target-trail {
-            position: absolute;
-            width: 2px;
-            height: 2px;
-            background: rgba(255, 50, 50, 0.5);
-            border-radius: 50%;
-        }
-
-        /* LINEAS DE TRIANGULACION */
-        .triangulation-line {
-            position: absolute;
-            height: 1px;
-            background: yellow;
-            transform-origin: 0 0;
-            opacity: 0;
-            z-index: 4;
-        }
-
-        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
-        
-        button {
-            background: #003333;
-            color: #00ffff;
-            border: 1px solid #00ffff;
-            padding: 10px;
-            cursor: pointer;
-            margin-top: 10px;
-            font-family: inherit;
+        .tech-title {
+            color: white;
             font-weight: bold;
-            transition: all 0.3s;
+            margin-bottom: 10px;
+            display: block;
         }
-        button:hover { background: #00ffff; color: #000; }
+
+        /* FOOTER */
+        footer {
+            text-align: center;
+            padding: 40px;
+            border-top: 1px solid #333;
+            color: #555;
+            font-size: 12px;
+        }
+
+        .contact-btn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 30px;
+            background: transparent;
+            border: 1px solid var(--accent-cyan);
+            color: var(--accent-cyan);
+            text-decoration: none;
+            text-transform: uppercase;
+            font-weight: bold;
+            font-size: 12px;
+            letter-spacing: 2px;
+            transition: 0.3s;
+        }
+
+        .contact-btn:hover {
+            background: var(--accent-cyan);
+            color: black;
+        }
 
     </style>
 </head>
 <body>
 
-    <!-- PANEL DE DATOS -->
-    <div id="intel-panel">
-        <div class="header-box">
-            <h1>ZORD S.p.A.</h1>
-            <h2>SISTEMA TRIDENTE | DEFENSA ACÚSTICA</h2>
+    <div class="container">
+        <!-- HEADER -->
+        <header>
+            <div class="logo">ZORD <span>S.p.A.</span></div>
+            <div class="classification">SOLO OJOS OFICIALES</div>
+        </header>
+
+        <!-- HERO -->
+        <div class="hero">
+            <h1>PROYECTO TRIDENTE</h1>
+            <div class="tagline">EL QUE DOMINA EL SONIDO, DOMINA EL MAR</div>
         </div>
 
-        <div class="data-block">
-            <div class="label">ESTADO DE LA RED</div>
-            <div class="value" id="status-text" style="color:#00ff00;">ACTIVO - VIGILANCIA</div>
+        <!-- IMAGE AREA -->
+        <div class="image-placeholder">
+            <div class="grid-overlay"></div>
+            <!-- AQUÍ IRÍA TU RENDER DE LA BOYA O DEL MAPA TÁCTICO -->
+            <div class="placeholder-text">[ ESPACIO PARA RENDER DE BOYA TRIDENTE O MAPA TÁCTICO ]</div>
         </div>
 
-        <div class="data-block">
-            <div class="label">DATOS DEL BLANCO (Z-FOLDING)</div>
-            <div id="target-data">
-                <div style="margin-top:5px;">ID: <span id="t-id">---</span></div>
-                <div>CLASE: <span id="t-class">---</span></div>
-                <div>RPM: <span id="t-rpm">---</span></div>
-                <div>VELOCIDAD: <span id="t-spd">0</span> kts</div>
+        <!-- CONTENT -->
+        <div class="content-grid">
+            
+            <!-- COLUMNA IZQUIERDA: EL PROBLEMA Y LA SOLUCIÓN -->
+            <div class="col-left">
+                <div class="section-title">01. EL DESAFÍO</div>
+                <p>Las amenazas modernas operan en silencio. Pesqueros ilegales, narcotráfico y naves no autorizadas apagan sus sistemas AIS (GPS) para volverse "Blancos Oscuros", invisibles al radar costero tradicional más allá del horizonte.</p>
+                
+                <div class="section-title" style="margin-top: 40px;">02. LA SOLUCIÓN: ESCUDO ACÚSTICO</div>
+                <p>Desplegamos una red de boyas inteligentes que forman una cortina auditiva en la costa. No miramos el mar; lo escuchamos. Si un motor se enciende en nuestras aguas, el sistema lo detecta, lo clasifica y alerta al Centro de Mando antes de que sea visible.</p>
+            </div>
+
+            <!-- COLUMNA DERECHA: TECNOLOGÍA Y ALIANZA -->
+            <div class="col-right">
+                <div class="section-title">03. TECNOLOGÍA SOBERANA (EL CEREBRO)</div>
+                <p>El corazón del sistema es la IA propietaria de Zord S.p.A., diseñada para operar en el ruidoso mar chileno:</p>
+                <ul class="feature-list">
+                    <li><strong>Limpieza Espectral:</strong> Filtra el ruido de olas y fauna marina automáticamente.</li>
+                    <li><strong>Identificación de Firma:</strong> Analiza el ritmo del motor (RPM) para distinguir entre un pesquero, un mercante o una lancha rápida.</li>
+                    <li><strong>Seguridad Total:</strong> Transmisión de datos blindada con <strong>Criptografía Post-Cuántica</strong> (PQC).</li>
+                </ul>
+
+                <div class="tech-box">
+                    <span class="tech-title">ALIANZA ESTRATÉGICA (EL CUERPO)</span>
+                    <p style="margin:0; font-size: 13px;">Combinamos la ingeniería naval de <strong>ASMAR</strong> (fabricación de cascos de titanio resistentes al biofouling) con la inteligencia digital de <strong>ZORD</strong>. Tecnología hecha en Chile, para proteger a Chile.</p>
+                </div>
             </div>
         </div>
 
-        <div class="data-block">
-            <div class="label">ENCRIPTACIÓN Z-SUSY</div>
-            <div class="value" style="font-size:12px;">PQC: <span id="pqc-status">SECURE</span></div>
-        </div>
-
-        <div id="log-terminal">
-            > SISTEMA INICIADO...<br>
-            > BOYAS T-01 A T-04 EN LÍNEA<br>
-            > FILTRO DIRAC: ACTIVADO<br>
-            > ESCANEANDO RUIDO DE FONDO...
-        </div>
-
-        <button onclick="startSimulation()">INICIAR SIMULACIÓN DE INTRUSIÓN</button>
+        <!-- FOOTER -->
+        <footer>
+            <p>ZORD S.p.A. | TECNOLOGÍA DE DEFENSA NACIONAL</p>
+            <p>Documento Confidencial - Prohibida su difusión no autorizada</p>
+            <a href="#" class="contact-btn">SOLICITAR DEMOSTRACIÓN TÁCTICA</a>
+        </footer>
     </div>
 
-    <!-- MAPA TÁCTICO -->
-    <div id="map-container">
-        <!-- Grilla -->
-        <div class="grid-line grid-x" style="top:20%"></div>
-        <div class="grid-line grid-x" style="top:40%"></div>
-        <div class="grid-line grid-x" style="top:60%"></div>
-        <div class="grid-line grid-x" style="top:80%"></div>
-        <div class="grid-line grid-y" style="left:20%"></div>
-        <div class="grid-line grid-y" style="left:40%"></div>
-        <div class="grid-line grid-y" style="left:60%"></div>
-        <div class="grid-line grid-y" style="left:80%"></div>
-
-        <!-- Costa -->
-        <div class="coastline">
-            <div class="city-label" style="top:15%">QUINTERO</div>
-            <div class="city-label" style="top:25%">CONCÓN</div>
-            <div class="city-label" style="top:35%">VALPARAÍSO</div>
-            <div class="city-label" style="top:45%">LAGUNA VERDE</div>
-            <div class="city-label" style="top:70%">SAN ANTONIO</div>
-        </div>
-
-        <!-- Boyas (Estaciones) -->
-        <div class="buoy" id="b1" style="top:25%; right:25%;"></div> <!-- Concón -->
-        <div class="radar-ring" style="top:25%; right:25%; width:150px; height:150px;"></div>
-        
-        <div class="buoy" id="b2" style="top:45%; right:22%;"></div> <!-- Valpo/Laguna -->
-        <div class="radar-ring" style="top:45%; right:22%; width:150px; height:150px;"></div>
-
-        <div class="buoy" id="b3" style="top:70%; right:28%;"></div> <!-- San Antonio -->
-        <div class="radar-ring" style="top:70%; right:28%; width:150px; height:150px;"></div>
-
-        <!-- Blanco -->
-        <div id="target"></div>
-
-        <!-- Líneas de Triangulación -->
-        <div id="line1" class="triangulation-line"></div>
-        <div id="line2" class="triangulation-line"></div>
-        <div id="line3" class="triangulation-line"></div>
-    </div>
-
-    <script>
-        let running = false;
-        const terminal = document.getElementById('log-terminal');
-        const target = document.getElementById('target');
-        const statusText = document.getElementById('status-text');
-        
-        // Coordenadas de las boyas (en % del contenedor)
-        const buoys = [
-            {id: 'b1', x: 75, y: 25},
-            {id: 'b2', x: 78, y: 45},
-            {id: 'b3', x: 72, y: 70}
-        ];
-
-        function log(msg) {
-            terminal.innerHTML += `> ${msg}<br>`;
-            terminal.scrollTop = terminal.scrollHeight;
-        }
-
-        function startSimulation() {
-            if(running) return;
-            running = true;
-            log("INICIANDO PROTOCOLO DE SIMULACIÓN...");
-            
-            // Posición inicial del intruso (Mar adentro, Noroeste)
-            let tx = 10; 
-            let ty = 10;
-            let step = 0;
-
-            target.style.display = 'block';
-            target.style.left = tx + '%';
-            target.style.top = ty + '%';
-
-            statusText.innerText = "ESCANEO ACTIVO";
-            statusText.style.color = "#00ff00";
-
-            const interval = setInterval(() => {
-                step++;
-                
-                // Movimiento del blanco (Hacia el sureste, hacia la costa)
-                tx += 0.4;
-                ty += 0.5;
-                
-                target.style.left = tx + '%';
-                target.style.top = ty + '%';
-                target.style.transform = `translate(-50%, -50%) rotate(135deg)`; // Rumbo SE
-
-                // Dibujar estela
-                if(step % 5 === 0) {
-                    let trail = document.createElement('div');
-                    trail.className = 'target-trail';
-                    trail.style.left = tx + '%';
-                    trail.style.top = ty + '%';
-                    document.getElementById('map-container').appendChild(trail);
-                    setTimeout(() => trail.remove(), 2000);
-                }
-
-                // DETECCION (Simulada por proximidad)
-                checkDetection(tx, ty, step, interval);
-
-                // Fin de simulación
-                if(ty > 90 || tx > 80) {
-                    clearInterval(interval);
-                    running = false;
-                    log("BLANCO SALIÓ DEL ÁREA. SIMULACIÓN TERMINADA.");
-                }
-
-            }, 100);
-        }
-
-        let detected = false;
-
-        function checkDetection(tx, ty, step, interval) {
-            // Calcular distancias a las boyas (Pitágoras simple en %)
-            let d1 = Math.sqrt(Math.pow(tx - buoys.x, 2) + Math.pow(ty - buoys.y, 2));
-            let d2 = Math.sqrt(Math.pow(tx - buoys[1].x, 2) + Math.pow(ty - buoys[1].y, 2));
-            let d3 = Math.sqrt(Math.pow(tx - buoys[2].x, 2) + Math.pow(ty - buoys[2].y, 2));
-
-            // Umbral de detección (Radio del círculo visual)
-            let detectionThreshold = 25; 
-
-            if ((d1 < detectionThreshold || d2 < detectionThreshold || d3 < detectionThreshold) && !detected) {
-                // PRIMERA DETECCION!
-                detected = true;
-                statusText.innerText = "!!! ALERTA DE INTRUSIÓN !!!";
-                statusText.className = "value alert"; // Parpadeo rojo
-                
-                log("ANOMALÍA DETECTADA EN SECTOR NORTE");
-                log("FILTRO DIRAC: ELIMINANDO RUIDO DE FONDO...");
-                
-                setTimeout(() => {
-                    log("ZFOLDING: FIRMA MECÁNICA CONFIRMADA");
-                    document.getElementById('t-id').innerText = "TGT-ALPHA-01";
-                    document.getElementById('t-class').innerText = "PESQUERO INDUSTRIAL";
-                    document.getElementById('t-class').style.color = "red";
-                    document.getElementById('t-rpm').innerText = "85 CONSTANTE";
-                    
-                    // Dibujar líneas de triangulación
-                    drawLine('line1', tx, ty, buoys.x, buoys.y);
-                    drawLine('line2', tx, ty, buoys[1].x, buoys[1].y);
-                }, 1000);
-            }
-
-            if (detected) {
-                // Actualizar velocidad simulada
-                document.getElementById('t-spd').innerText = (12 + Math.random()).toFixed(1);
-                
-                // Actualizar líneas dinámicas
-                updateLine('line1', tx, ty, buoys.x, buoys.y);
-                updateLine('line2', tx, ty, buoys[1].x, buoys[1].y);
-                if(d3 < detectionThreshold) updateLine('line3', tx, ty, buoys[2].x, buoys[2].y);
-            }
-        }
-
-        function drawLine(id, x1, y1, x2, y2) {
-            let line = document.getElementById(id);
-            line.style.opacity = 1;
-            updateLine(id, x1, y1, x2, y2);
-        }
-
-        function updateLine(id, x1, y1, x2, y2) {
-            let line = document.getElementById(id);
-            let length = Math.sqrt((x2-x1)**2 + (y2-y1)**2);
-            let angle = Math.atan2(y2-y1, x2-x1) * 180 / Math.PI;
-            
-            // Ajustar al contenedor (suponiendo aspect ratio, simplificado)
-            // Para precisión real se necesitaría getBoundingClientRect
-            // Aquí usamos % directos para la demo
-            
-            // Usamos JS para calcular pixeles reales para la rotación correcta
-            const mapW = document.getElementById('map-container').offsetWidth;
-            const mapH = document.getElementById('map-container').offsetHeight;
-            
-            let X1 = (x1/100)*mapW;
-            let Y1 = (y1/100)*mapH;
-            let X2 = (x2/100)*mapW;
-            let Y2 = (y2/100)*mapH;
-            
-            let dist = Math.sqrt((X2-X1)**2 + (Y2-Y1)**2);
-            let ang = Math.atan2(Y2-Y1, X2-X1) * 180 / Math.PI;
-
-            line.style.width = dist + 'px';
-            line.style.left = X1 + 'px';
-            line.style.top = Y1 + 'px';
-            line.style.transform = `rotate(${ang}deg)`;
-        }
-    </script>
 </body>
 </html>
