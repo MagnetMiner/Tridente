@@ -3,308 +3,264 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ZORD S.p.A. | CIC TRIDENTE v4.0</title>
-    
-    <!-- Librería Leaflet (Mapas Tácticos) -->
+    <title>ZORD S.p.A. | CIC TRIDENTE v2.0</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <style>
-        /* ESTILO MILITAR / DARK MODE */
         body { margin: 0; padding: 0; background: #020406; font-family: 'Courier New', monospace; overflow: hidden; }
-        
         #map { height: 100vh; width: 100%; z-index: 1; background: #0b0f14; }
 
-        /* HUD TÁCTICO LATERAL */
+        /* HUD TÁCTICO */
         #hud {
             position: absolute;
-            top: 20px; left: 20px; width: 340px;
-            background: rgba(5, 10, 15, 0.95);
+            top: 20px;
+            left: 20px;
+            width: 350px;
+            background: rgba(8, 12, 16, 0.95);
             border: 1px solid #005555;
-            border-left: 4px solid #00ffff; /* Cian Zord */
+            border-left: 4px solid #00ffff;
             padding: 20px;
             z-index: 1000;
             color: #ccffff;
-            box-shadow: 0 0 25px rgba(0, 255, 255, 0.15);
-            backdrop-filter: blur(5px);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.1);
         }
 
-        h1 { margin: 0 0 5px 0; font-size: 20px; color: #00ffff; letter-spacing: 2px; text-shadow: 0 0 10px rgba(0, 255, 255, 0.5); }
+        h1 { margin: 0 0 5px 0; font-size: 18px; color: #00ffff; letter-spacing: 2px; }
         h2 { margin: 0 0 15px 0; font-size: 11px; color: #668888; text-transform: uppercase; border-bottom: 1px solid #334444; padding-bottom: 5px;}
 
-        /* BLOQUES DE DATOS */
-        .data-block { margin-bottom: 10px; background: rgba(0, 255, 255, 0.05); padding: 8px; border-radius: 4px; }
-        .label { font-size: 10px; color: #55aaaa; display: block; margin-bottom: 2px; }
-        .value { font-size: 14px; font-weight: bold; color: #fff; letter-spacing: 1px; }
+        .stat-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px; }
+        .stat-val { font-weight: bold; color: #fff; }
+        .alert { color: #ff3333; animation: flash 1s infinite; font-weight: bold; }
+        .warning { color: #ffd700; }
         
-        .alert { color: #ff3333; animation: flash 0.5s infinite; }
-        .safe { color: #00ff00; }
-        .sub { color: #ff00ff; } /* Magenta para Submarinos */
+        .zone-legend { display: flex; align-items: center; margin-top: 5px; font-size: 10px; color: #88aaaa; }
+        .dot { width: 8px; height: 8px; border-radius: 50%; margin-right: 8px; display: inline-block; }
 
-        /* BOTÓN DE ACCIÓN */
         button {
-            width: 100%; background: #002a3a; color: #00ffff; border: 1px solid #00ffff;
-            padding: 12px; cursor: pointer; margin-top: 15px; font-family: inherit; font-weight: bold; text-transform: uppercase;
+            width: 100%;
+            background: #002a3a;
+            color: #00ffff;
+            border: 1px solid #00ffff;
+            padding: 10px;
+            cursor: pointer;
+            margin-top: 15px;
+            font-family: inherit;
+            font-weight: bold;
+            text-transform: uppercase;
             transition: all 0.3s;
         }
-        button:hover { background: #00ffff; color: #000; box-shadow: 0 0 20px #00ffff; }
+        button:hover { background: #00ffff; color: #000; box-shadow: 0 0 15px #00ffff; }
 
         @keyframes flash { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
-
-        /* Estilos Mapa */
-        .buoy-label { background: none; border: none; color: #00ffff; font-weight: bold; text-shadow: 0 0 3px #000; font-size: 10px; }
+        .buoy-label { background: none; border: none; color: #00ffff; font-weight: bold; text-shadow: 0 0 3px #000; font-family: monospace; font-size: 10px; }
     </style>
 </head>
 <body>
 
     <div id="hud">
-        <h1>PROYECTO TRIDENTE</h1>
-        <h2>SISTEMA DE VIGILANCIA ZEE | ZORD S.p.A.</h2>
+        <h1>ZORD TRIDENTE</h1>
+        <h2>MATRIZ ZIGZAG | DEFENSA EN PROFUNDIDAD</h2>
 
-        <!-- ESTADO DE RED -->
-        <div class="data-block">
-            <span class="label">ESTADO DEL ESCUDO</span>
-            <span class="value safe" id="net-status">ACTIVO - ESCANEO</span>
+        <div class="stat-row">
+            <span>SISTEMA:</span> <span class="stat-val" style="color:#00ff00">NOMINAL</span>
+        </div>
+        <div class="stat-row">
+            <span>MODO:</span> <span class="stat-val">ACÚSTICO PASIVO</span>
+        </div>
+        
+        <hr style="border-color: #004444; margin: 15px 0;">
+        
+        <div class="stat-row">
+            <span>CONTACTO ID:</span> <span class="stat-val" id="tgt-id">---</span>
+        </div>
+        <div class="stat-row">
+            <span>COORD GPS:</span> <span class="stat-val" id="tgt-coords">---</span>
+        </div>
+        <div class="stat-row">
+            <span>RUMBO (HDG):</span> <span class="stat-val" id="tgt-hdg">---</span>
+        </div>
+        <div class="stat-row">
+            <span>VELOCIDAD:</span> <span class="stat-val" id="tgt-spd">---</span>
+        </div>
+        <div class="stat-row">
+            <span>ESTADO:</span> <span class="stat-val" id="tgt-depth">---</span>
+        </div>
+        <div class="stat-row">
+            <span>CONFIANZA:</span> <span class="stat-val" id="tgt-conf">0%</span>
+        </div>
+        
+        <hr style="border-color: #004444; margin: 15px 0;">
+
+        <div class="stat-row">
+            <span>TRIANGULACIÓN:</span> <span class="stat-val" id="tgt-lock">ESPERANDO...</span>
+        </div>
+        <div class="stat-row">
+            <span>CLASIFICACIÓN:</span> <span class="stat-val" id="tgt-class">---</span>
         </div>
 
-        <!-- DATOS DEL BLANCO (TMA) -->
-        <div style="border-top: 1px dashed #335555; margin: 15px 0; padding-top: 10px;">
-            <div class="data-block">
-                <span class="label">IDENTIFICACIÓN (ZFOLDING)</span>
-                <span class="value" id="tgt-id">---</span>
-            </div>
-            
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <div class="data-block">
-                    <span class="label">POSICIÓN (GPS)</span>
-                    <span class="value" id="tgt-pos" style="font-size: 11px;">---</span>
-                </div>
-                <div class="data-block">
-                    <span class="label">DOMINIO</span>
-                    <span class="value" id="tgt-dom">---</span>
-                </div>
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <div class="data-block">
-                    <span class="label">VELOCIDAD</span>
-                    <span class="value" id="tgt-spd">0 kts</span>
-                </div>
-                <div class="data-block">
-                    <span class="label">RUMBO (HDG)</span>
-                    <span class="value" id="tgt-hdg">000°</span>
-                </div>
-            </div>
-        </div>
-
-        <div style="font-size: 10px; color: #446666; margin-top: 10px;">
-            * DATOS ENCRIPTADOS PQC (Z-SUSY)
-        </div>
-
-        <button onclick="startSimulation()">INICIAR INCURSIÓN</button>
+        <button onclick="startSimulation()">INICIAR SIMULACIÓN DE INCURSIÓN</button>
+        
+        <div class="zone-legend"><span class="dot" style="background:#00ffff; opacity:0.3"></span> ZONA PRIMARIA (ID) - 35KM</div>
+        <div class="zone-legend"><span class="dot" style="border:1px dashed #ffd700"></span> ZONA SECUNDARIA (ALERTA) - 70KM</div>
     </div>
 
     <div id="map"></div>
 
     <script>
-        // 1. CONFIGURACIÓN DEL MAPA TÁCTICO
-        const map = L.map('map', { zoomControl: false, attributionControl: false })
-            .setView([-32.800, -72.100], 9);
+        // 1. INICIALIZAR MAPA
+        const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([-32.800, -72.200], 8);
 
-        // Capa Oscura (CartoDB Dark Matter)
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            maxZoom: 19, opacity: 0.9
-        }).addTo(map);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19, opacity: 0.9 }).addTo(map);
 
-        // Límite de Costa (Aproximado para evitar varamiento visual)
-        const COAST_LIMIT_LON = -71.56; 
-
-        // 2. DESPLIEGUE DE BOYAS (ESTRATEGIA ZIGZAG 40/80KM)
+        // 2. CONFIGURACIÓN ESTRATÉGICA ZIGZAG
         const buoys = [
-            { id: "T-01 [EXT]", lat: -32.30, lon: -72.40, desc: "Papudo Profundo" },
-            { id: "T-02 [INT]", lat: -32.60, lon: -71.85, desc: "Quintero Costero" },
-            { id: "T-03 [EXT]", lat: -32.90, lon: -72.45, desc: "Valparaíso Profundo" },
-            { id: "T-04 [INT]", lat: -33.20, lon: -71.90, desc: "Curaumilla Costero" },
-            { id: "T-05 [EXT]", lat: -33.50, lon: -72.50, desc: "San Antonio Profundo" },
-            { id: "T-06 [INT]", lat: -33.80, lon: -71.95, desc: "Navidad Costero" }
+            { id: "T-01 (EXT)", lat: -32.00, lon: -72.40 },
+            { id: "T-02 (INT)", lat: -32.30, lon: -71.95 },
+            { id: "T-03 (EXT)", lat: -32.60, lon: -72.45 },
+            { id: "T-04 (INT)", lat: -32.90, lon: -72.00 },
+            { id: "T-05 (EXT)", lat: -33.20, lon: -72.50 },
+            { id: "T-06 (INT)", lat: -33.50, lon: -72.05 }
         ];
 
-        const R_PRIMARY = 35000; // 35km (Identificación)
-        const R_SECONDARY = 70000; // 70km (Alerta)
-
         const buoyLayers = [];
+        const R_PRIMARY = 35000; 
+        const R_SECONDARY = 70000;
+        const COAST_LIMIT = -71.75; // Límite para no tocar tierra
 
         buoys.forEach(b => {
-            // Zona Secundaria (Alerta - Amarillo)
-            const sZone = L.circle([b.lat, b.lon], {
-                color: '#ffd700', fillColor: 'transparent', weight: 1, dashArray: '4, 8', radius: R_SECONDARY
-            }).addTo(map);
-
-            // Zona Primaria (Identificación - Cian)
-            const pZone = L.circle([b.lat, b.lon], {
-                color: '#00ffff', fillColor: '#00ffff', fillOpacity: 0.05, weight: 1, radius: R_PRIMARY
-            }).addTo(map);
-
-            // Marcador
-            L.circleMarker([b.lat, b.lon], {
-                color: '#00ffff', fillColor: '#000', fillOpacity: 1, radius: 4
-            }).addTo(map).bindTooltip(b.id, {permanent: true, direction: 'right', className: 'buoy-label'});
-
+            // Zona Primaria
+            const pZone = L.circle([b.lat, b.lon], { color: '#00ffff', fillColor: '#00ffff', fillOpacity: 0.08, radius: R_PRIMARY, weight: 1 }).addTo(map);
+            // Zona Secundaria
+            const sZone = L.circle([b.lat, b.lon], { color: '#ffd700', fillColor: 'transparent', fillOpacity: 0, radius: R_SECONDARY, weight: 1, dashArray: '4, 8' }).addTo(map);
+            // Marcador Central
+            L.circleMarker([b.lat, b.lon], { color: '#00ffff', fillColor: '#000', fillOpacity: 1, radius: 4 }).addTo(map).bindTooltip(b.id, {permanent: true, direction: 'top', className: 'buoy-label', offset: [0, -10]});
+            
             buoyLayers.push({ data: b, pZone: pZone, sZone: sZone });
         });
 
-        // 3. SIMULACIÓN DEL BLANCO
+        // Conexión Zigzag visual
+        L.polyline(buoys.map(b => [b.lat, b.lon]), {color: '#004444', weight: 1, dashArray: '5, 10'}).addTo(map);
+
+        // 3. LÓGICA DE SIMULACIÓN
         let targetMarker = null;
         let simInterval = null;
-        let triangulationLine = null;
-
-        // Datos Tácticos Iniciales del Blanco
-        let tgtState = {
-            lat: -32.00,
-            lon: -73.00,
-            speed: 18.5, // Nudos
-            heading: 145, // Rumbo Sureste (Hacia la costa)
-            domain: "SUBMARINO", // O "SUPERFICIE"
-            id: "TGT-UNK-01"
-        };
+        let tgt = { lat: -31.80, lon: -72.80, heading: 135, speed: 18, depth: "SURFACE" };
 
         function startSimulation() {
             if(simInterval) clearInterval(simInterval);
             if(targetMarker) map.removeLayer(targetMarker);
-            if(triangulationLine) map.removeLayer(triangulationLine);
-
-            // Reiniciar estado visual
-            document.getElementById('net-status').className = "value safe";
-            document.getElementById('net-status').innerText = "ESCANEO ACTIVO";
-
-            // Determinar aleatoriamente si es Submarino o Superficie para la demo
-            const isSub = Math.random() > 0.5;
-            tgtState.domain = isSub ? "SUBMARINO" : "SUPERFICIE";
-            tgtState.id = isSub ? "S-KILO-99" : "M-VESS-04";
             
-            // Posición inicial (Mar adentro)
-            tgtState.lat = -32.20;
-            tgtState.lon = -73.10;
+            // Reiniciar objetivo
+            tgt = { 
+                lat: -31.80, 
+                lon: -72.80, 
+                heading: 140, 
+                speed: 12 + Math.floor(Math.random() * 20),
+                depth: Math.random() > 0.5 ? "SUBMERGED (SSK)" : "SURFACE (CIV)"
+            };
 
-            // Icono del Blanco
-            const color = isSub ? '#ff00ff' : '#ff3333'; // Magenta para Sub, Rojo para Superficie hostil
             const shipIcon = L.divIcon({
                 className: 'custom-icon',
-                html: `<div style="
-                    width: 0; height: 0; 
-                    border-left: 8px solid transparent; 
-                    border-right: 8px solid transparent; 
-                    border-bottom: 18px solid ${color}; 
-                    transform: rotate(${tgtState.heading}deg);
-                    filter: drop-shadow(0 0 5px ${color});">
-                </div>`,
-                iconSize: [1],
-                iconAnchor: [2]
+                html: `<div style="width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-bottom: 14px solid #ff3333; transform: rotate(${tgt.heading}deg); filter: drop-shadow(0 0 5px red);"></div>`,
+                iconSize: [12, 14]
             });
 
-            targetMarker = L.marker([tgtState.lat, tgtState.lon], {icon: shipIcon}).addTo(map);
+            targetMarker = L.marker([tgt.lat, tgt.lon], {icon: shipIcon}).addTo(map);
 
-            // Bucle de Simulación (20 Hz)
             simInterval = setInterval(() => {
-                updatePosition();
-                checkSensors();
-            }, 50);
+                // Movimiento (Evitando tierra continental)
+                let newLat = tgt.lat - (tgt.speed * 0.0001);
+                let newLon = tgt.lon + (tgt.speed * 0.00006);
+
+                // Bloqueo de coordenadas continentales
+                if (newLon < COAST_LIMIT) {
+                    tgt.lat = newLat;
+                    tgt.lon = newLon;
+                } else {
+                    // Si llega a la costa, navega hacia el sur paralelo a Chile
+                    tgt.lat = newLat;
+                    tgt.heading = 180;
+                }
+
+                targetMarker.setLatLng([tgt.lat, tgt.lon]);
+                checkSensors(tgt);
+            }, 100);
         }
 
-        function updatePosition() {
-            // Física de movimiento simple
-            const rad = tgtState.heading * (Math.PI / 180);
-            
-            // Velocidad simulada visualmente (factor de escala)
-            const speedFactor = 0.002; 
-            
-            // Cálculo del siguiente paso
-            let nextLat = tgtState.lat - (Math.cos(rad) * speedFactor); // Leaflet: Lat sube hacia el norte
-            let nextLon = tgtState.lon + (Math.sin(rad) * speedFactor); // Lon sube hacia el este
-
-            // --- LÓGICA DE COLISIÓN CON TIERRA ---
-            // Si intenta cruzar la longitud límite de la costa, detenemos o rebotamos
-            if (nextLon > COAST_LIMIT_LON) {
-                clearInterval(simInterval);
-                document.getElementById('net-status').innerText = "!!! INTERCEPCIÓN COSTERA !!!";
-                document.getElementById('net-status').className = "value alert";
-                
-                // Efecto visual de detención
-                L.circleMarker([tgtState.lat, tgtState.lon], {
-                    radius: 20, color: 'red', fill: false, className: 'alert'
-                }).addTo(map);
-                
-                return;
-            }
-
-            tgtState.lat = nextLat;
-            tgtState.lon = nextLon;
-            
-            // Actualizar marcador
-            targetMarker.setLatLng([tgtState.lat, tgtState.lon]);
-        }
-
-        function checkSensors() {
-            let detectionCount = 0;
+        function checkSensors(tgt) {
             let activeBuoys = [];
+            let classification = "---";
 
             buoyLayers.forEach(b => {
-                const dist = map.distance([tgtState.lat, tgtState.lon], [b.data.lat, b.data.lon]);
-                
-                // Detección Primaria (Lock sólido)
+                const dist = map.distance([tgt.lat, tgt.lon], [b.data.lat, b.data.lon]);
+
+                // Reset visual
+                b.sZone.setStyle({color: '#ffd700', weight: 1});
+                b.pZone.setStyle({color: '#00ffff', fillColor: '#00ffff', fillOpacity: 0.08});
+
+                if (dist < R_SECONDARY) {
+                    b.sZone.setStyle({color: '#ff3333', weight: 2});
+                    activeBuoys.push(b);
+                }
                 if (dist < R_PRIMARY) {
-                    detectionCount++;
-                    activeBuoys.push(b.data);
-                    b.pZone.setStyle({color: '#ff3333', fillColor: '#ff3333', fillOpacity: 0.2});
-                } else {
-                    b.pZone.setStyle({color: '#00ffff', fillColor: '#00ffff', fillOpacity: 0.05});
+                    b.pZone.setStyle({color: '#ff3333', fillColor: '#ff3333', fillOpacity: 0.3});
+                    classification = (tgt.depth.includes("SUBMERGED")) ? "SUBMARINO CLASE KILO" : "BUQUE MOTOR INDUSTRIAL";
                 }
             });
 
-            updateHUD(detectionCount, activeBuoys);
+            updateHUD(activeBuoys, classification);
         }
 
-        function updateHUD(count, activeBuoys) {
-            const statusEl = document.getElementById('net-status');
-            const posEl = document.getElementById('tgt-pos');
-            
-            // Actualizar datos cinemáticos siempre (simulando rastreo satelital/acústico)
-            if (count > 0) {
-                // Actualizar Panel
-                document.getElementById('tgt-id').innerText = tgtState.id;
-                document.getElementById('tgt-dom').innerText = tgtState.domain;
-                document.getElementById('tgt-dom').className = tgtState.domain === "SUBMARINO" ? "value sub" : "value alert";
-                
-                document.getElementById('tgt-spd').innerText = tgtState.speed + " kts";
-                document.getElementById('tgt-hdg').innerText = tgtState.heading + "°";
-                
-                // Formato GPS Naval (4 decimales)
-                posEl.innerText = `${tgtState.lat.toFixed(4)}, ${tgtState.lon.toFixed(4)}`;
+        function updateHUD(activeBuoys, classification) {
+            const idEl = document.getElementById('tgt-id');
+            const coordEl = document.getElementById('tgt-coords');
+            const hdgEl = document.getElementById('tgt-hdg');
+            const spdEl = document.getElementById('tgt-spd');
+            const depthEl = document.getElementById('tgt-depth');
+            const confEl = document.getElementById('tgt-conf');
+            const lockEl = document.getElementById('tgt-lock');
+            const classEl = document.getElementById('tgt-class');
 
-                statusEl.innerText = `CONTACTO (${count} NODOS)`;
-                statusEl.className = "value alert";
+            if (activeBuoys.length > 0) {
+                idEl.innerText = "CONTACT-X1";
+                idEl.className = "stat-val alert";
+                
+                // Información requerida
+                coordEl.innerText = `${Math.abs(tgt.lat).toFixed(4)}°S ${Math.abs(tgt.lon).toFixed(4)}°W`;
+                hdgEl.innerText = tgt.heading + "°";
+                spdEl.innerText = tgt.speed + " KTS";
+                depthEl.innerText = tgt.depth;
+                depthEl.style.color = tgt.depth.includes("SUBMERGED") ? "#00ffff" : "#fff";
 
-                // Triangulación Visual (Líneas rojas)
-                if (count >= 2) {
-                    if(triangulationLine) map.removeLayer(triangulationLine);
-                    // Dibujar líneas desde las 2 primeras boyas activas al blanco
-                    const latlngs = [
-                        [activeBuoys.lat, activeBuoys.lon],
-                        [tgtState.lat, tgtState.lon],
-                        [activeBuoys[3].lat, activeBuoys[3].lon]
-                    ];
-                    triangulationLine = L.polyline(latlngs, {color: 'red', weight: 1, dashArray: '5,5'}).addTo(map);
+                // Lógica de confianza solicitada
+                if (activeBuoys.length === 1) {
+                    confEl.innerText = "60% (APROX)";
+                    confEl.className = "stat-val warning";
+                    lockEl.innerText = "TRAZADO SIMPLE";
+                    lockEl.className = "stat-val warning";
+                } else {
+                    confEl.innerText = "100% (NOMINAL)";
+                    confEl.className = "stat-val alert";
+                    lockEl.innerText = "!!! JOINT LOCK !!!";
+                    lockEl.className = "stat-val alert";
                 }
 
+                classEl.innerText = classification;
+                classEl.style.color = (classification !== "---") ? "#ff9900" : "#fff";
+
             } else {
-                // Sin detección (Datos en espera)
-                document.getElementById('tgt-id').innerText = "---";
-                statusEl.innerText = "ESCANEO PASIVO";
-                statusEl.className = "value safe";
-                if(triangulationLine) map.removeLayer(triangulationLine);
+                // Reset HUD si no hay detección
+                idEl.innerText = "---"; idEl.className = "stat-val";
+                coordEl.innerText = "---";
+                hdgEl.innerText = "---";
+                spdEl.innerText = "---";
+                depthEl.innerText = "---";
+                confEl.innerText = "0%"; confEl.className = "stat-val";
+                lockEl.innerText = "ESCANEO PASIVO"; lockEl.className = "stat-val";
+                classEl.innerText = "---";
             }
         }
-
     </script>
 </body>
 </html>
