@@ -3,288 +3,271 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ZORD S.p.A. | CIC TRIDENTE v2.0</title>
+    <title>ZORD S.p.A. | Matriz Táctica Zigzag</title>
     
-    <!-- Librería de Mapas (Leaflet) -->
+    <!-- Librería Leaflet -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <style>
-        body { margin: 0; padding: 0; background: #000; font-family: 'Courier New', monospace; overflow: hidden; }
+        /* ESTÉTICA DE CIC (CENTRO DE INFORMACIÓN DE COMBATE) */
+        body { margin: 0; padding: 0; background: #020406; font-family: 'Courier New', monospace; overflow: hidden; }
         
-        /* Contenedor del Mapa */
-        #map { height: 100vh; width: 100%; z-index: 1; }
+        #map { height: 100vh; width: 100%; z-index: 1; background: #0b0f14; }
 
-        /* Interfaz Táctica (HUD) */
+        /* HUD LATERAL */
         #hud {
             position: absolute;
-            top: 20px;
-            left: 20px;
-            width: 350px;
-            background: rgba(10, 16, 20, 0.9);
-            border: 1px solid #00aaaa;
-            padding: 15px;
+            top: 20px; left: 20px; width: 320px;
+            background: rgba(8, 12, 16, 0.95);
+            border: 1px solid #005555;
+            border-left: 4px solid #00ffff;
+            padding: 20px;
             z-index: 1000;
-            color: #00ffff;
-            box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
+            color: #ccffff;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.1);
         }
 
-        h1 { margin: 0 0 10px 0; font-size: 20px; letter-spacing: 2px; color: #fff; }
-        .status-line { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 12px; }
-        .value { color: #fff; font-weight: bold; }
-        .alert { color: #ff3333; animation: blink 0.5s infinite; }
-        .safe { color: #00ff00; }
+        h1 { margin: 0 0 5px 0; font-size: 18px; color: #00ffff; letter-spacing: 2px; }
+        h2 { margin: 0 0 15px 0; font-size: 11px; color: #668888; text-transform: uppercase; border-bottom: 1px solid #334444; padding-bottom: 5px;}
 
-        /* Botón de Control */
+        .stat-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px; }
+        .stat-val { font-weight: bold; color: #fff; }
+        .alert { color: #ff3333; animation: flash 1s infinite; font-weight: bold; }
+        
+        .zone-legend { display: flex; align-items: center; margin-top: 5px; font-size: 10px; color: #88aaaa; }
+        .dot { width: 8px; height: 8px; border-radius: 50%; margin-right: 8px; display: inline-block; }
+
         button {
-            width: 100%;
-            background: #003333;
-            color: #00ffff;
-            border: 1px solid #00ffff;
-            padding: 10px;
-            cursor: pointer;
-            margin-top: 10px;
-            font-family: 'Courier New', monospace;
-            font-weight: bold;
-            text-transform: uppercase;
+            width: 100%; background: #002a3a; color: #00ffff; border: 1px solid #00ffff;
+            padding: 10px; cursor: pointer; margin-top: 15px; font-family: inherit; font-weight: bold;
+            transition: all 0.3s;
         }
-        button:hover { background: #00ffff; color: #000; }
+        button:hover { background: #00ffff; color: #000; box-shadow: 0 0 15px #00ffff; }
 
-        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.2; } 100% { opacity: 1; } }
+        @keyframes flash { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
 
-        /* Estilo de marcadores personalizados */
-        .buoy-icon {
-            background-color: rgba(0, 255, 255, 0.2);
-            border: 2px solid #00ffff;
-            border-radius: 50%;
-            text-align: center;
-            color: white;
-            font-size: 10px;
-            line-height: 20px; /* Centrar verticalmente */
-        }
+        /* Estilos personalizados para el mapa */
+        .grid-label { color: #446666; font-size: 10px; font-weight: bold; }
+        .buoy-label { background: none; border: none; color: #00ffff; font-weight: bold; text-shadow: 0 0 3px #000; font-family: monospace; font-size: 10px; }
     </style>
 </head>
 <body>
 
-    <!-- Panel de Control CIC -->
     <div id="hud">
-        <h1>ZORD TRIDENTE</h1>
-        <div style="border-bottom: 1px solid #005555; margin-bottom: 10px; padding-bottom:5px; font-size: 10px; color: #888;">
-            SISTEMA DE VIGILANCIA ACÚSTICA SOBERANA
+        <h1>PROYECTO TRIDENTE</h1>
+        <h2>MATRIZ ZIGZAG | DEFENSA EN PROFUNDIDAD</h2>
+
+        <div class="stat-row">
+            <span>ESTRATEGIA:</span> <span class="stat-val">40KM / 80KM OFFSET</span>
+        </div>
+        <div class="stat-row">
+            <span>COBERTURA:</span> <span class="stat-val">LOS VILOS - SAN ANTONIO</span>
+        </div>
+        <div class="stat-row">
+            <span>ESTADO RED:</span> <span class="stat-val" style="color:#00ff00">NOMINAL</span>
         </div>
 
-        <div class="status-line">
-            <span>ESTADO RED:</span> <span class="value safe" id="net-status">ACTIVO</span>
-        </div>
-        <div class="status-line">
-            <span>CONTACTOS:</span> <span class="value" id="contact-count">0</span>
-        </div>
-        <div class="status-line">
-            <span>MODO DETECCIÓN:</span> <span class="value">Z-FOLDING (PASIVO)</span>
-        </div>
-        
-        <hr style="border-color: #004444;">
-        
-        <div class="status-line">
-            <span>BLANCO:</span> <span class="value" id="tgt-id">---</span>
-        </div>
-        <div class="status-line">
-            <span>VELOCIDAD:</span> <span class="value" id="tgt-spd">0 kts</span>
-        </div>
-        <div class="status-line">
-            <span>CLASIFICACIÓN:</span> <span class="value" id="tgt-class">---</span>
-        </div>
-        <div class="status-line">
-            <span>TRIANGULACIÓN:</span> <span class="value" id="tri-status" style="color:gray;">ESPERANDO...</span>
+        <div style="margin: 15px 0; border-top: 1px dashed #334444; padding-top: 10px;">
+            <div class="stat-row">
+                <span>BLANCO:</span> <span class="stat-val" id="tgt-id">---</span>
+            </div>
+            <div class="stat-row">
+                <span>TRIANGULACIÓN:</span> <span class="stat-val" id="tgt-lock">ESPERANDO</span>
+            </div>
+            <div class="stat-row">
+                <span>CLASIFICACIÓN:</span> <span class="stat-val" id="tgt-class">---</span>
+            </div>
         </div>
 
-        <button onclick="startSimulation()">INICIAR SIMULACIÓN DE INCURSIÓN</button>
+        <div class="zone-legend"><span class="dot" style="background:#00ffff; opacity:0.3"></span> ZONA PRIMARIA (ID) - 35KM</div>
+        <div class="zone-legend"><span class="dot" style="border:1px dashed #ffd700"></span> ZONA SECUNDARIA (ALERTA) - 70KM</div>
+
+        <button onclick="startSimulation()">SIMULAR INTRUSIÓN</button>
     </div>
 
     <div id="map"></div>
 
     <script>
-        // 1. CONFIGURACIÓN DEL MAPA (Leaflet)
-        // Centrado en la costa central de Chile
+        // 1. INICIALIZAR MAPA (Modo Oscuro)
         const map = L.map('map', {
             zoomControl: false,
             attributionControl: false
-        }).setView([-33.200, -71.900], 9);
+        }).setView([-32.800, -72.200], 8); // Centrado en la zona de operación
 
-        // Capa oscura (Estilo Militar)
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            maxZoom: 19
+            maxZoom: 19,
+            opacity: 0.9
         }).addTo(map);
 
-        // 2. DEFINICIÓN DE ACTIVOS (BOYAS TRIDENTE)
-        // Posiciones corregidas para solapamiento real
+        // 2. CONFIGURACIÓN ESTRATÉGICA ZIGZAG (6 BOYAS)
+        // Alternancia 40km (Costa) / 80km (Profundidad)
         const buoys = [
-            { id: "T-01", name: "CONCÓN", lat: -32.900, lon: -71.600, range: 35000 }, // Rango en metros
-            { id: "T-02", name: "CURAUMILLA", lat: -33.100, lon: -71.750, range: 35000 },
-            { id: "T-03", name: "SAN ANTONIO", lat: -33.550, lon: -71.700, range: 35000 }
+            { id: "T-01 (EXT)", lat: -32.00, lon: -72.40, desc: "Los Vilos Profundo (-80km)" },
+            { id: "T-02 (INT)", lat: -32.30, lon: -71.95, desc: "Papudo Costero (-40km)" },
+            { id: "T-03 (EXT)", lat: -32.60, lon: -72.45, desc: "Quintero Profundo (-80km)" },
+            { id: "T-04 (INT)", lat: -32.90, lon: -72.00, desc: "Valparaíso Costero (-40km)" },
+            { id: "T-05 (EXT)", lat: -33.20, lon: -72.50, desc: "Quintay Profundo (-80km)" },
+            { id: "T-06 (INT)", lat: -33.50, lon: -72.05, desc: "San Antonio Costero (-40km)" }
         ];
 
-        // Dibujar Boyas y Radios de Detección
         const buoyLayers = [];
-        buoys.forEach(b => {
-            // Marcador visual
-            L.circleMarker([b.lat, b.lon], {
-                color: '#00ffff', fillColor: '#000', fillOpacity: 1, radius: 6
-            }).addTo(map).bindTooltip(b.name, {permanent: true, direction: 'right', className: 'buoy-label'});
+        const R_PRIMARY = 35000; // 35 km
+        const R_SECONDARY = 70000; // 70 km
 
-            // Radio de Detección (Zona Z-Susy)
-            const rangeCircle = L.circle([b.lat, b.lon], {
-                color: '#00ffff', fillColor: '#00ffff', fillOpacity: 0.05, radius: b.range, weight: 1, dashArray: '5, 5'
-            }).addTo(map);
+        // 3. RENDERIZADO DE LA RED
+        buoys.forEach(b => {
             
-            buoyLayers.push({ data: b, circle: rangeCircle });
+            // A. Líneas de Paralelos y Meridianos (Referencia Táctica)
+            // Meridianos (Vertical)
+            L.polyline([[b.lat - 0.2, b.lon], [b.lat + 0.2, b.lon]], {
+                color: '#224444', weight: 1, dashArray: '2, 4'
+            }).addTo(map);
+            // Paralelos (Horizontal)
+            L.polyline([[b.lat, b.lon - 0.3], [b.lat, b.lon + 0.3]], {
+                color: '#224444', weight: 1, dashArray: '2, 4'
+            }).addTo(map);
+
+            // Texto de Coordenadas
+            L.marker([b.lat, b.lon], {
+                icon: L.divIcon({
+                    className: 'grid-label',
+                    html: `<div style="margin-top:5px; margin-left:5px;">${Math.abs(b.lat).toFixed(2)}°S | ${Math.abs(b.lon).toFixed(2)}°W</div>`,
+                    iconSize: [1, 2]
+                })
+            }).addTo(map);
+
+            // B. Zonas de Detección
+            // Primaria (Cian - Identificación)
+            const pZone = L.circle([b.lat, b.lon], {
+                color: '#00ffff', fillColor: '#00ffff', fillOpacity: 0.08,
+                radius: R_PRIMARY, weight: 1
+            }).addTo(map);
+
+            // Secundaria (Amarillo - Alerta Temprana)
+            const sZone = L.circle([b.lat, b.lon], {
+                color: '#ffd700', fillColor: 'transparent', fillOpacity: 0,
+                radius: R_SECONDARY, weight: 1, dashArray: '4, 8'
+            }).addTo(map);
+
+            // C. Marcador Central (Boya)
+            L.circleMarker([b.lat, b.lon], {
+                color: '#00ffff', fillColor: '#000', fillOpacity: 1, radius: 4
+            }).addTo(map).bindTooltip(b.id, {permanent: true, direction: 'top', className: 'buoy-label', offset: [0, -10]});
+
+            buoyLayers.push({ data: b, pZone: pZone, sZone: sZone });
         });
 
-        // 3. EL BLANCO (INTRUSO)
+        // D. Conexión Lógica (Línea Zigzag Visual)
+        const latlngs = buoys.map(b => [b.lat, b.lon]);
+        L.polyline(latlngs, {color: '#004444', weight: 1, dashArray: '5, 10'}).addTo(map);
+
+
+        // 4. SIMULACIÓN DE INTRUSO
         let targetMarker = null;
-        let triangulationMarker = null; // Marcador de la solución conjunta
-        let detectionLines = []; // Líneas visuales desde las boyas
-        let simulationInterval = null;
-
-        // Datos iniciales del objetivo (Mar adentro)
-        let target = { 
-            lat: -32.800, 
-            lon: -72.300, 
-            speedKts: 18, // Velocidad moderada realista
-            heading: 150  // Rumbo Sureste (hacia la costa)
-        };
-
-        // Función para calcular distancia (Haversine simple para JS)
-        function getDistance(lat1, lon1, lat2, lon2) {
-            const R = 6371e3; // Metros
-            const φ1 = lat1 * Math.PI/180;
-            const φ2 = lat2 * Math.PI/180;
-            const Δφ = (lat2-lat1) * Math.PI/180;
-            const Δλ = (lon2-lon1) * Math.PI/180;
-            const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ/2) * Math.sin(Δλ/2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-            return R * c;
-        }
+        let simInterval = null;
+        let triangulationLine = null;
 
         function startSimulation() {
-            if(simulationInterval) return;
-
-            // Crear icono del barco enemigo
-            const shipIcon = L.divIcon({
-                className: 'custom-div-icon',
-                html: "<div style='background-color:red; width:10px; height:10px; border-radius:50%; box-shadow: 0 0 10px red;'></div>",
-                iconSize: [1],
-                iconAnchor: [2]
+            if(simInterval) clearInterval(simInterval);
+            
+            // Limpiar mapa
+            if(targetMarker) map.removeLayer(targetMarker);
+            if(triangulationLine) map.removeLayer(triangulationLine);
+            buoyLayers.forEach(l => {
+                l.pZone.setStyle({color: '#00ffff', fillColor: '#00ffff'});
+                l.sZone.setStyle({color: '#ffd700'});
             });
 
-            targetMarker = L.marker([target.lat, target.lon], {icon: shipIcon}).addTo(map);
+            // Configuración Inicial del Blanco (Entrando desde el Noroeste)
+            let tgt = { lat: -31.80, lon: -72.80, heading: 150 }; 
             
-            // Loop de simulación (60 FPS aprox)
-            simulationInterval = setInterval(() => {
-                updateTargetPosition();
-                checkSensors();
-            }, 50); // 50ms por frame
+            // Icono del barco (Triángulo rojo)
+            const shipIcon = L.divIcon({
+                className: 'custom-icon',
+                html: `<div style="width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-bottom: 14px solid #ff3333; transform: rotate(150deg);"></div>`,
+                iconSize: [3]
+            });
+
+            targetMarker = L.marker([tgt.lat, tgt.lon], {icon: shipIcon}).addTo(map);
+
+            document.getElementById('tgt-id').innerText = "TGT-ECHO-1";
+            document.getElementById('tgt-id').style.color = "#ff3333";
+
+            // Bucle de animación
+            simInterval = setInterval(() => {
+                // Movimiento (Lento y constante hacia el sureste)
+                tgt.lat -= 0.003; 
+                tgt.lon += 0.0015;
+                targetMarker.setLatLng([tgt.lat, tgt.lon]);
+
+                checkSensors(tgt);
+
+                // Fin simulación si sale del mapa
+                if(tgt.lat < -34.0) clearInterval(simInterval);
+            }, 50);
         }
 
-        function updateTargetPosition() {
-            // Movimiento realista: 
-            // 18 nudos = ~33 km/h. En la simulación aceleramos el tiempo x100 para que no sea aburrido, 
-            // pero el movimiento es suave.
-            const speedFactor = 0.00015; // Ajuste de velocidad visual
-            
-            target.lat -= Math.cos(target.heading * Math.PI / 180) * speedFactor; // Invertido para ir al Sur
-            target.lon += Math.sin(target.heading * Math.PI / 180) * speedFactor; // Hacia el Este
+        function checkSensors(tgt) {
+            let activeBuoys = [];
+            let statusText = "ESCANEO PASIVO";
+            let statusColor = "#ccffff";
+            let classification = "---";
 
-            targetMarker.setLatLng([target.lat, target.lon]);
+            // Verificar distancia a cada boya
+            buoyLayers.forEach(b => {
+                const dist = map.distance([tgt.lat, tgt.lon], [b.data.lat, b.data.lon]);
+                
+                // Detección Secundaria (Alerta)
+                if (dist < R_SECONDARY) {
+                    b.sZone.setStyle({color: '#ff3333', weight: 2}); // Rojo Alerta
+                    if(!activeBuoys.includes(b)) activeBuoys.push(b);
+                } else {
+                    b.sZone.setStyle({color: '#ffd700', weight: 1}); // Normal
+                }
+
+                // Detección Primaria (Identificación)
+                if (dist < R_PRIMARY) {
+                    b.pZone.setStyle({color: '#ff3333', fillColor: '#ff3333', fillOpacity: 0.3});
+                    classification = "PESQUERO INDUSTRIAL";
+                } else {
+                    b.pZone.setStyle({color: '#00ffff', fillColor: '#00ffff', fillOpacity: 0.08});
+                }
+            });
+
+            // Lógica de Triangulación
+            if (activeBuoys.length >= 1) {
+                statusText = "TRACKING (" + activeBuoys.length + " NODOS)";
+                statusColor = "yellow";
+            }
+            
+            // Si hay 2 o más boyas detectando (Solapamiento)
+            if (activeBuoys.length >= 2) {
+                statusText = "!!! JOINT LOCK !!!";
+                statusColor = "#ff3333";
+                
+                // Dibujar línea de triangulación entre las dos boyas activas más cercanas
+                if(triangulationLine) map.removeLayer(triangulationLine);
+                triangulationLine = L.polyline([
+                    [activeBuoys.data.lat, activeBuoys.data.lon],
+                    [tgt.lat, tgt.lon],
+                    [activeBuoys[4].data.lat, activeBuoys[4].data.lon]
+                ], {color: '#ff3333', weight: 1, dashArray: '2,4'}).addTo(map);
+            } else {
+                if(triangulationLine) map.removeLayer(triangulationLine);
+            }
 
             // Actualizar HUD
-            document.getElementById('tgt-spd').innerText = target.speedKts + " kts";
-        }
-
-        function checkSensors() {
-            let activeDetections = 0;
-            let detectingBuoys = [];
-
-            // Limpiar líneas anteriores
-            detectionLines.forEach(line => map.removeLayer(line));
-            detectionLines = [];
-            if(triangulationMarker) map.removeLayer(triangulationMarker);
-
-            // Verificar cada boya
-            buoyLayers.forEach(buoy => {
-                const dist = getDistance(target.lat, target.lon, buoy.data.lat, buoy.data.lon);
-                
-                if (dist <= buoy.data.range) {
-                    activeDetections++;
-                    detectingBuoys.push(buoy.data);
-                    
-                    // Efecto visual: Boya se pone roja
-                    buoy.circle.setStyle({ color: '#ff3333', fillColor: '#ff3333', fillOpacity: 0.2 });
-
-                    // Dibujar vector de detección (Línea amarilla)
-                    const line = L.polyline([[buoy.data.lat, buoy.data.lon], [target.lat, target.lon]], {
-                        color: 'yellow', weight: 1, dashArray: '5, 5'
-                    }).addTo(map);
-                    detectionLines.push(line);
-
-                } else {
-                    // Boya en reposo (Cian)
-                    buoy.circle.setStyle({ color: '#00ffff', fillColor: '#00ffff', fillOpacity: 0.05 });
-                }
-            });
-
-            updateHUD(activeDetections, detectingBuoys);
-        }
-
-        function updateHUD(count, buoys) {
-            const statusEl = document.getElementById('net-status');
+            const lockEl = document.getElementById('tgt-lock');
+            lockEl.innerText = statusText;
+            lockEl.style.color = statusColor;
+            lockEl.className = (activeBuoys.length >= 2) ? "stat-val alert" : "stat-val";
+            
             const classEl = document.getElementById('tgt-class');
-            const triStatus = document.getElementById('tri-status');
-            const idEl = document.getElementById('tgt-id');
-
-            document.getElementById('contact-count').innerText = count > 0 ? 1 : 0;
-
-            if (count > 0) {
-                statusEl.innerText = "ALERTA DETECCIÓN";
-                statusEl.className = "value alert";
-                idEl.innerText = "TGT-Z01";
-                
-                // Simulación de clasificación Z-Folding
-                // Tarda unos 'frames' en clasificar
-                if(Math.random() > 0.1) classEl.innerText = "ANALIZANDO...";
-                setTimeout(() => { classEl.innerText = "PESQUERO INDUSTRIAL"; classEl.style.color = "orange"; }, 1000);
-
-                if (count >= 2) {
-                    // TRIANGULACIÓN CONJUNTA EXITOSA
-                    triStatus.innerText = "LOCK CONJUNTO (" + buoys.length + " NODOS)";
-                    triStatus.style.color = "#ff3333";
-                    triStatus.className = "alert";
-
-                    // Dibujar el punto exacto de triangulación (X Roja)
-                    const triIcon = L.divIcon({
-                        className: 'tri-icon',
-                        html: "<div style='color:red; font-size:20px; font-weight:bold; text-shadow:0 0 5px red;'>X</div>",
-                        iconSize: [3],
-                        iconAnchor: [1]
-                    });
-                    triangulationMarker = L.marker([target.lat, target.lon], {icon: triIcon}).addTo(map);
-
-                } else {
-                    triStatus.innerText = "TRAZADO SIMPLE (1 NODO)";
-                    triStatus.style.color = "yellow";
-                    triStatus.className = "";
-                }
-
-            } else {
-                statusEl.innerText = "MONITOREO ACTIVO";
-                statusEl.className = "value safe";
-                classEl.innerText = "---";
-                classEl.style.color = "white";
-                triStatus.innerText = "ESPERANDO...";
-                triStatus.style.color = "gray";
-                triStatus.className = "";
-            }
+            classEl.innerText = classification;
+            if(classification !== "---") classEl.style.color = "#ff9900";
         }
+
     </script>
 </body>
 </html>
