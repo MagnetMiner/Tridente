@@ -1,63 +1,132 @@
-<script>
-    // Configuración del Mapa Táctico TRIDENTE
-    var map = L.map('map').setView([-33.100, -71.900], 8); // Centrado en la costa central
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZORD S.p.A. | Monitor Táctico TRIDENTE</title>
+    
+    <!-- Librería Leaflet CSS (El estilo del mapa) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+     crossorigin=""/>
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        subdomains: 'abcd',
-        maxZoom: 19
-    }).addTo(map);
-
-    // ESTRATEGIA: ESCUDO SOBERANO CENTRAL (8 NODOS)
-    // Coordenadas calculadas para solapamiento táctico y cobertura de 300km lineales.
-    var buoys = [
-        { name: "TRIDENTE-01 [Norte Profundo]", lat: -32.143, lon: -71.550, desc: "Sector Pichidangui - Alerta Temprana Norte" },
-        { name: "TRIDENTE-02 [Acceso Quintero]", lat: -32.707, lon: -71.520, desc: "Sector Horcón - Control Tráfico Hidrocarburos" },
-        { name: "TRIDENTE-03 [Defensa Concón]", lat: -32.923, lon: -71.580, desc: "Bahía de Concón - Protección Refinería" },
-        { name: "TRIDENTE-04 [Nodo Valparaíso]", lat: -33.018, lon: -71.650, desc: "Punta Ángeles - Control Puerto Principal" },
-        { name: "TRIDENTE-05 [Pivote Táctico]", lat: -33.110, lon: -71.750, desc: "Punta Curaumilla - Cobertura de Sombra Acústica" },
-        { name: "TRIDENTE-06 [Enlace Litoral]", lat: -33.360, lon: -71.710, desc: "Algarrobo Norte - Conexión Inter-Puertos" },
-        { name: "TRIDENTE-07 [Nodo San Antonio]", lat: -33.577, lon: -71.640, desc: "Punta Panul - Control Puerto Gran Escala" },
-        { name: "TRIDENTE-08 [Cierre Sur]", lat: -34.133, lon: -72.020, desc: "Punta Topocalma - Alerta Temprana Sur" }
-    ];
-
-    // Renderizado de la Red de Sensores
-    buoys.forEach(function(buoy) {
+    <style>
+        /* ESTILO TÁCTICO DE ALTA LEY */
+        body { 
+            margin: 0; 
+            padding: 0; 
+            background-color: #0d1117; /* Fondo oscuro estilo CIC */
+            font-family: 'Courier New', Courier, monospace;
+        }
         
-        // 1. Marcador de la Boya (Icono Táctico)
-        L.circleMarker([buoy.lat, buoy.lon], {
-            color: '#00FFFF', // Cian Táctico
-            fillColor: '#00FFFF',
-            fillOpacity: 1,
-            radius: 5
-        }).addTo(map).bindPopup("<b>" + buoy.name + "</b><br>" + buoy.desc);
+        /* IMPORTANTE: Esto soluciona la página en blanco. 
+           El mapa debe tener una altura definida. */
+        #map { 
+            height: 100vh; /* 100% del alto de la ventana */
+            width: 100%; 
+        }
 
-        // 2. Zona Primaria: Identificación ZFolding (35 km / ~19 MN)
-        // Zona donde extraemos RPM y Clase del motor.
-        L.circle([buoy.lat, buoy.lon], {
-            color: '#00FFFF',
-            fillColor: '#00FFFF',
-            fillOpacity: 0.1,
-            radius: 35000, // Metros
-            weight: 1
+        /* Cuadro de Información Flotante */
+        .info-panel {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.8);
+            color: #00ffff; /* Cian Táctico */
+            padding: 15px;
+            border: 1px solid #00ffff;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+            max-width: 300px;
+        }
+
+        h2 { margin: 0 0 10px 0; font-size: 18px; text-transform: uppercase; }
+        p { font-size: 12px; color: #cccccc; }
+        .status { color: #00ff00; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <!-- Panel de Estado -->
+    <div class="info-panel">
+        <h2>Proyecto Tridente</h2>
+        <p>Estado: <span class="status">OPERATIVO (SIM)</span></p>
+        <p>Red: Escudo Soberano Central (8 Nodos)</p>
+        <p>Cobertura: Pichidangui - Topocalma</p>
+        <hr style="border-color: #444;">
+        <p style="color: #00ffff;">■ Zona Identificación (35km)</p>
+        <p style="color: #FFD700;">-- Alerta Temprana (70km)</p>
+    </div>
+
+    <!-- Contenedor del Mapa -->
+    <div id="map"></div>
+
+    <!-- Librería Leaflet JS (La lógica del mapa) -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+     crossorigin=""></script>
+
+    <script>
+        // 1. Inicializar el Mapa (Centrado en Valparaíso)
+        var map = L.map('map').setView([-33.100, -71.900], 8);
+
+        // 2. Capa Base Oscura (Estilo CartoDB Dark Matter para contraste táctico)
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; ZORD S.p.A. | OpenStreetMap | CARTO',
+            subdomains: 'abcd',
+            maxZoom: 19
         }).addTo(map);
 
-        // 3. Zona Secundaria: Alerta Temprana Dirac (70 km / ~38 MN)
-        // Zona donde detectamos energía anómala (algo se acerca).
-        L.circle([buoy.lat, buoy.lon], {
-            color: '#FFD700', // Amarillo Alerta
-            fill: false,
-            dashArray: '5, 10', // Línea punteada
-            radius: 70000, // Metros
-            weight: 1
-        }).addTo(map);
-    });
+        // 3. ESTRATEGIA: ESCUDO SOBERANO CENTRAL (8 NODOS)
+        var buoys = [
+            { name: "TRIDENTE-01 [Norte Profundo]", lat: -32.143, lon: -71.550, desc: "Sector Pichidangui - Alerta Temprana Norte" },
+            { name: "TRIDENTE-02 [Acceso Quintero]", lat: -32.707, lon: -71.520, desc: "Sector Horcón - Control Tráfico Hidrocarburos" },
+            { name: "TRIDENTE-03 [Defensa Concón]", lat: -32.923, lon: -71.580, desc: "Bahía de Concón - Protección Refinería" },
+            { name: "TRIDENTE-04 [Nodo Valparaíso]", lat: -33.018, lon: -71.650, desc: "Punta Ángeles - Control Puerto Principal" },
+            { name: "TRIDENTE-05 [Pivote Táctico]", lat: -33.110, lon: -71.750, desc: "Punta Curaumilla - Cobertura de Sombra Acústica" },
+            { name: "TRIDENTE-06 [Enlace Litoral]", lat: -33.360, lon: -71.710, desc: "Algarrobo Norte - Conexión Inter-Puertos" },
+            { name: "TRIDENTE-07 [Nodo San Antonio]", lat: -33.577, lon: -71.640, desc: "Punta Panul - Control Puerto Gran Escala" },
+            { name: "TRIDENTE-08 [Cierre Sur]", lat: -34.133, lon: -72.020, desc: "Punta Topocalma - Alerta Temprana Sur" }
+        ];
 
-    // Línea de Costa Simplificada (Referencia Visual)
-    var latlngs = [
-        [-32.143, -71.530], [-32.707, -71.500], [-32.923, -71.540], 
-        [-33.018, -71.620], [-33.577, -71.610], [-34.133, -71.990]
-    ];
-    var polyline = L.polyline(latlngs, {color: 'gray', weight: 2, dashArray: '4'}).addTo(map);
+        // 4. Renderizado de Sensores
+        buoys.forEach(function(buoy) {
+            
+            // Marcador Central (Icono de la Boya)
+            L.circleMarker([buoy.lat, buoy.lon], {
+                color: '#00FFFF', // Cian Táctico
+                fillColor: '#FFFFFF',
+                fillOpacity: 1,
+                radius: 4
+            }).addTo(map).bindPopup("<strong style='color:#000'>" + buoy.name + "</strong><br>" + buoy.desc);
 
-</script>
+            // Zona Primaria: Identificación ZFolding (35 km / ~19 MN)
+            L.circle([buoy.lat, buoy.lon], {
+                color: '#00FFFF',
+                fillColor: '#00FFFF',
+                fillOpacity: 0.08,
+                radius: 35000, 
+                weight: 1
+            }).addTo(map);
+
+            // Zona Secundaria: Alerta Temprana Dirac (70 km / ~38 MN)
+            L.circle([buoy.lat, buoy.lon], {
+                color: '#FFD700', // Amarillo Alerta
+                fill: false,
+                dashArray: '5, 10', // Línea punteada
+                radius: 70000, 
+                weight: 1
+            }).addTo(map);
+        });
+
+        // 5. Línea de Costa Simplificada (Referencia Visual)
+        var latlngs = [
+            [-32.143, -71.530], [-32.707, -71.500], [-32.923, -71.540], 
+            [-33.018, -71.620], [-33.577, -71.610], [-34.133, -71.990]
+        ];
+        L.polyline(latlngs, {color: 'gray', weight: 2, dashArray: '4'}).addTo(map);
+
+    </script>
+</body>
+</html>
