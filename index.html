@@ -1,184 +1,171 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ZORD S.p.A. | CIC TRIDENTE v5.0</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <meta charset="UTF-8">
+    <title>ZORD S.p.A. | CIC TRIDENTE v6.0 - ENGAGEMENT MODE</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        :root { --glow: #00ffff; --alert: #ff3333; --bg: #020406; --panel: rgba(8, 12, 16, 0.9); }
+        body { margin: 0; background: var(--bg); font-family: 'Courier New', monospace; overflow: hidden; color: #fff; }
+        
+        /* Rejilla Táctica de Fondo */
+        #map { height: 100vh; width: 100%; background-image: radial-gradient(#112222 1px, transparent 1px); background-size: 30px 30px; }
 
-<style>
-body { margin: 0; padding: 0; background: #020406; font-family: 'Courier New', monospace; overflow: hidden; }
-#map { height: 100vh; width: 100%; z-index: 1; background: #0b0f14; }
+        /* HUD Principal */
+        #hud {
+            position: absolute; top: 20px; left: 20px; width: 320px; z-index: 1000;
+            background: var(--panel); border: 1px solid #005555; border-left: 4px solid var(--glow);
+            padding: 15px; box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
 
-#hud {
-    position: absolute; top: 20px; left: 20px; width: 340px;
-    background: rgba(5, 10, 15, 0.95); border: 1px solid #005555;
-    border-left: 4px solid #00ffff; padding: 20px; z-index: 1000;
-    color: #ccffff; box-shadow: 0 0 25px rgba(0, 255, 255, 0.15);
-}
+        /* Menú de Acción (Popup Táctico) */
+        #action-menu {
+            position: absolute; display: none; background: var(--panel); 
+            border: 1px solid var(--alert); padding: 10px; z-index: 2000; width: 180px;
+        }
 
-h1 { margin: 0 0 5px 0; font-size: 18px; color: #00ffff; letter-spacing: 2px; }
-h2 { margin: 0 0 15px 0; font-size: 11px; color: #668888; text-transform: uppercase; border-bottom: 1px solid #334444; padding-bottom: 5px;}
+        .stat-row { display: flex; justify-content: space-between; margin: 5px 0; font-size: 11px; }
+        .stat-val { color: var(--glow); font-weight: bold; }
+        .alert { color: var(--alert); animation: blink 0.8s infinite; }
+        
+        button {
+            width: 100%; background: #003333; color: var(--glow); border: 1px solid var(--glow);
+            padding: 8px; cursor: pointer; margin-top: 5px; font-family: inherit; font-size: 10px;
+        }
+        button:hover { background: var(--glow); color: #000; }
+        button.asw { border-color: var(--alert); color: var(--alert); }
+        button.asw:hover { background: var(--alert); color: #fff; }
 
-.data-block { margin-bottom: 8px; background: rgba(0, 255, 255, 0.05); padding: 6px; border-radius: 4px; }
-.label { font-size: 9px; color: #55aaaa; display: block; }
-.value { font-size: 12px; font-weight: bold; color: #fff; }
-.alert { color: #ff3333; animation: flash 0.5s infinite; }
-.safe { color: #00ff00; }
-.friend { color: #00ffff; }
-
-button {
-    width: 100%; background: #002a3a; color: #00ffff; border: 1px solid #00ffff;
-    padding: 10px; cursor: pointer; margin-top: 10px; font-family: inherit; font-weight: bold;
-}
-button:hover { background: #00ffff; color: #000; }
-
-@keyframes flash { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
-.buoy-label { background: none; border: none; color: #00ffff; font-weight: bold; font-size: 10px; }
-</style>
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        .buoy-label { background: none; border: none; color: #446666; font-size: 9px; }
+    </style>
 </head>
 <body>
 
 <div id="hud">
-    <h1>ZORD TRIDENTE</h1>
-    <h2>MONITOREO MULTI-BLANCO | IFF ACTIVO</h2>
-
-    <div class="data-block">
-        <span class="label">ESTADO DE RED</span>
-        <span class="value safe" id="net-status">ESCANEO NOMINAL</span>
-    </div>
-
-    <div id="target-data" style="display:none;">
-        <div class="data-block"><span class="label">ID CONTACTO</span><span class="value alert" id="tgt-id">---</span></div>
-        <div class="data-block"><span class="label">COORDENADAS GPS</span><span class="value" id="tgt-pos">---</span></div>
-        <div style="display: flex; gap: 5px;">
-            <div class="data-block" style="flex:1;"><span class="label">VELOCIDAD</span><span class="value" id="tgt-spd">0 kts</span></div>
-            <div class="data-block" style="flex:1;"><span class="label">RUMBO</span><span class="value" id="tgt-hdg">000°</span></div>
-        </div>
-        <div class="data-block"><span class="label">CONFIANZA DETECCIÓN</span><span class="value" id="tgt-conf">0%</span></div>
-        <div class="data-block"><span class="label">CLASIFICACIÓN</span><span class="value" id="tgt-class">---</span></div>
+    <div style="font-size: 14px; font-weight: bold; color: var(--glow);">ZORD TRIDENTE CIC</div>
+    <div style="font-size: 9px; color: #668888; margin-bottom: 10px;">TACTICAL ENGAGEMENT SYSTEM</div>
+    
+    <div id="tracking-panel" style="display:none;">
+        <div class="stat-row"><span>ID:</span> <span class="stat-val alert" id="tgt-id">---</span></div>
+        <div class="stat-row"><span>POS:</span> <span class="stat-val" id="tgt-pos">---</span></div>
+        <div class="stat-row"><span>SPD/HDG:</span> <span class="stat-val" id="tgt-motion">---</span></div>
+        <div class="stat-row"><span>CONFIANZA:</span> <span class="stat-val" id="tgt-conf">---</span></div>
+        <div class="stat-row"><span>TAT PROX:</span> <span class="stat-val" id="tgt-tat">---</span></div>
+        <hr style="border: 0; border-top: 1px solid #224444;">
     </div>
     
-    <div id="no-contact" class="data-block" style="text-align:center; padding: 20px; color: #446666;">
-        SIN CONTACTOS HOSTILES EN RANGO
-    </div>
+    <div id="idle-msg" style="font-size: 10px; color: #446666;">MODO: ESCANEO PASIVO - SIN CONTACTOS</div>
+    <button onclick="startSimulation()">INICIAR SIMULACIÓN DE INCURSIÓN</button>
+</div>
 
-    <button onclick="startSimulation()">REINICIAR ESCENARIO TÁCTICO</button>
+<div id="action-menu">
+    <div style="font-size: 10px; color: var(--alert); margin-bottom: 5px; border-bottom: 1px solid var(--alert);">OPCIONES DE RESPUESTA</div>
+    <button onclick="takeAction('PATRULLA ENVIADA')">ENVIAR PATRULLA</button>
+    <button class="asw" onclick="takeAction('ALERTA ASW ACTIVADA')">ENVIAR ASW</button>
 </div>
 
 <div id="map"></div>
 
 <script>
-const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([-32.800, -72.200], 8);
-L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19, opacity: 0.9 }).addTo(map);
+    const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([-32.800, -72.200], 8);
+    const PORTS = { "VALPARAISO": [-33.03, -71.62], "SAN ANTONIO": [-33.58, -71.61] };
+    const COAST_LIMIT = -71.70;
 
-const COAST_LIMIT = -71.75;
-const R_PRIMARY = 35000; 
-const R_SECONDARY = 70000;
-
-const buoys = [
-    { id: "T-01 (EXT)", lat: -32.00, lon: -72.40 },
-    { id: "T-02 (INT)", lat: -32.30, lon: -71.95 },
-    { id: "T-03 (EXT)", lat: -32.60, lon: -72.45 },
-    { id: "T-04 (INT)", lat: -32.90, lon: -72.00 },
-    { id: "T-05 (EXT)", lat: -33.20, lon: -72.50 },
-    { id: "T-06 (INT)", lat: -33.50, lon: -72.05 }
-];
-
-const buoyLayers = [];
-buoys.forEach(b => {
-    const pZone = L.circle([b.lat, b.lon], { color: '#00ffff', fillColor: '#00ffff', fillOpacity: 0.05, radius: R_PRIMARY, weight: 1 }).addTo(map);
-    const sZone = L.circle([b.lat, b.lon], { color: '#ffd700', fillColor: 'transparent', radius: R_SECONDARY, weight: 1, dashArray: '4, 8' }).addTo(map);
-    L.circleMarker([b.lat, b.lon], { color: '#00ffff', fillColor: '#000', fillOpacity: 1, radius: 4 }).addTo(map).bindTooltip(b.id, {permanent: true, direction: 'top', className: 'buoy-label'});
-    buoyLayers.push({ data: b, pZone, sZone });
-});
-
-let contacts = [];
-let simInterval = null;
-
-function createContact(id, lat, lon, heading, speed, type) {
-    const color = type === 'HOSTILE' ? '#ff3333' : '#00ffff';
-    const icon = L.divIcon({
-        className: 'custom-icon',
-        html: `<div style="width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-bottom: 14px solid ${color}; transform: rotate(${heading}deg); filter: drop-shadow(0 0 5px ${color});"></div>`
-    });
-    const marker = L.marker([lat, lon], {icon}).addTo(map);
-    return { id, lat, lon, heading, speed, type, marker, active: false };
-}
-
-function startSimulation() {
-    if(simInterval) clearInterval(simInterval);
-    contacts.forEach(c => map.removeLayer(c.marker));
-    
-    contacts = [
-        createContact("INTRUSO-01", -31.80, -72.80, 140, 22, 'HOSTILE'),
-        createContact("MERCANTE-CHILE", -33.60, -72.10, 350, 12, 'FRIENDLY'),
-        createContact("PATRULLA-ZORD", -32.50, -72.30, 190, 18, 'FRIENDLY')
+    const buoys = [
+        { id: "T-01 (EXT)", lat: -32.00, lon: -72.40 }, { id: "T-02 (INT)", lat: -32.30, lon: -71.95 },
+        { id: "T-03 (EXT)", lat: -32.60, lon: -72.45 }, { id: "T-04 (INT)", lat: -32.90, lon: -72.00 },
+        { id: "T-05 (EXT)", lat: -33.20, lon: -72.50 }, { id: "T-06 (INT)", lat: -33.50, lon: -72.05 }
     ];
 
-    simInterval = setInterval(() => {
-        let hostileInView = false;
+    const buoyLayers = [];
+    buoys.forEach(b => {
+        const pZone = L.circle([b.lat, b.lon], { color: '#00ffff', fillColor: '#00ffff', fillOpacity: 0.05, radius: 35000, weight: 1 }).addTo(map);
+        const sZone = L.circle([b.lat, b.lon], { color: '#ffd700', fillColor: 'transparent', radius: 70000, weight: 1, dashArray: '4, 8' }).addTo(map);
+        L.circleMarker([b.lat, b.lon], { color: '#00ffff', radius: 3 }).addTo(map).bindTooltip(b.id, {permanent: true, direction: 'top', className: 'buoy-label'});
+        buoyLayers.push({ b, pZone, sZone });
+    });
 
-        contacts.forEach(c => {
-            // Movimiento
-            c.lat -= Math.cos(c.heading * Math.PI / 180) * (c.speed * 0.0001);
-            c.lon += Math.sin(c.heading * Math.PI / 180) * (c.speed * 0.0001);
+    let hostile = null;
+    let simInterval = null;
 
-            // Evitar tierra
-            if (c.lon > COAST_LIMIT) c.heading = 200;
+    function startSimulation() {
+        if(simInterval) clearInterval(simInterval);
+        if(hostile) map.removeLayer(hostile.marker);
+        
+        hostile = {
+            lat: -31.80, lon: -72.80, heading: 145, speed: 18, 
+            id: "TGT-ECHO-1", type: "HOSTILE",
+            marker: L.marker([-31.80, -72.80]).addTo(map)
+        };
 
-            // Verificar detección
-            let detections = 0;
-            buoyLayers.forEach(b => {
-                const dist = map.distance([c.lat, c.lon], [b.data.lat, b.data.lon]);
-                if (dist < R_SECONDARY) detections++;
-                
-                // Visual boyas solo para hostiles
-                if(c.type === 'HOSTILE') {
-                    if(dist < R_SECONDARY) b.sZone.setStyle({color: '#ff3333'});
-                    else b.sZone.setStyle({color: '#ffd700'});
-                }
-            });
-
-            // Lógica de visibilidad
-            if (detections > 0) {
-                c.marker.setLatLng([c.lat, c.lon]);
-                if (!map.hasLayer(c.marker)) c.marker.addTo(map);
-                
-                if (c.type === 'HOSTILE') {
-                    hostileInView = true;
-                    updateHUD(c, detections);
-                }
-            } else {
-                if (map.hasLayer(c.marker)) map.removeLayer(c.marker);
-                if (c.type === 'HOSTILE') clearHUD();
-            }
+        hostile.marker.on('click', (e) => {
+            const menu = document.getElementById('action-menu');
+            menu.style.display = 'block';
+            menu.style.left = e.containerPoint.x + 'px';
+            menu.style.top = e.containerPoint.y + 'px';
         });
 
-        if (!hostileInView) clearHUD();
-    }, 100);
-}
+        simInterval = setInterval(updateScene, 100);
+    }
 
-function updateHUD(c, count) {
-    document.getElementById('target-data').style.display = 'block';
-    document.getElementById('no-contact').style.display = 'none';
-    document.getElementById('tgt-id').innerText = c.id;
-    document.getElementById('tgt-pos').innerText = `${Math.abs(c.lat).toFixed(4)}°S ${Math.abs(c.lon).toFixed(4)}°W`;
-    document.getElementById('tgt-spd').innerText = c.speed + " kts";
-    document.getElementById('tgt-hdg').innerText = c.heading + "°";
-    document.getElementById('tgt-conf').innerText = count > 1 ? "100% (JOINT LOCK)" : "60% (TRAZADO)";
-    document.getElementById('tgt-conf').className = count > 1 ? "value alert" : "value safe";
-    document.getElementById('tgt-class').innerText = "INCURSIÓN NO AUTORIZADA";
-}
+    function updateScene() {
+        // Movimiento (Evitando tierra)
+        let nextLon = hostile.lon + Math.sin(hostile.heading * Math.PI / 180) * 0.005;
+        if(nextLon > COAST_LIMIT) { hostile.heading = 190; }
+        
+        hostile.lat -= Math.cos(hostile.heading * Math.PI / 180) * 0.005;
+        hostile.lon += Math.sin(hostile.heading * Math.PI / 180) * 0.005;
 
-function clearHUD() {
-    document.getElementById('target-data').style.display = 'none';
-    document.getElementById('no-contact').style.display = 'block';
-    buoyLayers.forEach(b => b.sZone.setStyle({color: '#ffd700'}));
-}
+        // Actualizar icono con rotación (Punta del triángulo = Heading)
+        hostile.marker.setLatLng([hostile.lat, hostile.lon]);
+        const color = "#ff3333";
+        hostile.marker.setIcon(L.divIcon({
+            className: 't-icon',
+            html: `<div style="width: 0; height: 0; border-left: 7px solid transparent; border-right: 7px solid transparent; border-bottom: 16px solid ${color}; transform: rotate(${hostile.heading}deg); filter: drop-shadow(0 0 5px ${color});"></div>`
+        }));
 
-startSimulation();
+        // Sensor Check
+        let detCount = 0;
+        buoyLayers.forEach(l => {
+            const dist = map.distance([hostile.lat, hostile.lon], [l.b.lat, l.b.lon]);
+            if(dist < 70000) detCount++;
+            l.sZone.setStyle({color: (dist < 70000) ? '#ff3333' : '#ffd700'});
+        });
+
+        if(detCount > 0) {
+            updateHUD(detCount);
+            if(!map.hasLayer(hostile.marker)) hostile.marker.addTo(map);
+        } else {
+            document.getElementById('tracking-panel').style.display = 'none';
+            document.getElementById('idle-msg').style.display = 'block';
+            if(map.hasLayer(hostile.marker)) map.removeLayer(hostile.marker);
+        }
+    }
+
+    function updateHUD(count) {
+        document.getElementById('tracking-panel').style.display = 'block';
+        document.getElementById('idle-msg').style.display = 'none';
+        document.getElementById('tgt-id').innerText = hostile.id;
+        document.getElementById('tgt-pos').innerText = `${Math.abs(hostile.lat).toFixed(3)}S / ${Math.abs(hostile.lon).toFixed(3)}W`;
+        document.getElementById('tgt-motion').innerText = `${hostile.speed} KTS / ${hostile.heading}°`;
+        document.getElementById('tgt-conf').innerText = count > 1 ? "100% JOINT LOCK" : "60% TRAZADO";
+        
+        // TAT al puerto más cercano
+        let minDist = Infinity; let nearest = "";
+        for(let p in PORTS) {
+            let d = map.distance([hostile.lat, hostile.lon], PORTS[p]);
+            if(d < minDist) { minDist = d; nearest = p; }
+        }
+        let hours = (minDist / (hostile.speed * 1852)) ; // Dist metros / (nudos a metros/h)
+        document.getElementById('tgt-tat').innerText = `${nearest} (${hours.toFixed(1)} hrs)`;
+    }
+
+    function takeAction(msg) {
+        alert(msg);
+        document.getElementById('action-menu').style.display = 'none';
+    }
 </script>
 </body>
 </html>
