@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>ZORD S.p.A. | CONSOLA TRIDENTE v7.0 🔱</title>
+    <title>ZORD S.p.A. | CONSOLA TRIDENTE v8.0 🔱</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
@@ -12,10 +12,10 @@
         }
         body { margin: 0; background: var(--bg-deep); font-family: 'Courier New', monospace; color: white; overflow: hidden; }
         
-        /* Layout: 2 Paneles (Monitor Dual) */
+        /* Layout Monitor Dual */
         .main-container {
             display: grid;
-            grid-template-columns: 1fr 380px; /* Mapa grande y barra lateral técnica */
+            grid-template-columns: 1fr 400px; 
             height: 100vh;
             gap: 2px;
             background: var(--steel);
@@ -23,96 +23,119 @@
 
         .quadrant { background: var(--bg-deep); display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--steel); }
         .q-header { 
-            background: rgba(26, 43, 60, 0.6); padding: 8px 12px; font-size: 11px; 
+            background: rgba(26, 43, 60, 0.8); padding: 10px 15px; font-size: 11px; 
             color: var(--glow-blue); border-bottom: 1px solid var(--steel);
             display: flex; justify-content: space-between; letter-spacing: 1px;
+            text-transform: uppercase;
         }
 
-        /* Monitor A: TSD */
-        #map { flex-grow: 1; background: #070809; }
+        #map { flex-grow: 1; background: #070809; z-index: 1; }
 
-        /* Monitor B: Data Stream (Integrado) */
-        .side-panel { display: flex; flex-direction: column; height: 100%; }
-        .data-section { padding: 15px; border-bottom: 1px solid var(--steel); }
+        /* Barra Lateral */
+        .side-panel { display: flex; flex-direction: column; height: 100%; border-left: 2px solid var(--steel); }
+        .data-section { padding: 20px; border-bottom: 1px solid var(--steel); background: rgba(5, 7, 10, 0.5); }
         
-        .log-container { flex-grow: 1; font-size: 10px; color: #8899AA; padding: 10px; overflow-y: auto; background: #050607; }
-        .log-line { margin-bottom: 5px; border-left: 2px solid var(--matrix-green); padding-left: 6px; }
+        .log-container { flex-grow: 1; font-size: 10px; color: #8899AA; padding: 12px; overflow-y: auto; background: #050607; }
+        .log-line { margin-bottom: 6px; border-left: 2px solid var(--matrix-green); padding-left: 8px; }
 
-        /* UI Táctica */
-        .stat-bar { background: #111; height: 10px; margin: 6px 0; border: 1px solid var(--steel); position: relative; }
+        /* Indicadores Visuales */
+        .stat-bar { background: #111; height: 10px; margin: 8px 0; border: 1px solid var(--steel); }
         .bar-fill { height: 100%; background: var(--matrix-green); width: 0%; transition: width 0.5s; }
-        .alert-text { color: var(--hostile-red); font-weight: bold; animation: blink 1s infinite; }
+        .alert-text { color: var(--hostile-red); font-weight: bold; animation: blink 0.8s infinite; }
+        .info-label { color: #556677; font-size: 10px; text-transform: uppercase; }
+        .info-value { color: #fff; font-size: 13px; font-weight: bold; margin-bottom: 8px; display: block; }
 
         /* Menú de Acción */
         #action-menu {
-            position: absolute; display: none; background: rgba(10, 11, 12, 0.95); 
-            border: 1px solid var(--hostile-red); padding: 10px; z-index: 5000; width: 180px;
-            box-shadow: 0 0 20px rgba(255, 0, 0, 0.3);
+            position: absolute; display: none; background: rgba(10, 11, 12, 0.98); 
+            border: 1px solid var(--hostile-red); padding: 12px; z-index: 5000; width: 200px;
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.4);
         }
         .action-btn {
             width: 100%; background: #1a0505; color: var(--hostile-red); border: 1px solid var(--hostile-red);
-            padding: 8px; cursor: pointer; margin-top: 5px; font-family: inherit; font-size: 10px; font-weight: bold;
+            padding: 10px; cursor: pointer; margin-top: 6px; font-family: inherit; font-size: 10px; font-weight: bold;
+            text-transform: uppercase;
         }
         .action-btn:hover { background: var(--hostile-red); color: white; }
 
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
         
-        #start-overlay {
-            position: absolute; inset: 0; background: rgba(0,0,0,0.8); z-index: 9999;
-            display: flex; align-items: center; justify-content: center;
+        #boot-screen {
+            position: absolute; inset: 0; background: var(--bg-deep); z-index: 9999;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
     </style>
 </head>
 <body>
 
-<div id="start-overlay">
-    <button style="background:none; border: 2px solid var(--matrix-green); color: var(--matrix-green); padding: 20px 40px; font-family: inherit; font-size: 18px; cursor: pointer;" onclick="initSystem()">INITIALIZE ZORD ENGINE</button>
+<div id="boot-screen">
+    <div style="color: var(--matrix-green); margin-bottom: 20px; font-size: 24px; letter-spacing: 5px;">ZORD S.p.A.</div>
+    <button style="background:none; border: 1px solid var(--matrix-green); color: var(--matrix-green); padding: 15px 30px; font-family: inherit; cursor: pointer;" onclick="bootSystem()">INITIALIZE MISSION TRIDENTE</button>
 </div>
 
 <div id="action-menu">
-    <div style="font-size: 9px; color: var(--hostile-red); margin-bottom: 8px; text-align: center;">ENGAGEMENT PROTOCOL</div>
-    <button class="action-btn" onclick="takeAction('PATRULLA DE INTERCEPCIÓN DESPACHADA')">ENVIAR PATRULLA</button>
-    <button class="action-btn" style="color: var(--alert-amber); border-color: var(--alert-amber);" onclick="takeAction('ALERTA ASW NIVEL 5 ACTIVADA')">ENVIAR ASW (SUB)</button>
-    <button class="action-btn" style="color: #888; border-color: #444;" onclick="closeMenu()">CANCELAR</button>
+    <div style="font-size: 10px; color: var(--hostile-red); margin-bottom: 10px; text-align: center; border-bottom: 1px solid #300;">ORDEN DE ENGANCHE</div>
+    <button class="action-btn" onclick="takeAction('PATRULLA DESPACHADA')">INTERCEPCIÓN SUPERFICIE</button>
+    <button class="action-btn" style="color: var(--alert-amber); border-color: var(--alert-amber);" onclick="takeAction('ALERTA ASW ACTIVADA')">NEUTRALIZACIÓN ASW</button>
+    <button class="action-btn" style="color: #666; border-color: #333;" onclick="closeMenu()">ABORTAR</button>
 </div>
 
 <div class="main-container">
     <div class="quadrant">
         <div class="q-header">
             <span>TSD: TACTICAL SITUATION DISPLAY</span>
-            <span id="coord-display">SEARCHING...</span>
+            <span id="coord-display-header" style="color: var(--matrix-green);">SYS_READY</span>
         </div>
         <div id="map"></div>
     </div>
 
     <div class="side-panel">
-        <div class="quadrant" style="height: 35%;">
-            <div class="q-header"><span>B: Z-SUSY SPECTRAL ANALYSIS</span></div>
-            <div class="data-section">
-                <div style="font-size: 10px; color: var(--glow-blue);">RIGIDEZ ESPECTRAL: <span id="spectral-val" class="alert-text" style="display:none">0.98</span></div>
-                <div id="target-info" style="display:none; margin-top:10px;">
-                    <div class="log-line" style="border-color: var(--hostile-red)">CONTACT: <span class="alert-text">Z-SUSY TRACK 001</span></div>
-                    <div style="font-size: 11px; margin-top:5px;">
-                        SPD: <span id="tgt-spd">--</span> KTS | HDG: <span id="tgt-hdg">--</span>°<br>
-                        CONF: <span id="tgt-conf" style="color:var(--matrix-green)">--</span><br>
-                        TAT: <span id="tgt-tat">--</span>
+        <div class="quadrant" style="height: 45%;">
+            <div class="q-header"><span>B: CINEMÁTICA Y ANÁLISIS ESPECTRAL</span></div>
+            <div class="data-section" id="target-hud">
+                <div id="wait-msg" style="color: #445566; text-align: center; padding: 40px 0;">ESCANEO PASIVO EN CURSO...</div>
+                
+                <div id="target-data" style="display:none;">
+                    <div class="alert-text" style="font-size: 14px; margin-bottom: 15px;">⚠️ CONTACTO HOSTIL DETECTADO</div>
+                    
+                    <span class="info-label">Ubicación GPS:</span>
+                    <span class="info-value" id="side-gps">--</span>
+                    
+                    <div style="display: flex; justify-content: space-between;">
+                        <div>
+                            <span class="info-label">Rumbo:</span>
+                            <span class="info-value" id="side-hdg">--</span>
+                        </div>
+                        <div>
+                            <span class="info-label">Velocidad:</span>
+                            <span class="info-value" id="side-spd">--</span>
+                        </div>
+                    </div>
+
+                    <span class="info-label">Confianza de Red:</span>
+                    <span class="info-value" id="side-conf" style="color: var(--matrix-green);">--</span>
+                    
+                    <span class="info-label">ETA Puerto más cercano:</span>
+                    <span class="info-value" id="side-tat">--</span>
+
+                    <div style="font-size: 10px; color: var(--glow-blue); border-top: 1px solid #223344; pt: 5px;">
+                        RIGIDEZ ESPECTRAL: <span class="alert-text">0.98</span> (OBJETO MECÁNICO)
                     </div>
                 </div>
-                <div id="wait-msg" style="color: #445566; font-size: 10px; margin-top:20px; text-align:center;">SCANNING SPECTRAL GAPS...</div>
             </div>
         </div>
 
-        <div class="quadrant" style="height: 25%;">
-            <div class="q-header"><span>C: Z-ENGINE HEALTH & ENTROPY</span></div>
-            <div class="data-section">
-                <div style="font-size: 9px; margin-bottom:2px;">ENTROPY POOL (L-SUSY ACTIVE)</div>
-                <div class="stat-bar"><div id="bar-entropy" class="bar-fill" style="width: 92%;"></div></div>
-                <div style="font-size: 9px; margin-bottom:2px;">EIGENVALUE ALIGNMENT</div>
-                <div class="stat-bar"><div id="bar-eigen" class="bar-fill" style="width: 99.9%; background: var(--glow-blue);"></div></div>
+        <div class="quadrant" style="height: 20%;">
+            <div class="q-header"><span>C: ESTADO DEL MOTOR Z-ENGINE</span></div>
+            <div class="data-section" style="padding: 10px 20px;">
+                <div style="font-size: 9px; color: #556677;">ENTROPY POOL (L-SUSY ACTIVE)</div>
+                <div class="stat-bar"><div class="bar-fill" style="width: 88%;"></div></div>
+                <div style="font-size: 9px; color: #556677;">EIGENVALUE ALIGNMENT</div>
+                <div class="stat-bar"><div class="bar-fill" style="width: 99.9%; background: var(--glow-blue);"></div></div>
             </div>
         </div>
 
-        <div class="quadrant" style="flex-grow:1;">
+        <div class="quadrant" style="flex-grow: 1;">
             <div class="q-header"><span>D: MISSION LOG & SIGNATURE MATCH</span></div>
             <div id="mission-log" class="log-container"></div>
         </div>
@@ -120,55 +143,58 @@
 </div>
 
 <script>
-    const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([-33.00, -72.40], 8);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { opacity: 0.7 }).addTo(map);
+    const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([-32.80, -72.30], 8);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { opacity: 0.8 }).addTo(map);
 
     const PORTS = { "VALPARAÍSO": [-33.03, -71.62], "SAN ANTONIO": [-33.58, -71.61] };
-    const COAST_LIMIT = -71.72;
-
+    
+    // Configuración de Boyas
     const buoys = [
-        { id: "T-01 (EXT)", lat: -32.10, lon: -72.60 }, { id: "T-02 (INT)", lat: -32.50, lon: -71.95 },
-        { id: "T-03 (EXT)", lat: -32.90, lon: -72.55 }, { id: "T-04 (INT)", lat: -33.20, lon: -72.05 },
-        { id: "T-05 (EXT)", lat: -33.60, lon: -72.50 }
+        { id: "T-01", lat: -32.10, lon: -72.60 }, { id: "T-02", lat: -32.50, lon: -71.95 },
+        { id: "T-03", lat: -32.90, lon: -72.55 }, { id: "T-04", lat: -33.20, lon: -72.05 },
+        { id: "T-05", lat: -33.60, lon: -72.50 }
     ];
 
     const buoyLayers = [];
     buoys.forEach(b => {
-        // Rango de Alerta (70km)
-        const sZone = L.circle([b.lat, b.lon], { radius: 70000, color: '#1A2B3C', weight: 1, dashArray: '5,5', fill: false }).addTo(map);
-        // Rango ID (35km)
-        const pZone = L.circle([b.lat, b.lon], { radius: 35000, color: '#00FF41', weight: 1, fillOpacity: 0.02 }).addTo(map);
+        L.circle([b.lat, b.lon], { radius: 70000, color: '#1A2B3C', weight: 1, dashArray: '5,5', fill: false }).addTo(map);
+        const pZone = L.circle([b.lat, b.lon], { radius: 35000, color: '#00FF41', weight: 1, fillOpacity: 0.03 }).addTo(map);
         L.circleMarker([b.lat, b.lon], { color: '#00FF41', radius: 2 }).addTo(map);
-        buoyLayers.push({ b, pZone, sZone });
+        buoyLayers.push({ b, pZone });
     });
 
-    let target = { 
-        lat: -31.80, lon: -73.00, heading: 130, speed: 22, 
-        marker: null, visible: false 
-    };
+    // Waypoints para que el enemigo recorra TODAS las zonas de las boyas
+    const waypoints = [
+        {lat: -31.80, lon: -73.00}, // Inicio
+        {lat: -32.20, lon: -72.40}, // Zona T-01 / T-02
+        {lat: -32.55, lon: -72.15}, // Zona T-02 / T-04
+        {lat: -33.00, lon: -72.45}, // Zona T-03 / T-05
+        {lat: -33.40, lon: -72.20}, // Zona T-05
+        {lat: -34.50, lon: -72.80}  // Salida
+    ];
+    
+    let currentWP = 0;
+    let target = { lat: waypoints[0].lat, lon: waypoints[0].lon, heading: 0, speed: 26, marker: null, visible: false };
 
     function addLog(text) {
         const log = document.getElementById('mission-log');
-        const now = new Date().toLocaleTimeString('en-GB');
-        log.innerHTML += `<div class="log-line">[${now}] ${text}</div>`;
+        log.innerHTML += `<div class="log-line">[${new Date().toLocaleTimeString('en-GB')}] ${text}</div>`;
         log.scrollTop = log.scrollHeight;
     }
 
-    function initSystem() {
-        document.getElementById('start-overlay').style.display = 'none';
-        addLog("ZORD ENGINE INITIALIZED.");
-        addLog("L-SUSY PROCESSING LAYER ATTACHED.");
-        addLog("SCANNING ACOUSTIC SPECTRAL GAPS...");
+    function bootSystem() {
+        document.getElementById('boot-screen').style.display = 'none';
+        addLog("SISTEMA TRIDENTE INICIALIZADO.");
+        addLog("CONEXIÓN CON ASMAR ESTABLECIDA (MODO PRE-ALPHA).");
+        addLog("BUSCANDO VARIACIONES ESPECTRALES NO TRIVIALES...");
         
-        // Icono de Diamante Rojo (Estilo OTAN/Táctico)
         const hostileIcon = L.divIcon({
             className: 'hostile-icon',
-            html: `<div id="tgt-symbol" style="width:0; height:0; border-left:8px solid transparent; border-right:8px solid transparent; border-bottom:18px solid var(--hostile-red); filter: drop-shadow(0 0 5px red);"></div>`,
+            html: `<div id="tgt-symbol" style="width:0; height:0; border-left:8px solid transparent; border-right:8px solid transparent; border-bottom:18px solid var(--hostile-red); filter: drop-shadow(0 0 8px red);"></div>`,
             iconSize: [16, 18], iconAnchor: [8, 9]
         });
 
         target.marker = L.marker([target.lat, target.lon], {icon: hostileIcon});
-        
         target.marker.on('click', (e) => {
             const menu = document.getElementById('action-menu');
             menu.style.display = 'block';
@@ -176,91 +202,95 @@
             menu.style.top = e.originalEvent.pageY + 'px';
         });
 
-        setInterval(updateTacticalLoop, 100);
+        setInterval(simulationLoop, 100);
     }
 
-    function updateTacticalLoop() {
-        // Trayectoria: Incursión diagonal hacia la costa
-        target.lat -= Math.cos(target.heading * Math.PI/180) * 0.006;
-        target.lon += Math.sin(target.heading * Math.PI/180) * 0.006;
+    function simulationLoop() {
+        // Lógica de navegación hacia Waypoints
+        let wp = waypoints[currentWP + 1];
+        if (!wp) return;
 
-        // Corrección de rumbo si se acerca demasiado a tierra
-        if (target.lon > COAST_LIMIT) {
-            target.heading = 195; // Gira al sur paralelo a la costa
-            addLog("ALERT: TGT 001 ADAPTING COURSE - COASTAL PROXIMITY.");
+        let dy = wp.lat - target.lat;
+        let dx = wp.lon - target.lon;
+        let distToWP = Math.sqrt(dy*dy + dx*dx);
+
+        if (distToWP < 0.05) {
+            currentWP++;
+            addLog(`INCURSOR ALCANZÓ PUNTO DE NAVEGACIÓN ${currentWP}.`);
         }
 
+        target.heading = Math.atan2(dx, dy) * (180 / Math.PI);
+        if (target.heading < 0) target.heading += 360;
+
+        // Movimiento suave
+        target.lat += Math.cos(target.heading * Math.PI/180) * 0.005;
+        target.lon += Math.sin(target.heading * Math.PI/180) * 0.005;
+
+        // Detección de Sensores
         let detections = 0;
         buoyLayers.forEach(l => {
-            const dist = map.distance([target.lat, target.lon], [l.b.lat, l.b.lon]);
-            if (dist < 70000) {
+            const d = map.distance([target.lat, target.lon], [l.b.lat, l.b.lon]);
+            if (d < 70000) {
                 detections++;
-                l.sZone.setStyle({color: 'var(--alert-amber)'});
-                if (dist < 35000) l.pZone.setStyle({color: 'red', fillOpacity: 0.1});
-                else l.pZone.setStyle({color: '#00FF41', fillOpacity: 0.02});
+                if (d < 35000) l.pZone.setStyle({color: 'red', fillOpacity: 0.1});
+                else l.pZone.setStyle({color: '#00FF41', fillOpacity: 0.03});
             } else {
-                l.sZone.setStyle({color: '#1A2B3C'});
-                l.pZone.setStyle({color: '#00FF41', fillOpacity: 0.02});
+                l.pZone.setStyle({color: '#00FF41', fillOpacity: 0.03});
             }
         });
 
-        // Lógica de Visibilidad Limitada por Sensores
+        // Visibilidad y HUD
         if (detections > 0) {
             if (!target.visible) {
                 target.marker.addTo(map);
                 target.visible = true;
-                addLog("TRACK 001 CONFIRMED VIA Z-CIPHER VALIDATION.");
-                addLog("SIGNATURE MATCH: SQS-53C SONAR (PROB 92%).");
+                addLog("¡ALERTA! CONTACTO CLASIFICADO COMO HOSTIL.");
+                addLog("SIGNATURE MATCH: SUBMARINO SQS-53C DETECTADO.");
             }
             updateHUD(detections);
         } else {
             if (target.visible) {
                 map.removeLayer(target.marker);
                 target.visible = false;
-                hideHUD();
-                addLog("LOST CONTACT: TRACK 001 - SIGNAL BELOW NOISE FLOOR.");
+                document.getElementById('target-data').style.display = 'none';
+                document.getElementById('wait-msg').style.display = 'block';
+                addLog("CONTACTO PERDIDO: SEÑAL BAJO EL PISO DE RUIDO.");
             }
         }
 
         if (target.visible) {
             target.marker.setLatLng([target.lat, target.lon]);
-            // Rotación precisa del símbolo según Heading
-            const symbol = document.getElementById('tgt-symbol');
-            if(symbol) symbol.style.transform = `rotate(${target.heading}deg)`;
-            document.getElementById('coord-display').innerText = `${Math.abs(target.lat).toFixed(3)}°S | ${Math.abs(target.lon).toFixed(3)}°W`;
+            document.getElementById('tgt-symbol').style.transform = `rotate(${target.heading}deg)`;
         }
     }
 
     function updateHUD(count) {
-        document.getElementById('target-info').style.display = 'block';
-        document.getElementById('spectral-val').style.display = 'inline';
+        document.getElementById('target-data').style.display = 'block';
         document.getElementById('wait-msg').style.display = 'none';
-        document.getElementById('tgt-spd').innerText = target.speed;
-        document.getElementById('tgt-hdg').innerText = Math.round(target.heading);
-        document.getElementById('tgt-conf').innerText = count > 1 ? "100% (JOINT LOCK)" : "60% (PREDICTIVE)";
         
-        // TAT al puerto más cercano
+        document.getElementById('side-gps').innerText = `${Math.abs(target.lat).toFixed(4)}° S / ${Math.abs(target.lon).toFixed(4)}° W`;
+        document.getElementById('side-hdg').innerText = Math.round(target.heading) + "°";
+        document.getElementById('side-spd').innerText = target.speed + " KTS";
+        
+        const confText = count > 1 ? "100% [JOINT LOCK]" : "60% [TRAZADO]";
+        const confEl = document.getElementById('side-conf');
+        confEl.innerText = confText;
+        confEl.style.color = count > 1 ? "var(--hostile-red)" : "var(--matrix-green)";
+
+        // TAT
         let minDist = Infinity; let port = "";
         for(let p in PORTS) {
             let d = map.distance([target.lat, target.lon], PORTS[p]);
             if(d < minDist) { minDist = d; port = p; }
         }
-        let tat = (minDist / (target.speed * 1852)).toFixed(1);
-        document.getElementById('tgt-tat').innerText = `${port} (${tat} hrs)`;
+        document.getElementById('side-tat').innerText = `${port} (${(minDist / (target.speed * 1852)).toFixed(1)} hrs)`;
     }
 
-    function hideHUD() {
-        document.getElementById('target-info').style.display = 'none';
-        document.getElementById('spectral-val').style.display = 'none';
-        document.getElementById('wait-msg').style.display = 'block';
-    }
-
-    function takeAction(action) {
-        addLog(`ACTION: ${action}`);
-        alert(`PROTOCOLO ACTIVADO: ${action}`);
+    function takeAction(act) {
+        addLog(`PROTOCOLO: ${act}`);
+        alert(`ORDEN ENVIADA: ${act}`);
         closeMenu();
     }
-
     function closeMenu() { document.getElementById('action-menu').style.display = 'none'; }
 </script>
 </body>
