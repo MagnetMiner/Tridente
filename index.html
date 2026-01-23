@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>ZORD S.p.A. | CIC TRIDENTE v10.1 🔱</title>
+    <title>ZORD S.p.A. | CIC TRIDENTE v10.2 [DEMO LOOP] 🔱</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
@@ -10,35 +10,31 @@
             --bg-deep: #0A0B0C; --steel: #1A2B3C; --alert-yellow: #FFFF00;
             --matrix-green: #00FF41; --hostile-red: #FF0000; --glow-blue: #00AAAA;
         }
-        body { margin: 0; background: var(--bg-deep); font-family: 'Courier New', monospace; color: white; overflow: hidden; }
+        body { margin: 0; background: var(--bg-deep); font-family: 'Courier New', monospace; color: white; overflow: hidden; } /* [cite: 3, 5] */
         
-        /* Layout Monitor Dual */
         .main-container { display: grid; grid-template-columns: 1fr 400px; height: 100vh; gap: 2px; background: var(--steel); }
-        .quadrant { background: var(--bg-deep); display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--steel); }
+        .quadrant { background: var(--bg-deep); display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--steel); } /* [cite: 8] */
         .q-header { 
             background: rgba(26, 43, 60, 0.8); padding: 10px 15px; font-size: 11px; 
             color: var(--glow-blue); border-bottom: 1px solid var(--steel);
             display: flex; justify-content: space-between; letter-spacing: 2px; text-transform: uppercase;
         }
 
-        #map { flex-grow: 1; background: #070809; z-index: 1; }
+        #map { flex-grow: 1; background: #070809; z-index: 1; } /* [cite: 7] */
         
-        /* Panel Lateral (B, C, D) */
         .side-panel { display: flex; flex-direction: column; height: 100%; border-left: 2px solid var(--steel); }
         .fixed-data { flex-shrink: 0; border-bottom: 2px solid var(--steel); background: rgba(5, 10, 15, 0.95); }
-        .data-section { padding: 15px 20px; }
+        .data-section { padding: 15px 20px; } /* [cite: 10] */
         
         .log-container { flex-grow: 1; font-size: 10px; color: #8899AA; padding: 12px; overflow-y: auto; background: #050607; }
         .log-line { margin-bottom: 6px; border-left: 2px solid var(--matrix-green); padding-left: 8px; }
 
-        /* Indicadores Tácticos */
         .stat-bar { background: #111; height: 8px; margin: 6px 0; border: 1px solid var(--steel); }
         .bar-fill { height: 100%; background: var(--matrix-green); width: 0%; transition: width 0.5s; }
-        .alert-text { color: var(--hostile-red); font-weight: bold; animation: blink 1s infinite; }
+        .alert-text { color: var(--hostile-red); font-weight: bold; animation: blink 1s infinite; } /* [cite: 22, 28] */
         .info-label { color: #556677; font-size: 9px; text-transform: uppercase; display: block; margin-top: 10px; }
         .info-value { color: #fff; font-size: 12px; font-weight: bold; }
 
-        /* Etiqueta Militar de Boya */
         .buoy-label {
             background: rgba(0, 20, 30, 0.9) !important;
             border: 1px solid var(--glow-blue) !important;
@@ -49,9 +45,8 @@
             padding: 2px 5px !important;
             border-radius: 0 !important;
             box-shadow: 0 0 8px rgba(0, 255, 255, 0.2);
-        }
+        } /* [cite: 36, 37] */
 
-        /* Menú de Respuesta */
         #action-menu {
             position: absolute; display: none; background: rgba(10, 11, 12, 0.98); 
             border: 1px solid var(--hostile-red); padding: 12px; z-index: 5000; width: 200px;
@@ -59,8 +54,7 @@
         .action-btn {
             width: 100%; background: #1a0505; color: var(--hostile-red); border: 1px solid var(--hostile-red);
             padding: 8px; cursor: pointer; margin-top: 6px; font-family: inherit; font-size: 10px; font-weight: bold;
-        }
-        .action-btn:hover { background: var(--hostile-red); color: white; }
+        } /* [cite: 25, 26, 31] */
 
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
         #boot-screen { position: absolute; inset: 0; background: var(--bg-deep); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
@@ -70,7 +64,7 @@
 
 <div id="boot-screen">
     <div style="color: var(--matrix-green); margin-bottom: 20px; font-size: 20px; letter-spacing: 10px;">ZORD TACTICAL SYSTEMS</div>
-    <button style="background:none; border: 1px solid var(--matrix-green); color: var(--matrix-green); padding: 15px 30px; font-family: inherit; cursor: pointer; font-weight: bold;" onclick="bootSystem()">EJECUTAR PROTOCOLO TRIDENTE</button>
+    <button style="background:none; border: 1px solid var(--matrix-green); color: var(--matrix-green); padding: 15px 30px; font-family: inherit; cursor: pointer; font-weight: bold;" onclick="bootSystem()">INICIAR BUCLE DE DEMOSTRACIÓN</button>
 </div>
 
 <div id="action-menu">
@@ -108,7 +102,7 @@
                     </div>
                     <span class="info-label">CONFIANZA DE RED</span>
                     <span class="info-value" id="side-conf">--</span>
-                    <span class="info-label">TAT PUERTO PROX.</span>
+                    <span class="info-label">ETA PUERTO PROX.</span>
                     <span class="info-value" id="side-tat">--</span>
                 </div>
             </div>
@@ -130,35 +124,35 @@
 </div>
 
 <script>
-    const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([-33.00, -72.40], 8);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { opacity: 0.6 }).addTo(map);
+    const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([-33.00, -72.40], 8); /*  */
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { opacity: 0.6 }).addTo(map); /* [cite: 46] */
 
     const PORTS = { "VALPARAÍSO": [-33.03, -71.62], "SAN ANTONIO": [-33.58, -71.61] };
-    const R_PRIMARY = 35000;
+    const R_PRIMARY = 35000; /* [cite: 51] */
     const R_SECONDARY = 60000;
     
     const buoys = [
         { id: "B01", lat: -32.10, lon: -72.60 }, { id: "B02", lat: -32.50, lon: -71.95 },
         { id: "B03", lat: -32.90, lon: -72.55 }, { id: "B04", lat: -33.20, lon: -72.05 },
         { id: "B05", lat: -33.60, lon: -72.50 }, { id: "B06", lat: -33.90, lon: -72.00 }
-    ];
+    ]; /* [cite: 47, 48, 49] */
 
     const buoyLayers = [];
     buoys.forEach(b => {
-        const sZone = L.circle([b.lat, b.lon], { radius: R_SECONDARY, color: 'var(--alert-yellow)', weight: 0.5, dashArray: '2, 4', fill: false, opacity: 0 }).addTo(map);
-        const pZone = L.circle([b.lat, b.lon], { radius: R_PRIMARY, color: 'var(--matrix-green)', weight: 0.8, fillOpacity: 0, opacity: 0 }).addTo(map);
+        const sZone = L.circle([b.lat, b.lon], { radius: R_SECONDARY, color: 'var(--alert-yellow)', weight: 0.5, dashArray: '2, 4', fill: false, opacity: 0 }).addTo(map); /* [cite: 59] */
+        const pZone = L.circle([b.lat, b.lon], { radius: R_PRIMARY, color: 'var(--matrix-green)', weight: 0.8, fillOpacity: 0, opacity: 0 }).addTo(map); /* [cite: 58] */
         L.circleMarker([b.lat, b.lon], { color: 'var(--glow-blue)', radius: 2, fillOpacity: 1 }).addTo(map)
-            .bindTooltip(b.id, { permanent: true, direction: 'top', className: 'buoy-label', offset: [0, -12], opacity: 0.9 });
+            .bindTooltip(b.id, { permanent: true, direction: 'top', className: 'buoy-label', offset: [0, -12], opacity: 0.9 }); /* [cite: 60] */
         buoyLayers.push({ b, pZone, sZone });
     });
 
     const waypoints = [
         {lat: -31.80, lon: -73.00}, {lat: -32.30, lon: -72.40}, {lat: -32.70, lon: -72.05},
         {lat: -33.10, lon: -72.50}, {lat: -33.50, lon: -72.15}, {lat: -34.80, lon: -73.00}
-    ];
+    ]; /* [cite: 61] */
     
     let currentWP = 0;
-    let target = { lat: waypoints[0].lat, lon: waypoints[0].lon, heading: 0, speed: 22.4, marker: null, visible: false };
+    let target = { lat: waypoints[0].lat, lon: waypoints[0].lon, heading: 0, speed: 22.4, marker: null, visible: false }; /* [cite: 65] */
 
     function addLog(text) {
         const log = document.getElementById('mission-log');
@@ -168,15 +162,15 @@
 
     function bootSystem() {
         document.getElementById('boot-screen').style.display = 'none';
-        addLog("Z-ENGINE INITIALIZED. SCANNING SPECTRAL GAPS...");
+        addLog("MODO DEMOSTRACIÓN ACTIVADO."); /* [cite: 102] */
         
         const hostileIcon = L.divIcon({
             className: 'hostile-icon',
             html: `<div id="tgt-symbol" style="width:0; height:0; border-left:7px solid transparent; border-right:7px solid transparent; border-bottom:16px solid var(--hostile-red); filter: drop-shadow(0 0 5px red);"></div>`,
             iconSize: [14, 16], iconAnchor: [7, 8]
-        });
+        }); /* [cite: 76, 77] */
 
-        target.marker = L.marker([target.lat, target.lon], {icon: hostileIcon});
+        target.marker = L.marker([target.lat, target.lon], {icon: hostileIcon}); /* [cite: 78] */
         target.marker.on('click', (e) => {
             const menu = document.getElementById('action-menu');
             menu.style.display = 'block'; menu.style.left = e.originalEvent.pageX + 'px'; menu.style.top = e.originalEvent.pageY + 'px';
@@ -187,7 +181,18 @@
 
     function simulationLoop() {
         let wp = waypoints[currentWP + 1];
-        if (!wp) return;
+        
+        // Lógica de LOOP: Si no hay más waypoints, reiniciar
+        if (!wp) {
+            addLog("--- REINICIANDO ESCENARIO DE INCURSIÓN ---");
+            currentWP = 0;
+            target.lat = waypoints[0].lat;
+            target.lon = waypoints[0].lon;
+            target.visible = false;
+            map.removeLayer(target.marker);
+            hideHUD();
+            return;
+        }
 
         let dy = wp.lat - target.lat; let dx = wp.lon - target.lon;
         let distToWP = Math.sqrt(dy*dy + dx*dx);
@@ -197,12 +202,12 @@
         if (targetHeading < 0) targetHeading += 360;
         target.heading += (targetHeading - target.heading) * 0.1;
 
-        target.lat += Math.cos(target.heading * Math.PI/180) * 0.005;
+        target.lat += Math.cos(target.heading * Math.PI/180) * 0.005; /* [cite: 82, 83] */
         target.lon += Math.sin(target.heading * Math.PI/180) * 0.005;
 
         let detections = 0;
         buoyLayers.forEach(l => {
-            const d = map.distance([target.lat, target.lon], [l.b.lat, l.b.lon]);
+            const d = map.distance([target.lat, target.lon], [l.b.lat, l.b.lon]); /* [cite: 91] */
             if (d < R_SECONDARY) { detections++; l.sZone.setStyle({ opacity: 0.6 }); }
             else { l.sZone.setStyle({ opacity: 0 }); }
 
@@ -211,14 +216,14 @@
         });
 
         if (detections > 0) {
-            if (!target.visible) { target.marker.addTo(map); target.visible = true; addLog("⚠️ NON-TRIVIAL ZERO CORRELATION DETECTED."); }
+            if (!target.visible) { target.marker.addTo(map); target.visible = true; addLog("⚠️ DETECCIÓN DE ESTRUCTURA MECÁNICA."); }
             updateHUD(detections);
         } else if (target.visible) {
-            map.removeLayer(target.marker); target.visible = false; hideHUD(); addLog("LOST CONTACT: SIGNAL BELOW NOISE FLOOR.");
+            map.removeLayer(target.marker); target.visible = false; hideHUD(); addLog("CONTACTO FUERA DE RANGO OPERATIVO.");
         }
 
         if (target.visible) {
-            target.marker.setLatLng([target.lat, target.lon]);
+            target.marker.setLatLng([target.lat, target.lon]); /*  */
             document.getElementById('tgt-symbol').style.transform = `rotate(${target.heading}deg)`;
             document.getElementById('coord-header').innerText = `${Math.abs(target.lat).toFixed(3)}°S | ${Math.abs(target.lon).toFixed(3)}°W`;
         }
@@ -244,8 +249,8 @@
         document.getElementById('side-tat').innerText = `${port} (${(minDist / (target.speed * 1852)).toFixed(1)} hrs)`;
     }
 
-    function hideHUD() { document.getElementById('target-data').style.display = 'none'; document.getElementById('wait-msg').style.display = 'block'; document.getElementById('coord-header').innerText = "IDLE"; }
-    function takeAction(act) { addLog(`ACTION_REQ: ${act}`); alert(`ENVIANDO PROTOCOLO: ${act}`); closeMenu(); }
+    function hideHUD() { document.getElementById('target-data').style.display = 'none'; document.getElementById('wait-msg').style.display = 'block'; document.getElementById('coord-header').innerText = "ESCANEO PASIVO"; }
+    function takeAction(act) { addLog(`ACCIÓN: ${act}`); alert(`PROTOCOLO ACTIVADO: ${act}`); closeMenu(); }
     function closeMenu() { document.getElementById('action-menu').style.display = 'none'; }
 </script>
 </body>
