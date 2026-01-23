@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>ZORD S.p.A. | CONSOLA DE COMBATE TRIDENTE 🔱</title>
+    <title>ZORD S.p.A. | CONSOLA TRIDENTE v7.0 🔱</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
@@ -12,154 +12,256 @@
         }
         body { margin: 0; background: var(--bg-deep); font-family: 'Courier New', monospace; color: white; overflow: hidden; }
         
-        /* Layout Cuadrantes */
-        .dashboard {
+        /* Layout: 2 Paneles (Monitor Dual) */
+        .main-container {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            grid-template-rows: 1fr 1fr;
+            grid-template-columns: 1fr 380px; /* Mapa grande y barra lateral técnica */
             height: 100vh;
             gap: 2px;
             background: var(--steel);
         }
-        .quadrant { background: var(--bg-deep); border: 1px solid var(--steel); position: relative; overflow: hidden; }
+
+        .quadrant { background: var(--bg-deep); display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--steel); }
         .q-header { 
-            background: rgba(26, 43, 60, 0.4); padding: 5px 10px; font-size: 10px; 
+            background: rgba(26, 43, 60, 0.6); padding: 8px 12px; font-size: 11px; 
             color: var(--glow-blue); border-bottom: 1px solid var(--steel);
-            display: flex; justify-content: space-between;
+            display: flex; justify-content: space-between; letter-spacing: 1px;
         }
 
-        /* Mapa TSD */
-        #map { height: 100%; width: 100%; background: #070809; }
+        /* Monitor A: TSD */
+        #map { flex-grow: 1; background: #070809; }
 
-        /* Estilos de Texto Táctico */
-        .log-line { font-size: 11px; margin-bottom: 4px; border-left: 2px solid var(--matrix-green); padding-left: 5px; }
-        .stat-bar { background: #111; height: 12px; margin: 8px 0; border: 1px solid var(--steel); position: relative; }
-        .bar-fill { height: 100%; background: var(--matrix-green); width: 0%; transition: width 0.3s; }
-        .value-bright { color: var(--matrix-green); font-weight: bold; }
-        .alert-text { color: var(--hostile-red); animation: blink 1s infinite; }
+        /* Monitor B: Data Stream (Integrado) */
+        .side-panel { display: flex; flex-direction: column; height: 100%; }
+        .data-section { padding: 15px; border-bottom: 1px solid var(--steel); }
+        
+        .log-container { flex-grow: 1; font-size: 10px; color: #8899AA; padding: 10px; overflow-y: auto; background: #050607; }
+        .log-line { margin-bottom: 5px; border-left: 2px solid var(--matrix-green); padding-left: 6px; }
+
+        /* UI Táctica */
+        .stat-bar { background: #111; height: 10px; margin: 6px 0; border: 1px solid var(--steel); position: relative; }
+        .bar-fill { height: 100%; background: var(--matrix-green); width: 0%; transition: width 0.5s; }
+        .alert-text { color: var(--hostile-red); font-weight: bold; animation: blink 1s infinite; }
+
+        /* Menú de Acción */
+        #action-menu {
+            position: absolute; display: none; background: rgba(10, 11, 12, 0.95); 
+            border: 1px solid var(--hostile-red); padding: 10px; z-index: 5000; width: 180px;
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.3);
+        }
+        .action-btn {
+            width: 100%; background: #1a0505; color: var(--hostile-red); border: 1px solid var(--hostile-red);
+            padding: 8px; cursor: pointer; margin-top: 5px; font-family: inherit; font-size: 10px; font-weight: bold;
+        }
+        .action-btn:hover { background: var(--hostile-red); color: white; }
 
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-
-        /* Botón de Inicio */
-        #start-btn {
-            position: absolute; bottom: 20px; right: 20px; z-index: 9999;
-            background: var(--bg-deep); color: var(--matrix-green); border: 1px solid var(--matrix-green);
-            padding: 10px 20px; cursor: pointer; font-family: inherit; font-weight: bold;
+        
+        #start-overlay {
+            position: absolute; inset: 0; background: rgba(0,0,0,0.8); z-index: 9999;
+            display: flex; align-items: center; justify-content: center;
         }
-        #start-btn:hover { background: var(--matrix-green); color: black; }
     </style>
 </head>
 <body>
 
-<button id="start-btn" onclick="startSimulation()">EJECUTAR SECUENCIA TRIDENTE</button>
+<div id="start-overlay">
+    <button style="background:none; border: 2px solid var(--matrix-green); color: var(--matrix-green); padding: 20px 40px; font-family: inherit; font-size: 18px; cursor: pointer;" onclick="initSystem()">INITIALIZE ZORD ENGINE</button>
+</div>
 
-<div class="dashboard">
+<div id="action-menu">
+    <div style="font-size: 9px; color: var(--hostile-red); margin-bottom: 8px; text-align: center;">ENGAGEMENT PROTOCOL</div>
+    <button class="action-btn" onclick="takeAction('PATRULLA DE INTERCEPCIÓN DESPACHADA')">ENVIAR PATRULLA</button>
+    <button class="action-btn" style="color: var(--alert-amber); border-color: var(--alert-amber);" onclick="takeAction('ALERTA ASW NIVEL 5 ACTIVADA')">ENVIAR ASW (SUB)</button>
+    <button class="action-btn" style="color: #888; border-color: #444;" onclick="closeMenu()">CANCELAR</button>
+</div>
+
+<div class="main-container">
     <div class="quadrant">
-        <div class="q-header"><span>CUADRANTE A: TACTICAL SITUATION DISPLAY (TSD)</span><span id="coord-display">00.00°S | 00.00°W</span></div>
+        <div class="q-header">
+            <span>TSD: TACTICAL SITUATION DISPLAY</span>
+            <span id="coord-display">SEARCHING...</span>
+        </div>
         <div id="map"></div>
     </div>
 
-    <div class="quadrant">
-        <div class="q-header"><span>CUADRANTE B: RED DE SENSORES Z-SUSY</span><span class="value-bright">RIGIDEZ ESPECTRAL: 0.98</span></div>
-        <div id="status-panel" style="padding: 20px;">
-            <div id="target-ui" style="display:none;">
-                <div class="log-line" style="border-color: var(--hostile-red)">CONTACTO: <span class="alert-text" id="tgt-id">Z-SUSY TRACK 001</span></div>
-                <div class="log-line">MOVIMIENTO: <span id="tgt-motion">---</span></div>
-                <div class="log-line">CONFIANZA: <span id="tgt-conf" class="value-bright">---</span></div>
-                <div class="log-line">TAT PUERTO: <span id="tgt-tat">---</span></div>
+    <div class="side-panel">
+        <div class="quadrant" style="height: 35%;">
+            <div class="q-header"><span>B: Z-SUSY SPECTRAL ANALYSIS</span></div>
+            <div class="data-section">
+                <div style="font-size: 10px; color: var(--glow-blue);">RIGIDEZ ESPECTRAL: <span id="spectral-val" class="alert-text" style="display:none">0.98</span></div>
+                <div id="target-info" style="display:none; margin-top:10px;">
+                    <div class="log-line" style="border-color: var(--hostile-red)">CONTACT: <span class="alert-text">Z-SUSY TRACK 001</span></div>
+                    <div style="font-size: 11px; margin-top:5px;">
+                        SPD: <span id="tgt-spd">--</span> KTS | HDG: <span id="tgt-hdg">--</span>°<br>
+                        CONF: <span id="tgt-conf" style="color:var(--matrix-green)">--</span><br>
+                        TAT: <span id="tgt-tat">--</span>
+                    </div>
+                </div>
+                <div id="wait-msg" style="color: #445566; font-size: 10px; margin-top:20px; text-align:center;">SCANNING SPECTRAL GAPS...</div>
             </div>
-            <div id="scan-msg" style="color: #445566; text-align: center; margin-top: 50px;">ESPERANDO VALIDACIÓN DE CIFRADO Z-CIPHER...</div>
         </div>
-    </div>
 
-    <div class="quadrant">
-        <div class="q-header"><span>CUADRANTE C: Z-ENGINE ANALYTICS</span><span>L-SUSY LAYER ACTIVE</span></div>
-        <div style="padding: 15px;">
-            <div style="font-size: 10px;">ENTROPY POOL (250GB ACTIVE)</div>
-            <div class="stat-bar"><div id="bar-entropy" class="bar-fill" style="width: 85%;"></div></div>
-            <div style="font-size: 10px;">EIGENVALUE ALIGNMENT</div>
-            <div class="stat-bar"><div id="bar-eigen" class="bar-fill" style="width: 99.9%; background: var(--glow-blue);"></div></div>
-            <div style="font-size: 10px; margin-top: 10px; color: var(--glow-blue);">MATRIX CALCULUS: OK</div>
+        <div class="quadrant" style="height: 25%;">
+            <div class="q-header"><span>C: Z-ENGINE HEALTH & ENTROPY</span></div>
+            <div class="data-section">
+                <div style="font-size: 9px; margin-bottom:2px;">ENTROPY POOL (L-SUSY ACTIVE)</div>
+                <div class="stat-bar"><div id="bar-entropy" class="bar-fill" style="width: 92%;"></div></div>
+                <div style="font-size: 9px; margin-bottom:2px;">EIGENVALUE ALIGNMENT</div>
+                <div class="stat-bar"><div id="bar-eigen" class="bar-fill" style="width: 99.9%; background: var(--glow-blue);"></div></div>
+            </div>
         </div>
-    </div>
 
-    <div class="quadrant" id="mission-log" style="padding: 10px; font-size: 10px; color: #8899AA; overflow-y: auto;">
-        <div class="q-header" style="margin: -10px -10px 10px -10px;"><span>CUADRANTE D: MISSION LOG & SIGNATURE MATCH</span></div>
-        <div id="log-content"></div>
+        <div class="quadrant" style="flex-grow:1;">
+            <div class="q-header"><span>D: MISSION LOG & SIGNATURE MATCH</span></div>
+            <div id="mission-log" class="log-container"></div>
+        </div>
     </div>
 </div>
 
 <script>
-    const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([-32.800, -72.200], 8);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { opacity: 0.6 }).addTo(map);
+    const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([-33.00, -72.40], 8);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { opacity: 0.7 }).addTo(map);
+
+    const PORTS = { "VALPARAÍSO": [-33.03, -71.62], "SAN ANTONIO": [-33.58, -71.61] };
+    const COAST_LIMIT = -71.72;
 
     const buoys = [
-        { id: "T-01", lat: -32.10, lon: -72.50 }, { id: "T-02", lat: -32.40, lon: -71.95 },
-        { id: "T-03", lat: -32.70, lon: -72.45 }, { id: "T-04", lat: -33.00, lon: -72.00 },
-        { id: "T-05", lat: -33.30, lon: -72.50 }
+        { id: "T-01 (EXT)", lat: -32.10, lon: -72.60 }, { id: "T-02 (INT)", lat: -32.50, lon: -71.95 },
+        { id: "T-03 (EXT)", lat: -32.90, lon: -72.55 }, { id: "T-04 (INT)", lat: -33.20, lon: -72.05 },
+        { id: "T-05 (EXT)", lat: -33.60, lon: -72.50 }
     ];
 
     const buoyLayers = [];
     buoys.forEach(b => {
-        L.circle([b.lat, b.lon], { radius: 70000, color: '#1A2B3C', weight: 1, dashArray: '5,5', fill: false }).addTo(map);
-        const pZone = L.circle([b.lat, b.lon], { radius: 35000, color: '#00FF41', weight: 1, fillOpacity: 0.03 }).addTo(map);
-        L.circleMarker([b.lat, b.lon], { color: '#00FF41', radius: 3 }).addTo(map);
-        buoyLayers.push({ b, pZone });
+        // Rango de Alerta (70km)
+        const sZone = L.circle([b.lat, b.lon], { radius: 70000, color: '#1A2B3C', weight: 1, dashArray: '5,5', fill: false }).addTo(map);
+        // Rango ID (35km)
+        const pZone = L.circle([b.lat, b.lon], { radius: 35000, color: '#00FF41', weight: 1, fillOpacity: 0.02 }).addTo(map);
+        L.circleMarker([b.lat, b.lon], { color: '#00FF41', radius: 2 }).addTo(map);
+        buoyLayers.push({ b, pZone, sZone });
     });
 
-    let target = { lat: -31.70, lon: -72.90, heading: 135, speed: 24, marker: null };
-    let frame = 0;
+    let target = { 
+        lat: -31.80, lon: -73.00, heading: 130, speed: 22, 
+        marker: null, visible: false 
+    };
 
     function addLog(text) {
-        const content = document.getElementById('log-content');
-        const now = new Date().toLocaleTimeString();
-        content.innerHTML += `<div class="log-line">[${now}] ${text}</div>`;
-        content.scrollTop = content.scrollHeight;
+        const log = document.getElementById('mission-log');
+        const now = new Date().toLocaleTimeString('en-GB');
+        log.innerHTML += `<div class="log-line">[${now}] ${text}</div>`;
+        log.scrollTop = log.scrollHeight;
     }
 
-    function startSimulation() {
-        addLog("Z-Engine initialized.");
-        addLog("Scanning spectral gaps...");
-        setTimeout(() => addLog("ALERT: Non-trivial zero correlation detected."), 1500);
-        setTimeout(() => addLog("Signature Match: SQS-53C Sonar (Probability 92%)."), 2500);
+    function initSystem() {
+        document.getElementById('start-overlay').style.display = 'none';
+        addLog("ZORD ENGINE INITIALIZED.");
+        addLog("L-SUSY PROCESSING LAYER ATTACHED.");
+        addLog("SCANNING ACOUSTIC SPECTRAL GAPS...");
         
-        target.marker = L.marker([target.lat, target.lon]).addTo(map);
-        setInterval(update, 100);
+        // Icono de Diamante Rojo (Estilo OTAN/Táctico)
+        const hostileIcon = L.divIcon({
+            className: 'hostile-icon',
+            html: `<div id="tgt-symbol" style="width:0; height:0; border-left:8px solid transparent; border-right:8px solid transparent; border-bottom:18px solid var(--hostile-red); filter: drop-shadow(0 0 5px red);"></div>`,
+            iconSize: [16, 18], iconAnchor: [8, 9]
+        });
+
+        target.marker = L.marker([target.lat, target.lon], {icon: hostileIcon});
+        
+        target.marker.on('click', (e) => {
+            const menu = document.getElementById('action-menu');
+            menu.style.display = 'block';
+            menu.style.left = e.originalEvent.pageX + 'px';
+            menu.style.top = e.originalEvent.pageY + 'px';
+        });
+
+        setInterval(updateTacticalLoop, 100);
     }
 
-    function update() {
-        frame++;
-        // Trayectoria ZigZag forzada para cruzar boyas
-        target.heading = 135 + Math.sin(frame * 0.05) * 20;
+    function updateTacticalLoop() {
+        // Trayectoria: Incursión diagonal hacia la costa
         target.lat -= Math.cos(target.heading * Math.PI/180) * 0.006;
         target.lon += Math.sin(target.heading * Math.PI/180) * 0.006;
 
-        target.marker.setLatLng([target.lat, target.lon]);
-        target.marker.setIcon(L.divIcon({
-            className: 't-icon',
-            html: `<div style="width:0; height:0; border-left:8px solid transparent; border-right:8px solid transparent; border-bottom:18px solid var(--hostile-red); transform: rotate(${target.heading}deg); filter: drop-shadow(0 0 5px red);"></div>`
-        }));
+        // Corrección de rumbo si se acerca demasiado a tierra
+        if (target.lon > COAST_LIMIT) {
+            target.heading = 195; // Gira al sur paralelo a la costa
+            addLog("ALERT: TGT 001 ADAPTING COURSE - COASTAL PROXIMITY.");
+        }
 
         let detections = 0;
         buoyLayers.forEach(l => {
             const dist = map.distance([target.lat, target.lon], [l.b.lat, l.b.lon]);
-            if(dist < 70000) {
+            if (dist < 70000) {
                 detections++;
-                l.pZone.setStyle({ color: 'red', fillOpacity: 0.1 });
+                l.sZone.setStyle({color: 'var(--alert-amber)'});
+                if (dist < 35000) l.pZone.setStyle({color: 'red', fillOpacity: 0.1});
+                else l.pZone.setStyle({color: '#00FF41', fillOpacity: 0.02});
             } else {
-                l.pZone.setStyle({ color: '#00FF41', fillOpacity: 0.03 });
+                l.sZone.setStyle({color: '#1A2B3C'});
+                l.pZone.setStyle({color: '#00FF41', fillOpacity: 0.02});
             }
         });
 
-        if(detections > 0) {
-            document.getElementById('target-ui').style.display = 'block';
-            document.getElementById('scan-msg').style.display = 'none';
-            document.getElementById('tgt-motion').innerText = `${target.speed} KTS | HDG: ${Math.round(target.heading)}°`;
-            document.getElementById('tgt-conf').innerText = detections > 1 ? "100% JOINT LOCK" : "60% PREDICTIVE";
-            document.getElementById('tgt-tat').innerText = "SAN ANTONIO (4.2 hrs)";
-            document.getElementById('coord-display').innerText = `${Math.abs(target.lat).toFixed(2)}°S | ${Math.abs(target.lon).toFixed(2)}°W`;
+        // Lógica de Visibilidad Limitada por Sensores
+        if (detections > 0) {
+            if (!target.visible) {
+                target.marker.addTo(map);
+                target.visible = true;
+                addLog("TRACK 001 CONFIRMED VIA Z-CIPHER VALIDATION.");
+                addLog("SIGNATURE MATCH: SQS-53C SONAR (PROB 92%).");
+            }
+            updateHUD(detections);
+        } else {
+            if (target.visible) {
+                map.removeLayer(target.marker);
+                target.visible = false;
+                hideHUD();
+                addLog("LOST CONTACT: TRACK 001 - SIGNAL BELOW NOISE FLOOR.");
+            }
+        }
+
+        if (target.visible) {
+            target.marker.setLatLng([target.lat, target.lon]);
+            // Rotación precisa del símbolo según Heading
+            const symbol = document.getElementById('tgt-symbol');
+            if(symbol) symbol.style.transform = `rotate(${target.heading}deg)`;
+            document.getElementById('coord-display').innerText = `${Math.abs(target.lat).toFixed(3)}°S | ${Math.abs(target.lon).toFixed(3)}°W`;
         }
     }
+
+    function updateHUD(count) {
+        document.getElementById('target-info').style.display = 'block';
+        document.getElementById('spectral-val').style.display = 'inline';
+        document.getElementById('wait-msg').style.display = 'none';
+        document.getElementById('tgt-spd').innerText = target.speed;
+        document.getElementById('tgt-hdg').innerText = Math.round(target.heading);
+        document.getElementById('tgt-conf').innerText = count > 1 ? "100% (JOINT LOCK)" : "60% (PREDICTIVE)";
+        
+        // TAT al puerto más cercano
+        let minDist = Infinity; let port = "";
+        for(let p in PORTS) {
+            let d = map.distance([target.lat, target.lon], PORTS[p]);
+            if(d < minDist) { minDist = d; port = p; }
+        }
+        let tat = (minDist / (target.speed * 1852)).toFixed(1);
+        document.getElementById('tgt-tat').innerText = `${port} (${tat} hrs)`;
+    }
+
+    function hideHUD() {
+        document.getElementById('target-info').style.display = 'none';
+        document.getElementById('spectral-val').style.display = 'none';
+        document.getElementById('wait-msg').style.display = 'block';
+    }
+
+    function takeAction(action) {
+        addLog(`ACTION: ${action}`);
+        alert(`PROTOCOLO ACTIVADO: ${action}`);
+        closeMenu();
+    }
+
+    function closeMenu() { document.getElementById('action-menu').style.display = 'none'; }
 </script>
 </body>
 </html>
