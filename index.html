@@ -3,237 +3,275 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ZORD SPA | CONSOLA TÁCTICA RESIZABLE 🔱</title>
+    <title>ZORD SPA | UNIFIED CIC TRIDENTE v5.0 🔱</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         :root {
-            --bg: #0A0B0C;
+            --bg: #020406;
             --grid: #1A2B3C;
             --green: #00FF41;
             --amber: #FF9F00;
-            --red: #FF0000;
-            --blue: #00A3FF;
+            --red: #FF3333;
+            --blue: #00ffff;
+            --header-h: 50px;
+            --footer-h: 100px;
         }
 
-        /* --- ESTRUCTURA GLOBAL FLEX --- */
+        * { box-sizing: border-box; }
         body, html {
             margin: 0; padding: 0;
             background-color: var(--bg);
             color: var(--green);
-            font-family: 'Courier New', Courier, monospace;
-            height: 100vh;
-            width: 100vw;
-            display: flex;
-            flex-direction: column; /* Alineación vertical: Header - Main - Footer */
+            font-family: 'Courier New', monospace;
+            height: 100vh; width: 100vw;
             overflow: hidden;
+            display: flex; flex-direction: column;
         }
 
-        /* Coordenadas en bordes */
-        .coord {
-            position: fixed; font-size: 0.65rem; color: var(--blue); z-index: 1000;
+        /* --- COORDENADAS DINÁMICAS (ANID/GEOLOC) --- */
+        .coord-overlay {
+            position: fixed; font-size: 0.65rem; color: var(--blue); z-index: 2000;
             background: rgba(10, 11, 12, 0.9); padding: 2px 8px; border: 1px solid var(--grid);
         }
-        .top-c { top: 0; left: 50%; transform: translateX(-50%); }
-        .bot-c { bottom: 65px; left: 50%; transform: translateX(-50%); }
-        .l-c { top: 50%; left: -25px; transform: translateY(-50%) rotate(-90deg); }
-        .r-c { top: 50%; right: -25px; transform: translateY(-50%) rotate(90deg); }
+        .top-c { top: 2px; left: 50%; transform: translateX(-50%); }
+        .bot-c { bottom: var(--footer-h); left: 50%; transform: translateX(-50%); }
 
+        /* --- HEADER --- */
         header {
-            flex: 0 0 50px; /* Altura fija */
-            border-bottom: 2px solid var(--grid);
+            height: var(--header-h); border-bottom: 2px solid var(--grid);
             display: flex; align-items: center; padding: 0 20px;
-            justify-content: space-between; background: #0d1117;
-            box-sizing: border-box;
+            justify-content: space-between; background: #0d1117; flex-shrink: 0;
         }
 
-        /* --- CONTENEDOR DE CUADRANTES CON SCROLL SI ES NECESARIO --- */
-        main {
-            flex: 1 1 auto; /* Ocupa todo el espacio restante */
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            grid-template-rows: auto auto; /* Altura automática basada en contenido/resize */
-            gap: 10px;
-            padding: 10px;
-            overflow-y: auto; /* Permite scroll si los marcos crecen mucho */
-            box-sizing: border-box;
+        /* --- GRID PRINCIPAL --- */
+        .main-container {
+            flex-grow: 1; display: grid;
+            grid-template-columns: 1fr 1fr; grid-template-rows: 1.2fr 0.8fr;
+            gap: 10px; padding: 10px; overflow: hidden;
         }
 
-        @media (max-width: 900px) {
-            main { grid-template-columns: 1fr; }
-        }
-
-        /* --- CUADRANTES MÓVILES/RESIZABLES --- */
         .quadrant {
-            border: 1px solid var(--grid);
-            background: rgba(10, 15, 20, 0.9);
-            display: flex;
-            flex-direction: column;
-            min-height: 250px; /* Altura mínima para no romperse */
-            position: relative;
-            /* PROPIEDAD CLAVE: Permite estirar verticalmente */
-            resize: vertical; 
-            overflow: auto;
+            border: 1px solid var(--grid); background: rgba(8, 12, 16, 0.95);
+            display: flex; flex-direction: column; position: relative; overflow: hidden;
         }
 
         .q-title {
-            background: var(--grid); color: #FFF; padding: 5px 10px;
-            font-size: 0.7rem; text-transform: uppercase;
-            position: sticky; top: 0; z-index: 5;
+            background: var(--grid); color: #FFF; padding: 4px 10px;
+            font-size: 0.7rem; text-transform: uppercase; z-index: 1001;
         }
 
-        /* --- MAPA Y CONTENIDO --- */
-        #tsd-map {
-            flex: 1; background-image: radial-gradient(var(--grid) 1px, transparent 1px);
-            background-size: 30px 30px; position: relative; min-height: 200px;
+        /* --- QUAD A: MAPA LEAFLET --- */
+        #map { flex-grow: 1; background: #0b0f14; z-index: 1; }
+
+        /* --- QUAD B: VISUALIZADOR HZ --- */
+        iframe {
+            width: 100%; height: 100%; border: none;
+            filter: grayscale(1) brightness(0.6) sepia(0.4) hue-rotate(140deg);
         }
 
-        .iframe-wrapper { flex: 1; position: relative; min-height: 300px; }
-        iframe { width: 100%; height: 100%; border: none; filter: hue-rotate(140deg) brightness(0.6); }
+        /* --- QUAD D: MISSION LOG --- */
+        #log-display { padding: 10px; font-size: 0.7rem; overflow-y: auto; flex-grow: 1; }
+        .log-entry { margin-bottom: 4px; border-left: 2px solid var(--blue); padding-left: 8px; }
 
-        #log-display { padding: 10px; font-size: 0.75rem; color: var(--green); }
-
-        /* --- FOOTER SIEMPRE VISIBLE --- */
+        /* --- FOOTER --- */
         footer {
-            flex: 0 0 60px; /* Altura fija al fondo */
-            border-top: 2px solid var(--grid);
-            background: #0d1117;
-            display: flex; align-items: center; justify-content: center;
-            gap: 20px; z-index: 20;
+            height: var(--footer-h); border-top: 2px solid var(--grid);
+            background: #0d1117; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; gap: 8px; flex-shrink: 0;
         }
 
+        .button-row { display: flex; gap: 15px; }
         button {
-            background: transparent; color: var(--amber); border: 1px solid var(--amber);
-            padding: 8px 16px; cursor: pointer; font-weight: bold; font-family: monospace;
-            text-transform: uppercase; transition: 0.2s;
+            background: #002a3a; color: var(--blue); border: 1px solid var(--blue);
+            padding: 10px 20px; cursor: pointer; font-family: inherit; font-weight: bold;
+            font-size: 0.8rem; text-transform: uppercase; transition: 0.3s;
         }
-        button:hover { background: var(--amber); color: #000; }
-        .active-btn { background: var(--green) !important; color: #000 !important; border-color: var(--green) !important; }
-        .bypass-btn { color: var(--red); border-color: var(--red); }
-        .bypass-btn.active-btn { background: var(--red) !important; color: #fff !important; }
+        button:hover { background: var(--blue); color: #000; box-shadow: 0 0 15px var(--blue); }
+        .active-btn { background: var(--green) !important; color: #000 !important; }
+        .btn-alert { border-color: var(--red); color: var(--red); }
+        .btn-alert:hover { background: var(--red); color: #fff; }
 
-        /* Estilo del "grabber" para redimensionar */
-        .quadrant::-webkit-resizer {
-            background-color: var(--blue);
-            border: 3px solid var(--bg);
-        }
-
-        #target { position: absolute; color: var(--red); font-size: 0.7rem; font-weight: bold; }
-        #laser { position: absolute; height: 2px; background: var(--red); transform-origin: 0 50%; display: none; }
-
+        /* Icono de Objetivo Custom */
+        .custom-icon { border: none; background: none; }
     </style>
 </head>
 <body>
 
-    <div class="coord top-c" id="lat-t">LAT: SCANNING</div>
-    <div class="coord bot-c" id="lat-b">LAT: SCANNING</div>
-    <div class="coord l-c" id="lon-l">LON: SCANNING</div>
-    <div class="coord r-c" id="lon-r">LON: SCANNING</div>
+    <div class="coord-overlay top-c" id="lat-top">LAT: --.---- N</div>
+    <div class="coord-overlay bot-c" id="lat-bot">LAT: --.---- N</div>
 
     <header>
-        <div>ZORD SPA // UNIT TRIDENTE 🔱</div>
-        <div style="color:var(--blue)">STATUS: <span id="sys-status">STANDBY</span></div>
+        <div>ZORD SPA // CIC TRIDENTE v5.0</div>
+        <div style="color: var(--blue)">SISTEMA: <span id="sys-mode">ESCANEO PASIVO</span></div>
         <div id="clock">00:00:00</div>
     </header>
 
-    <main>
+    <div class="main-container">
         <div class="quadrant">
-            <div class="q-title">Tactical Situation Display</div>
-            <div id="tsd-map">
-                <div id="laser"></div>
-                <div id="target" style="left: 60%; top: 40%;">
-                    <div style="border:1px solid red; width:15px; height:15px; margin-bottom:5px;"></div>
-                    TRK-ALPHA
+            <div class="q-title">Tactical Situation Display [ASW Zigzag Grid]</div>
+            <div id="map"></div>
+        </div>
+
+        <div class="quadrant">
+            <div class="q-title">Hz-Operator Spectral Rigidity Analysis</div>
+            <iframe src="https://magnetminer.github.io/Tridente/"></iframe>
+        </div>
+
+        <div class="quadrant">
+            <div class="q-title">ZEngine / DEW Control Stats</div>
+            <div style="padding: 15px; font-size: 0.75rem;">
+                <p>CONFIDENCIA LOCK: <span id="conf-val" style="color:var(--blue)">0%</span></p>
+                <div style="background: #111; height: 8px; border: 1px solid var(--grid);">
+                    <div id="conf-bar" style="width: 0%; background: var(--blue); height: 100%;"></div>
                 </div>
-            </div>
-        </div>
-
-        <div class="quadrant" style="min-height: 400px;">
-            <div class="q-title">Hz-Operator Spectral Analysis [DRAG CORNER TO EXTEND]</div>
-            <div class="iframe-wrapper">
-                <iframe src="https://magnetminer.github.io/Tridente/"></iframe>
+                <p>SUPRESIÓN RUIDO ATMOSFÉRICO: <span id="noise-val">94.2%</span></p>
+                <p>FASE ÓPTICA ADAPTATIVA: <span id="phase-status">LOCKED</span></p>
+                <p style="margin-top: 15px; opacity: 0.5; font-size: 0.6rem;">DOI: 10.5281/zenodo.18305369 | C. CORREA AGUILERA</p>
             </div>
         </div>
 
         <div class="quadrant">
-            <div class="q-title">Z-Engine Kernal</div>
-            <div style="padding:15px; font-size:0.7rem;">
-                <p>DOI: 10.5281/zenodo.18305369</p>
-                <p>L-SUSY Phase: 100%</p>
-                <div style="height:10px; background:#111; border:1px solid var(--grid);">
-                    <div style="width:98%; background:var(--green); height:100%;"></div>
-                </div>
-            </div>
-        </div>
-
-        <div class="quadrant">
-            <div class="q-title">Mission Logs</div>
+            <div class="q-title">Mission Operational Log</div>
             <div id="log-display"></div>
         </div>
-    </main>
+    </div>
 
     <footer>
-        <button id="bypass-btn" class="bypass-btn" onclick="toggleBypass()">Bypass Engine</button>
-        <button id="ap-btn" onclick="toggleAP()">Z-Aegis Auto Pilot</button>
-        <div style="font-size:0.6rem; color:#444;">SECURITY: TOP SECRET // 2026</div>
+        <div class="button-row">
+            <button id="bypass-btn" class="btn-alert" onclick="toggleBypass()">Bypass Z-Engine</button>
+            <button id="auto-pilot-btn" onclick="toggleAutoPilot()">Iniciar Incursión Táctica</button>
+        </div>
+        <div style="font-size: 0.6rem; opacity: 0.6;">* DATOS ENCRIPTADOS PQC (Z-SUSY) // PROYECTO TRIDENTE 🔱</div>
     </footer>
 
     <script>
-        let bypass = false, ap = false;
-        let tX = 60, tY = 40;
+        // 1. CONFIGURACIÓN DEL MAPA Y BOYAS (Lógica Proyecto Tridente)
+        const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([-32.800, -72.200], 8);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { opacity: 0.9 }).addTo(map);
 
-        // Geoloc
-        if (navigator.geolocation) {
-            navigator.geolocation.watchPosition(p => {
-                const la = p.coords.latitude.toFixed(4), lo = p.coords.longitude.toFixed(4);
-                document.querySelectorAll('.coord').forEach(el => {
-                    if(el.id.includes('lat')) el.innerText = `LAT: ${la} N`;
-                    else el.innerText = `LON: ${lo} W`;
-                });
-            });
+        const buoys = [
+            { id: "T-01 (EXT)", lat: -32.00, lon: -72.40 },
+            { id: "T-02 (INT)", lat: -32.30, lon: -71.95 },
+            { id: "T-03 (EXT)", lat: -32.60, lon: -72.45 },
+            { id: "T-04 (INT)", lat: -32.90, lon: -72.00 },
+            { id: "T-05 (EXT)", lat: -33.20, lon: -72.50 },
+            { id: "T-06 (INT)", lat: -33.50, lon: -72.05 }
+        ];
+
+        const R_PRIMARY = 35000; 
+        const buoyLayers = [];
+
+        buoys.forEach(b => {
+            const pZone = L.circle([b.lat, b.lon], { 
+                color: '#00ffff', fillColor: '#00ffff', fillOpacity: 0.08, radius: R_PRIMARY, weight: 1 
+            }).addTo(map);
+            
+            L.circleMarker([b.lat, b.lon], { color: '#00ffff', fillColor: '#000', fillOpacity: 1, radius: 4 })
+                .addTo(map).bindTooltip(b.id, {permanent: true, direction: 'top', className: 'buoy-label', offset: [0, -10]});
+            
+            buoyLayers.push({ data: b, zone: pZone });
+        });
+
+        // 2. ESTADO Y SIMULACIÓN (Fusión ASW + DEW)
+        let bypass = false;
+        let autoPilot = false;
+        let targetMarker = null;
+        let laserLine = null;
+        let tgt = { lat: -31.80, lon: -72.80, heading: 140, speed: 22 };
+
+        function updateClock() {
+            document.getElementById('clock').innerText = new Date().toLocaleTimeString();
         }
-
-        function updateClock() { document.getElementById('clock').innerText = new Date().toLocaleTimeString(); }
         setInterval(updateClock, 1000);
 
-        function log(t) {
+        function addLog(txt) {
             const d = document.getElementById('log-display');
-            const e = document.createElement('div');
-            e.innerText = `[${new Date().toLocaleTimeString()}] > ${t}`;
-            d.appendChild(e); d.scrollTop = d.scrollHeight;
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.innerText = `[${new Date().toLocaleTimeString()}] > ${txt}`;
+            d.prepend(entry);
+        }
+
+        function toggleAutoPilot() {
+            autoPilot = !autoPilot;
+            document.getElementById('auto-pilot-btn').classList.toggle('active-btn');
+            if (autoPilot) {
+                addLog("INICIANDO INCURSIÓN: TRACE-LOCK ACTIVADO.");
+                if (!targetMarker) {
+                    const icon = L.divIcon({
+                        className: 'custom-icon',
+                        html: `<div id="icon-div" style="width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-bottom:15px solid var(--red);transform:rotate(${tgt.heading}deg);filter:drop-shadow(0 0 5px var(--red));"></div>`
+                    });
+                    targetMarker = L.marker([tgt.lat, tgt.lon], {icon: icon}).addTo(map);
+                }
+                runCycle();
+            } else {
+                addLog("INCURSIÓN FINALIZADA. VOLVIENDO A MODO PASIVO.");
+                if(laserLine) map.removeLayer(laserLine);
+                document.getElementById('sys-mode').innerText = "ESCANEO PASIVO";
+            }
         }
 
         function toggleBypass() {
             bypass = !bypass;
             document.getElementById('bypass-btn').classList.toggle('active-btn');
-            log(bypass ? "BYPASS ACTIVE - DATA NOISE UNFILTERED" : "ENGINE ONLINE - NOISE SUPPRESSED");
+            addLog(bypass ? "CRÍTICO: BYPASS Z-ENGINE. PÉRDIDA DE COHERENCIA ESPECTRAL." : "Z-ENGINE RESTAURADO. ÓPTICA ADAPTATIVA ONLINE.");
+            document.getElementById('noise-val').innerText = bypass ? "14.1%" : "94.2%";
+            document.getElementById('phase-status').innerText = bypass ? "UNSTABLE" : "LOCKED";
         }
 
-        function toggleAP() {
-            ap = !ap;
-            document.getElementById('ap-btn').classList.toggle('active-btn');
-            document.getElementById('laser').style.display = ap ? 'block' : 'none';
-            document.getElementById('sys-status').innerText = ap ? "AUTO-PILOT ENGAGED" : "STANDBY";
-            if(ap) loop();
-        }
+        function runCycle() {
+            if (!autoPilot) return;
 
-        function loop() {
-            if(!ap) return;
-            const target = document.getElementById('target'), laser = document.getElementById('laser'), map = document.getElementById('tsd-map');
-            tX += (Math.random()-0.5)*2; tY += (Math.random()-0.5)*2;
-            target.style.left = `${tX}%`; target.style.top = `${tY}%`;
+            // Movimiento basado en ASW - Tridente.txt [cite: 2508]
+            tgt.lat -= (tgt.speed * 0.0001);
+            tgt.lon += (tgt.speed * 0.00006);
             
-            const mH = map.offsetHeight, mW = map.offsetWidth;
-            const tPX = (tX/100)*mW, tPY = (tY/100)*mH;
-            const dist = Math.sqrt(tPX*tPX + (mH-tPY)*(mH-tPY));
-            const angle = Math.atan2(tPY - mH, tPX) * 180 / Math.PI;
+            targetMarker.setLatLng([tgt.lat, tgt.lon]);
 
-            laser.style.width = `${dist}px`;
-            laser.style.top = `${mH}px`; laser.style.left = `0px`;
-            laser.style.transform = `rotate(${angle + (bypass ? (Math.random()-0.5)*15 : 0)}deg)`;
-            setTimeout(loop, 100);
+            // Lógica de detección por boyas y Triangulación [cite: 2529]
+            let activeBuoys = [];
+            buoyLayers.forEach(b => {
+                const dist = map.distance([tgt.lat, tgt.lon], [b.data.lat, b.data.lon]);
+                if (dist < R_PRIMARY) {
+                    b.zone.setStyle({fillColor: 'red', color: 'red', fillOpacity: 0.2});
+                    activeBuoys.push(b.data);
+                } else {
+                    b.zone.setStyle({fillColor: '#00ffff', color: '#00ffff', fillOpacity: 0.08});
+                }
+            });
+
+            // Actualizar Métricas y Rayo Láser (Fusión DEW) [cite: 1749]
+            const conf = activeBuoys.length > 0 ? (activeBuoys.length === 1 ? 60 : 100) : 0;
+            document.getElementById('conf-val').innerText = conf + "%";
+            document.getElementById('conf-bar').style.width = conf + "%";
+            document.getElementById('sys-mode').innerText = conf === 100 ? "!!! JOINT LOCK !!!" : "BUSCANDO CONTACTO";
+
+            // Dibujar Triangulación / Láser desde Boya T-02 si hay lock
+            if (laserLine) map.removeLayer(laserLine);
+            if (activeBuoys.length > 0) {
+                const origin = [buoys[1].lat, buoys[1].lon]; // Boya central T-02
+                const color = bypass ? 'yellow' : 'red';
+                const weight = bypass ? 1 : 2;
+                // Si hay bypass, el rayo "tiembla" simulando falta de óptica adaptativa 
+                const jitter = bypass ? (Math.random() - 0.5) * 0.05 : 0;
+                laserLine = L.polyline([origin, [tgt.lat + jitter, tgt.lon + jitter]], {
+                    color: color, weight: weight, dashArray: bypass ? '5, 10' : 'none'
+                }).addTo(map);
+            }
+
+            setTimeout(runCycle, 100);
         }
 
-        log("SYSTEM INITIALIZED...");
-        log("Z-ENGINE READY FOR MISSION.");
+        // Geolocalización real para los bordes
+        if (navigator.geolocation) {
+            navigator.geolocation.watchPosition(p => {
+                const lat = p.coords.latitude.toFixed(4);
+                document.getElementById('lat-top').innerText = `LAT: ${lat} N`;
+                document.getElementById('lat-bot').innerText = `LAT: ${lat} N`;
+            });
+        }
     </script>
 </body>
 </html>
