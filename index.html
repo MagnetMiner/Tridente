@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>ZORD S.p.A. | CONSOLA TRIDENTE v10.0 🔱</title>
+    <title>ZORD S.p.A. | CIC TRIDENTE v10.1 🔱</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
@@ -18,30 +18,40 @@
         .q-header { 
             background: rgba(26, 43, 60, 0.8); padding: 10px 15px; font-size: 11px; 
             color: var(--glow-blue); border-bottom: 1px solid var(--steel);
-            display: flex; justify-content: space-between; letter-spacing: 1px; text-transform: uppercase;
+            display: flex; justify-content: space-between; letter-spacing: 2px; text-transform: uppercase;
         }
 
         #map { flex-grow: 1; background: #070809; z-index: 1; }
         
-        /* Panel Lateral con Scroll Independiente */
+        /* Panel Lateral (B, C, D) */
         .side-panel { display: flex; flex-direction: column; height: 100%; border-left: 2px solid var(--steel); }
-        .fixed-data { flex-shrink: 0; border-bottom: 2px solid var(--steel); background: rgba(5, 10, 15, 0.9); }
+        .fixed-data { flex-shrink: 0; border-bottom: 2px solid var(--steel); background: rgba(5, 10, 15, 0.95); }
         .data-section { padding: 15px 20px; }
         
         .log-container { flex-grow: 1; font-size: 10px; color: #8899AA; padding: 12px; overflow-y: auto; background: #050607; }
         .log-line { margin-bottom: 6px; border-left: 2px solid var(--matrix-green); padding-left: 8px; }
 
-        /* Estilos de Líneas y Barras */
+        /* Indicadores Tácticos */
         .stat-bar { background: #111; height: 8px; margin: 6px 0; border: 1px solid var(--steel); }
         .bar-fill { height: 100%; background: var(--matrix-green); width: 0%; transition: width 0.5s; }
         .alert-text { color: var(--hostile-red); font-weight: bold; animation: blink 1s infinite; }
         .info-label { color: #556677; font-size: 9px; text-transform: uppercase; display: block; margin-top: 10px; }
         .info-value { color: #fff; font-size: 12px; font-weight: bold; }
 
-        /* Icono Táctico */
-        #tgt-symbol { transition: transform 0.1s linear; }
+        /* Etiqueta Militar de Boya */
+        .buoy-label {
+            background: rgba(0, 20, 30, 0.9) !important;
+            border: 1px solid var(--glow-blue) !important;
+            color: var(--glow-blue) !important;
+            font-family: 'Courier New', monospace !important;
+            font-size: 9px !important;
+            letter-spacing: 2px !important;
+            padding: 2px 5px !important;
+            border-radius: 0 !important;
+            box-shadow: 0 0 8px rgba(0, 255, 255, 0.2);
+        }
 
-        /* Menú Táctico */
+        /* Menú de Respuesta */
         #action-menu {
             position: absolute; display: none; background: rgba(10, 11, 12, 0.98); 
             border: 1px solid var(--hostile-red); padding: 12px; z-index: 5000; width: 200px;
@@ -54,18 +64,17 @@
 
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
         #boot-screen { position: absolute; inset: 0; background: var(--bg-deep); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .buoy-label { color: var(--glow-blue); font-size: 9px; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div id="boot-screen">
-    <div style="color: var(--matrix-green); margin-bottom: 20px; font-size: 20px; letter-spacing: 10px;">ZORD TACTICAL</div>
-    <button style="background:none; border: 1px solid var(--matrix-green); color: var(--matrix-green); padding: 15px 30px; font-family: inherit; cursor: pointer;" onclick="bootSystem()">ENGAGE TRIDENTE PROTOCOL</button>
+    <div style="color: var(--matrix-green); margin-bottom: 20px; font-size: 20px; letter-spacing: 10px;">ZORD TACTICAL SYSTEMS</div>
+    <button style="background:none; border: 1px solid var(--matrix-green); color: var(--matrix-green); padding: 15px 30px; font-family: inherit; cursor: pointer; font-weight: bold;" onclick="bootSystem()">EJECUTAR PROTOCOLO TRIDENTE</button>
 </div>
 
 <div id="action-menu">
-    <div style="font-size: 9px; color: var(--hostile-red); margin-bottom: 8px; text-align: center; border-bottom: 1px solid #300;">SELECCIÓN DE RESPUESTA</div>
+    <div style="font-size: 9px; color: var(--hostile-red); margin-bottom: 8px; text-align: center; border-bottom: 1px solid #300;">ORDEN DE ENGANCHE</div>
     <button class="action-btn" onclick="takeAction('PATRULLA DESPACHADA')">INTERCEPCIÓN SUPERFICIE</button>
     <button class="action-btn" style="color: var(--alert-yellow); border-color: var(--alert-yellow);" onclick="takeAction('ALERTA ASW ACTIVADA')">NEUTRALIZACIÓN ASW</button>
     <button class="action-btn" style="color: #666; border-color: #333;" onclick="closeMenu()">CANCELAR</button>
@@ -75,40 +84,40 @@
     <div class="quadrant">
         <div class="q-header">
             <span>TSD: TACTICAL SITUATION DISPLAY</span>
-            <span id="coord-header" style="color: var(--matrix-green);">IDLE</span>
+            <span id="coord-header" style="color: var(--matrix-green);">SYS_READY</span>
         </div>
         <div id="map"></div>
     </div>
 
     <div class="side-panel">
         <div class="fixed-data">
-            <div class="q-header"><span>B: CINEMÁTICA Y ANÁLISIS Z-ENGINE</span></div>
+            <div class="q-header"><span>B: CINEMÁTICA Z-ENGINE</span></div>
             <div class="data-section">
-                <div id="wait-msg" style="color: #445566; text-align: center; font-size: 11px;">ESCANEO PASIVO...</div>
+                <div id="wait-msg" style="color: #445566; text-align: center; font-size: 11px; padding: 10px 0;">ESCANEO ACÚSTICO PASIVO...</div>
                 <div id="target-data" style="display:none;">
                     <div class="alert-text" style="font-size: 11px; margin-bottom: 10px;">⚠️ CONTACTO HOSTIL VALIDADO</div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                         <div>
                             <span class="info-label">GPS LAT</span><span class="info-value" id="side-lat">--</span>
-                            <span class="info-label">RUMBO</span><span class="info-value" id="side-hdg">--</span>
+                            <span class="info-label">RUMBO (HDG)</span><span class="info-value" id="side-hdg">--</span>
                         </div>
                         <div>
                             <span class="info-label">GPS LON</span><span class="info-value" id="side-lon">--</span>
                             <span class="info-label">VELOCIDAD</span><span class="info-value" id="side-spd">--</span>
                         </div>
                     </div>
-                    <span class="info-label">ESTADO DE RED</span>
+                    <span class="info-label">CONFIANZA DE RED</span>
                     <span class="info-value" id="side-conf">--</span>
-                    <span class="info-label">ETA PUERTO PROX.</span>
+                    <span class="info-label">TAT PUERTO PROX.</span>
                     <span class="info-value" id="side-tat">--</span>
                 </div>
             </div>
         </div>
 
         <div class="fixed-data">
-            <div class="q-header"><span>C: EIGENVALUE & ENTROPY</span></div>
+            <div class="q-header"><span>C: ENGINE HEALTH & ENTROPY</span></div>
             <div class="data-section" style="padding: 10px 20px;">
-                <div class="stat-bar"><div class="bar-fill" style="width: 85%;"></div></div>
+                <div class="stat-bar"><div class="bar-fill" style="width: 88%;"></div></div>
                 <div style="font-size: 8px; color: var(--glow-blue);">L-SUSY LAYER: STABLE (99.9%)</div>
             </div>
         </div>
@@ -121,7 +130,7 @@
 </div>
 
 <script>
-    const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([-32.90, -72.40], 8);
+    const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([-33.00, -72.40], 8);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { opacity: 0.6 }).addTo(map);
 
     const PORTS = { "VALPARAÍSO": [-33.03, -71.62], "SAN ANTONIO": [-33.58, -71.61] };
@@ -138,7 +147,8 @@
     buoys.forEach(b => {
         const sZone = L.circle([b.lat, b.lon], { radius: R_SECONDARY, color: 'var(--alert-yellow)', weight: 0.5, dashArray: '2, 4', fill: false, opacity: 0 }).addTo(map);
         const pZone = L.circle([b.lat, b.lon], { radius: R_PRIMARY, color: 'var(--matrix-green)', weight: 0.8, fillOpacity: 0, opacity: 0 }).addTo(map);
-        L.circleMarker([b.lat, b.lon], { color: 'var(--glow-blue)', radius: 2, fillOpacity: 1 }).addTo(map).bindTooltip(b.id, {permanent: true, direction: 'top', className: 'buoy-label'});
+        L.circleMarker([b.lat, b.lon], { color: 'var(--glow-blue)', radius: 2, fillOpacity: 1 }).addTo(map)
+            .bindTooltip(b.id, { permanent: true, direction: 'top', className: 'buoy-label', offset: [0, -12], opacity: 0.9 });
         buoyLayers.push({ b, pZone, sZone });
     });
 
@@ -148,7 +158,7 @@
     ];
     
     let currentWP = 0;
-    let target = { lat: waypoints[0].lat, lon: waypoints[0].lon, heading: 0, speed: 22, marker: null, visible: false };
+    let target = { lat: waypoints[0].lat, lon: waypoints[0].lon, heading: 0, speed: 22.4, marker: null, visible: false };
 
     function addLog(text) {
         const log = document.getElementById('mission-log');
@@ -158,7 +168,7 @@
 
     function bootSystem() {
         document.getElementById('boot-screen').style.display = 'none';
-        addLog("Z-ENGINE ONLINE. LISTENING FOR SPECTRAL GAPS...");
+        addLog("Z-ENGINE INITIALIZED. SCANNING SPECTRAL GAPS...");
         
         const hostileIcon = L.divIcon({
             className: 'hostile-icon',
@@ -183,11 +193,8 @@
         let distToWP = Math.sqrt(dy*dy + dx*dx);
         if (distToWP < 0.04) currentWP++;
 
-        // Variación suave del rumbo según movimiento real
         let targetHeading = Math.atan2(dx, dy) * (180 / Math.PI);
         if (targetHeading < 0) targetHeading += 360;
-        
-        // Suavizado del rumbo para evitar saltos bruscos
         target.heading += (targetHeading - target.heading) * 0.1;
 
         target.lat += Math.cos(target.heading * Math.PI/180) * 0.005;
@@ -204,7 +211,7 @@
         });
 
         if (detections > 0) {
-            if (!target.visible) { target.marker.addTo(map); target.visible = true; addLog("⚠️ NON-TRIVIAL CORRELATION DETECTED."); }
+            if (!target.visible) { target.marker.addTo(map); target.visible = true; addLog("⚠️ NON-TRIVIAL ZERO CORRELATION DETECTED."); }
             updateHUD(detections);
         } else if (target.visible) {
             map.removeLayer(target.marker); target.visible = false; hideHUD(); addLog("LOST CONTACT: SIGNAL BELOW NOISE FLOOR.");
@@ -223,10 +230,10 @@
         document.getElementById('side-lat').innerText = Math.abs(target.lat).toFixed(4) + "° S";
         document.getElementById('side-lon').innerText = Math.abs(target.lon).toFixed(4) + "° W";
         document.getElementById('side-hdg').innerText = Math.round(target.heading).toString().padStart(3, '0') + "°";
-        document.getElementById('side-spd').innerText = (target.speed + (Math.random()*0.5)).toFixed(1) + " KTS";
+        document.getElementById('side-spd').innerText = (target.speed + (Math.random()*0.3)).toFixed(1) + " KTS";
         
         const confEl = document.getElementById('side-conf');
-        confEl.innerText = count > 1 ? "!!! JOINT LOCK !!!" : "TRAZADO PREDICTIVO";
+        confEl.innerText = count > 1 ? "!!! JOINT LOCK !!!" : "60% PREDICTIVE";
         confEl.style.color = count > 1 ? "var(--hostile-red)" : "var(--alert-yellow)";
 
         let minDist = Infinity; let port = "";
@@ -237,8 +244,8 @@
         document.getElementById('side-tat').innerText = `${port} (${(minDist / (target.speed * 1852)).toFixed(1)} hrs)`;
     }
 
-    function hideHUD() { document.getElementById('target-data').style.display = 'none'; document.getElementById('wait-msg').style.display = 'block'; document.getElementById('coord-header').innerText = "SCANNING..."; }
-    function takeAction(act) { addLog(`ACTION_REQ: ${act}`); alert(`PROTOCOLO: ${act}`); closeMenu(); }
+    function hideHUD() { document.getElementById('target-data').style.display = 'none'; document.getElementById('wait-msg').style.display = 'block'; document.getElementById('coord-header').innerText = "IDLE"; }
+    function takeAction(act) { addLog(`ACTION_REQ: ${act}`); alert(`ENVIANDO PROTOCOLO: ${act}`); closeMenu(); }
     function closeMenu() { document.getElementById('action-menu').style.display = 'none'; }
 </script>
 </body>
