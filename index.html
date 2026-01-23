@@ -2,246 +2,377 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>ZORD SPA - Combat Console v1.0 [TRIDENTE 🔱]</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZORD SPA | CONSOLA TÁCTICA TRIDENTE 🔱</title>
     <style>
+        /* --- ESTILOS BASE --- */
         :root {
-            --bg-color: #0A0B0C;
-            --border-color: #1A2B3C;
-            --text-primary: #00FF41;
-            --text-warning: #FF9F00;
-            --text-danger: #FF0000;
-            --accent: #008F11;
+            --bg: #0A0B0C;
+            --grid: #1A2B3C;
+            --green: #00FF41;
+            --amber: #FF9F00;
+            --red: #FF0000;
+            --blue: #00A3FF;
         }
 
         body, html {
             margin: 0; padding: 0;
-            background-color: var(--bg-color);
-            color: var(--text-primary);
+            background-color: var(--bg);
+            color: var(--green);
             font-family: 'Courier New', Courier, monospace;
-            overflow: hidden;
             height: 100vh;
+            overflow: hidden;
+            user-select: none;
         }
 
-        /* Scanline effect */
-        body::before {
+        /* Efecto de pantalla CRT / Scanlines */
+        body::after {
             content: " ";
             display: block;
             position: absolute;
             top: 0; left: 0; bottom: 0; right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            z-index: 10;
-            background-size: 100% 2px, 3px 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+            z-index: 100;
+            background-size: 100% 3px, 3px 100%;
             pointer-events: none;
         }
 
+        /* --- HEADER --- */
         header {
-            height: 40px;
-            border-bottom: 2px solid var(--border-color);
+            height: 50px;
+            border-bottom: 2px solid var(--grid);
             display: flex;
             align-items: center;
             padding: 0 20px;
             justify-content: space-between;
-            background: #0d1117;
+            background: rgba(13, 17, 23, 0.9);
+            font-weight: bold;
+            letter-spacing: 2px;
         }
 
-        .main-grid {
+        .status-dot {
+            height: 10px; width: 10px;
+            background-color: var(--green);
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 10px;
+            box-shadow: 0 0 8px var(--green);
+        }
+
+        /* --- GRID PRINCIPAL --- */
+        .main-container {
             display: grid;
             grid-template-columns: 1fr 1fr;
             grid-template-rows: 1fr 1fr;
-            height: calc(100vh - 100px);
+            height: calc(100vh - 110px);
             gap: 10px;
-            padding: 10px;
+            padding: 15px;
         }
 
         .quadrant {
-            border: 1px solid var(--border-color);
-            background: rgba(13, 17, 23, 0.8);
+            border: 1px solid var(--grid);
+            background: rgba(10, 15, 20, 0.6);
             position: relative;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            box-shadow: inset 0 0 20px rgba(0, 163, 255, 0.05);
         }
 
-        .quadrant-header {
-            background: var(--border-color);
-            padding: 5px 10px;
-            font-size: 0.8em;
-            color: white;
+        .q-title {
+            background: var(--grid);
+            color: #FFF;
+            padding: 4px 12px;
+            font-size: 0.75rem;
             text-transform: uppercase;
         }
 
-        /* Quadrant Specifics */
-        #tsd-map { background: radial-gradient(circle, #1a2b3c 1%, transparent 10%); background-size: 30px 30px; }
-        
+        /* --- MAPA TÁCTICO (QUAD A) --- */
+        #tsd-map {
+            background: radial-gradient(var(--grid) 1px, transparent 1px);
+            background-size: 40px 40px;
+            overflow: hidden;
+        }
+
+        #target {
+            position: absolute;
+            color: var(--red);
+            font-weight: bold;
+            font-size: 0.8rem;
+            transition: all 0.1s linear;
+            z-index: 20;
+        }
+
+        .target-box {
+            width: 30px; height: 30px;
+            border: 1px solid var(--red);
+            position: absolute;
+            transform: translate(-50%, -50%);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+
+        #laser-beam {
+            position: absolute;
+            height: 2px;
+            background: var(--red);
+            box-shadow: 0 0 15px var(--red);
+            transform-origin: 0 50%;
+            display: none;
+            z-index: 15;
+            pointer-events: none;
+        }
+
+        /* --- VISUALIZADOR TRIDENTE (QUAD B) --- */
         iframe {
-            width: 100%; height: 100%; border: none;
-            filter: grayscale(1) sepia(1) hue-rotate(80deg) brightness(0.8);
+            width: 100%; height: 100%;
+            border: none;
+            filter: grayscale(1) brightness(0.7) contrast(1.2) sepia(0.5) hue-rotate(150deg);
         }
 
-        #mission-log {
-            padding: 10px;
-            font-size: 0.85em;
-            color: var(--text-primary);
+        /* --- METRICAS (QUAD C) --- */
+        .metrics-container { padding: 20px; }
+        .bar-label { font-size: 0.7rem; margin-top: 10px; display: block; color: var(--blue); }
+        .bar-bg { background: #111; height: 12px; border: 1px solid var(--grid); margin-top: 5px; }
+        .bar-fill { height: 100%; background: var(--green); box-shadow: 0 0 10px var(--green); transition: width 0.5s; }
+
+        /* --- LOGS (QUAD D) --- */
+        #log-display {
+            padding: 15px;
+            font-size: 0.8rem;
+            line-height: 1.4;
             overflow-y: auto;
+            flex-grow: 1;
         }
+        .log-entry { margin-bottom: 5px; border-left: 2px solid var(--grid); padding-left: 10px; }
 
-        .health-bar {
-            width: 100%; height: 15px;
-            background: #111;
-            margin: 5px 0;
-            border: 1px solid #333;
-        }
-
-        .health-fill {
-            height: 100%; background: var(--text-primary);
-            width: 80%;
-            box-shadow: 0 0 10px var(--accent);
-        }
-
-        /* Control Bar */
+        /* --- FOOTER --- */
         footer {
             height: 60px;
-            border-top: 2px solid var(--border-color);
+            border-top: 2px solid var(--grid);
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 20px;
+            gap: 30px;
+            background: #0d1117;
         }
 
         button {
-            background: #222;
-            color: var(--text-warning);
-            border: 1px solid var(--text-warning);
-            padding: 10px 20px;
+            background: transparent;
+            color: var(--amber);
+            border: 1px solid var(--amber);
+            padding: 10px 25px;
+            font-family: 'Courier New';
+            font-weight: bold;
             cursor: pointer;
-            font-weight: bold;
             transition: 0.3s;
+            text-transform: uppercase;
         }
 
-        button:hover {
-            background: var(--text-warning);
-            color: black;
-        }
+        button:hover { background: var(--amber); color: #000; }
+        
+        .btn-danger { color: var(--red); border-color: var(--red); }
+        .btn-danger:hover { background: var(--red); color: #000; }
 
-        .bypass-active {
-            background: var(--text-danger);
-            border-color: var(--text-danger);
-            color: white;
-        }
+        .active-btn { background: var(--green) !important; color: #000 !important; border-color: var(--green) !important; }
 
-        .target-found {
-            color: var(--text-danger);
-            font-weight: bold;
-            animation: blink 1s infinite;
-        }
-
-        @keyframes blink { 50% { opacity: 0; } }
     </style>
 </head>
 <body>
 
 <header>
-    <div>SYSTEM: ZORD SPA // TRIDENTE 🔱</div>
-    <div>CORE: Z-ENGINE v3.1 [ACTIVE]</div>
-    <div id="timestamp"></div>
+    <div><span class="status-dot"></span>ZORD SPA // COMBAT INTERFACE</div>
+    <div style="color: var(--blue)">PROJECT: TRIDENTE 🔱</div>
+    <div id="clock">00:00:00</div>
 </header>
 
-<div class="main-grid">
+<div class="main-container">
     <div class="quadrant" id="tsd-map">
-        <div class="quadrant-header">Tactical Situation Display (TSD)</div>
-        <div style="position:absolute; top:40%; left:60%;" class="target-found" id="target">
-            [ TRACK 001 - UNKNOWN ]
+        <div class="q-title">Tactical Situation Display [Z-AEGIS]</div>
+        <div id="laser-beam"></div>
+        <div id="target">
+            <div class="target-box"></div>
+            <div style="margin-top: 20px; margin-left: 20px;">TRK-001<br>S: 1240kts</div>
         </div>
     </div>
 
     <div class="quadrant">
-        <div class="quadrant-header">Spectral Rigidity Analysis (Z-SUSY)</div>
-        <iframe src="https://magnetminer.github.io/Tridente/" id="tridente-frame"></iframe>
+        <div class="q-title">Spectral Rigidity Visualizer (Hz-Operator)</div>
+        <iframe src="https://magnetminer.github.io/Tridente/" id="spectral-frame"></iframe>
     </div>
 
     <div class="quadrant">
-        <div class="quadrant-header">Z-Engine Metrics</div>
-        <div style="padding:15px;">
-            <label>Eigenvalue Alignment</label>
-            <div class="health-bar"><div class="health-fill" style="width: 98%;"></div></div>
-            <label>Entropy Pool Stability</label>
-            <div class="health-bar"><div class="health-fill" style="width: 92%;"></div></div>
-            <label>L-SUSY Phase Sync</label>
-            <div class="health-bar"><div class="health-fill" style="width: 100%;"></div></div>
-            <p style="font-size: 0.7em; margin-top: 20px;">
+        <div class="q-title">Z-Engine Kernal Stats</div>
+        <div class="metrics-container">
+            <span class="bar-label">Hamiltonian Eigenvalue Alignment</span>
+            <div class="bar-bg"><div class="bar-fill" style="width: 98.4%"></div></div>
+            
+            <span class="bar-label">L-SUSY Phase Synchronization</span>
+            <div class="bar-bg"><div class="bar-fill" style="width: 100%"></div></div>
+
+            <span class="bar-label">Atmospheric Noise Suppression</span>
+            <div class="bar-bg"><div class="bar-fill" id="noise-bar" style="width: 94%"></div></div>
+
+            <div style="margin-top: 30px; font-size: 0.65rem; opacity: 0.6;">
+                CORE: Z-ENGINE v3.1<br>
                 DOI: 10.5281/zenodo.18305369<br>
-                AUTH: C. CORREA AGUILERA
-            </p>
+                REG: CRISTIAN CORREA AGUILERA
+            </div>
         </div>
     </div>
 
     <div class="quadrant">
-        <div class="quadrant-header">Operational Mission Log</div>
-        <div id="mission-log"></div>
+        <div class="q-title">Mission Operational Log</div>
+        <div id="log-display"></div>
     </div>
 </div>
 
 <footer>
-    <button id="bypass-btn" onclick="toggleBypass()">BYPASS Z-ENGINE</button>
-    <div style="font-size: 0.8em; color: gray;">ZORD SPA DEEP TECH SECURITY // 2026</div>
+    <button id="bypass-btn" class="btn-danger" onclick="toggleBypass()">Bypass Z-Engine</button>
+    <button id="auto-pilot-btn" onclick="toggleAutoPilot()">Z-Aegis Auto Pilot [OFF]</button>
+    <div style="font-size: 0.7rem; color: #555;">SECURITY CLASS: TOP SECRET // ZORD-TRIDENTE-2026</div>
 </footer>
 
 <script>
-    const logEntries = [
-        "Z-Engine initialized...",
-        "Scanning spectral gaps in subspace...",
-        "Entropy buffer cleared (250GB pool)",
-        "ALERT: Non-trivial zero correlation detected.",
-        "Applying Hamiltonian Operator Hz...",
-        "Spectrum validated. GUE Repulsion identified.",
-        "Target confirmed: Sub-threshold signature detected.",
-        "Track 001 established at 12nm."
-    ];
-
-    let logIdx = 0;
-    const logEl = document.getElementById('mission-log');
-
-    function addLog() {
-        if (logIdx < logEntries.length) {
-            const p = document.createElement('div');
-            p.innerText = `> ${new Date().toLocaleTimeString()} - ${logEntries[logIdx]}`;
-            logEl.appendChild(p);
-            logEl.scrollTop = logEl.scrollHeight;
-            logIdx++;
-        }
-    }
-
-    setInterval(addLog, 3000);
-
-    function updateTime() {
-        document.getElementById('timestamp').innerText = new Date().toISOString();
-    }
-    setInterval(updateTime, 1000);
-
+    // Variables de Estado
     let bypass = false;
+    let autoPilot = false;
+    let targetX = 70; 
+    let targetY = 30;
+    const logDisplay = document.getElementById('log-display');
+
+    // Función de Reloj
+    function updateClock() {
+        document.getElementById('clock').innerText = new Date().toLocaleTimeString();
+    }
+    setInterval(updateClock, 1000);
+
+    // Sistema de Logs
+    const messages = [
+        "Z-Engine Core initialized successfully.",
+        "Establishing L-SUSY phase link...",
+        "Spectrum scan initiated. GUE repulsion detected.",
+        "Anomalous spectral signature found at Range: 45km.",
+        "Applying Hz Hamiltonian correction...",
+        "Contact confirmed. Rigid structure detected.",
+        "Z-Aegis Tracking active.",
+        "System optimized for high-maneuverability targets."
+    ];
+    let msgIndex = 0;
+
+    function addLog(text, isWarning = false) {
+        const entry = document.createElement('div');
+        entry.className = 'log-entry';
+        if(isWarning) entry.style.color = 'var(--red)';
+        entry.innerHTML = `[${new Date().toLocaleTimeString()}] > ${text}`;
+        logDisplay.appendChild(entry);
+        logDisplay.scrollTop = logDisplay.scrollHeight;
+    }
+
+    // Intervalo de mensajes iniciales
+    const logInterval = setInterval(() => {
+        if(msgIndex < messages.length) {
+            addLog(messages[msgIndex]);
+            msgIndex++;
+        } else {
+            clearInterval(logInterval);
+        }
+    }, 4000);
+
+    // Lógica Bypass
     function toggleBypass() {
         bypass = !bypass;
         const btn = document.getElementById('bypass-btn');
-        const frame = document.getElementById('tridente-frame');
-        const target = document.getElementById('target');
-        
-        if (bypass) {
-            btn.classList.add('bypass-active');
-            btn.innerText = "Z-ENGINE BYPASS [ACTIVE]";
-            frame.style.filter = "blur(10px) grayscale(1)";
-            target.style.display = "none";
-            const p = document.createElement('div');
-            p.innerText = `> ${new Date().toLocaleTimeString()} - WARNING: Raw data only. Target lost.`;
-            p.style.color = "red";
-            logEl.appendChild(p);
+        const frame = document.getElementById('spectral-frame');
+        const laser = document.getElementById('laser-beam');
+        const noiseBar = document.getElementById('noise-bar');
+
+        if(bypass) {
+            btn.classList.add('active-btn');
+            btn.innerText = "BYPASS ACTIVE [RAW DATA]";
+            frame.style.filter = "blur(8px) grayscale(1)";
+            noiseBar.style.width = "12%";
+            addLog("CRITICAL: Z-ENGINE BYPASS ENGAGED. SIGNAL LOSS IMMINENT.", true);
         } else {
-            btn.classList.remove('bypass-active');
-            btn.innerText = "BYPASS Z-ENGINE";
-            frame.style.filter = "grayscale(1) sepia(1) hue-rotate(80deg) brightness(0.8)";
-            target.style.display = "block";
+            btn.classList.remove('active-btn');
+            btn.innerText = "Bypass Z-Engine";
+            frame.style.filter = "grayscale(1) brightness(0.7) contrast(1.2) sepia(0.5) hue-rotate(150deg)";
+            noiseBar.style.width = "94%";
+            addLog("Z-Engine online. Signal clarity restored.");
         }
     }
-</script>
 
+    // Lógica Auto Pilot
+    function toggleAutoPilot() {
+        autoPilot = !autoPilot;
+        const btn = document.getElementById('auto-pilot-btn');
+        const laser = document.getElementById('laser-beam');
+
+        if(autoPilot) {
+            btn.classList.add('active-btn');
+            btn.innerText = "Z-AEGIS AUTO PILOT [ENGAGED]";
+            laser.style.display = 'block';
+            addLog("Z-AEGIS: Target lock sequence initiated.");
+            runCombatCycle();
+        } else {
+            btn.classList.remove('active-btn');
+            btn.innerText = "Z-Aegis Auto Pilot [OFF]";
+            laser.style.display = 'none';
+            addLog("Z-AEGIS: System disengaged.");
+        }
+    }
+
+    // Ciclo de Combate (Tracking)
+    function runCombatCycle() {
+        if(!autoPilot) return;
+
+        const target = document.getElementById('target');
+        const laser = document.getElementById('laser-beam');
+        const map = document.getElementById('tsd-map');
+
+        // Mover objetivo (simulación de vuelo)
+        targetX += (Math.random() - 0.5) * 1.5;
+        targetY += (Math.random() - 0.5) * 1.5;
+        
+        // Mantener dentro de bordes
+        targetX = Math.max(10, Math.min(90, targetX));
+        targetY = Math.max(10, Math.min(60, targetY));
+
+        target.style.left = `${targetX}%`;
+        target.style.top = `${targetY}%`;
+
+        // Calcular Láser (desde la esquina inferior izquierda del mapa)
+        const originX = 0;
+        const originY = map.offsetHeight;
+        
+        const targetPxX = (targetX / 100) * map.offsetWidth;
+        const targetPxY = (targetY / 100) * map.offsetHeight;
+
+        const dx = targetPxX - originX;
+        const dy = targetPxY - originY;
+        const distance = Math.sqrt(dx*dx + dy*dy);
+        const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+
+        laser.style.width = `${distance}px`;
+        laser.style.top = `${originY}px`;
+        laser.style.left = `${originX}px`;
+        
+        // Si hay bypass, el láser falla
+        if(bypass) {
+            const wobble = (Math.random() - 0.5) * 15;
+            laser.style.transform = `rotate(${angle + wobble}deg)`;
+            laser.style.backgroundColor = 'var(--amber)';
+            laser.style.boxShadow = '0 0 5px var(--amber)';
+        } else {
+            laser.style.transform = `rotate(${angle}deg)`;
+            laser.style.backgroundColor = 'var(--green)';
+            laser.style.boxShadow = '0 0 15px var(--green)';
+        }
+
+        setTimeout(runCombatCycle, 50);
+    }
+
+</script>
 </body>
 </html>
