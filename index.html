@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SISTEMA TRIDENTE 🔱 | C4I TACTICAL DISPLAY</title>
+    <title>SISTEMA TRIDENTE 🔱 | ZONA CENTRAL CHILE</title>
     <style>
         body {
             margin: 0;
             padding: 0;
-            background-color: #000508; /* Negro profundo oceánico */
+            background-color: #000508;
             color: #00ffcc;
             font-family: 'Courier New', Courier, monospace;
             overflow: hidden;
@@ -21,7 +21,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            background: radial-gradient(circle, #001a25 0%, #000000 90%);
+            background: #000910; 
         }
 
         canvas {
@@ -30,52 +30,34 @@
             left: 0;
         }
 
-        /* UI OVERLAY - HUD TÁCTICO */
+        /* UI OVERLAY */
         .hud-panel {
             position: absolute;
             padding: 15px;
             border: 1px solid #005544;
-            background: rgba(0, 10, 10, 0.8);
-            box-shadow: 0 0 10px rgba(0, 255, 204, 0.2);
-            pointer-events: none; /* Dejar pasar clicks al canvas */
-        }
-
-        #top-left {
-            top: 20px;
-            left: 20px;
-        }
-
-        #bottom-right {
-            bottom: 20px;
-            right: 20px;
-            text-align: right;
-        }
-
-        h1 { margin: 0; font-size: 24px; text-shadow: 0 0 5px #00ffcc; }
-        h2 { margin: 0; font-size: 14px; color: #008866; margin-bottom: 5px; }
-        p { margin: 2px 0; font-size: 12px; }
-        
-        .alert { color: #ff3333; font-weight: bold; animation: blink 1s infinite; }
-        .math-metric { color: #ffff00; }
-
-        @keyframes blink { 50% { opacity: 0; } }
-        
-        /* Efecto CRT (Monitor Viejo) */
-        .scanline {
-            width: 100%;
-            height: 100px;
-            z-index: 10;
-            background: linear-gradient(0deg, rgba(0,0,0,0) 0%, rgba(0, 255, 204, 0.04) 50%, rgba(0,0,0,0) 100%);
-            opacity: 0.1;
-            position: absolute;
-            bottom: 100%;
-            animation: scanline 10s linear infinite;
+            background: rgba(0, 10, 10, 0.9);
+            box-shadow: 0 0 15px rgba(0, 255, 204, 0.1);
             pointer-events: none;
+            z-index: 20;
         }
-        @keyframes scanline {
-            0% { bottom: 100%; }
-            100% { bottom: -100px; }
+
+        #top-left { top: 20px; left: 20px; }
+        #bottom-right { bottom: 20px; right: 20px; text-align: right; }
+
+        h1 { margin: 0; font-size: 20px; text-shadow: 0 0 5px #00ffcc; }
+        h2 { margin: 0; font-size: 12px; color: #008866; margin-bottom: 5px; }
+        p { margin: 2px 0; font-size: 11px; }
+        .alert { color: #ff3333; font-weight: bold; }
+        .coordinates { color: #aaa; font-size: 9px; }
+
+        /* Efecto de pantalla antigua */
+        .scanline {
+            width: 100%; height: 100px; z-index: 10;
+            background: linear-gradient(0deg, rgba(0,0,0,0) 0%, rgba(0, 255, 204, 0.03) 50%, rgba(0,0,0,0) 100%);
+            position: absolute; bottom: 100%;
+            animation: scanline 8s linear infinite; pointer-events: none;
         }
+        @keyframes scanline { 0% { bottom: 100%; } 100% { bottom: -100px; } }
     </style>
 </head>
 <body>
@@ -85,21 +67,19 @@
         <div class="scanline"></div>
 
         <div id="top-left" class="hud-panel">
-            <h1>SISTEMA TRIDENTE 🔱</h1>
-            <h2>ANÁLISIS ESPECTRAL & PREDICTIVO</h2>
-            <p>ESTADO: <span class="alert">SEGUIMIENTO ACTIVO</span></p>
-            <p>OBJETIVO: CLASE SCORPÈNE (S42)</p>
+            <h1>RED TRIDENTE 🔱</h1>
+            <h2>ZONA: LOS VILOS - SAN ANTONIO</h2>
+            <p>BOYAS ACTIVAS: 6/6</p>
+            <p>CONFIGURACIÓN: ZIG-ZAG (ASW BARRIER)</p>
             <hr style="border-color: #004433">
-            <p>MÓDULO MARKOV: <span style="color:#0f0">ACTIVADO</span></p>
-            <p>ECUACIÓN MAESTRA (KOLMOGOROV): <span style="color:#0f0">CONVERGIENDO</span></p>
+            <p>OBJETIVO: <span class="alert" id="target-status">BUSCANDO...</span></p>
         </div>
 
         <div id="bottom-right" class="hud-panel">
-            <h2>MÉTRICAS DEL MEDIO ($Z_I$)</h2>
-            <p>CONSTANTE $C_{s8}$: SATURADA (8-bit)</p>
-            <p>VISCOSIDAD EFECTIVA: <span class="math-metric" id="viscosity-val">0.00</span> Pa·s</p>
-            <p>ENTROPÍA ($S$): <span class="math-metric" id="entropy-val">BAJA</span></p>
-            <p>PROBABILIDAD ($P(X|Y)$): 98.4%</p>
+            <h2>KOLMOGOROV + Z-ENGINE</h2>
+            <p>VISCOSIDAD ($Z_I$): 0.85</p>
+            <p>PREDICCIÓN: <span style="color:#0f0">ACTIVA</span></p>
+            <p>LAT REF: -33.500 | LON REF: -71.600</p>
         </div>
     </div>
 
@@ -107,43 +87,95 @@
     const canvas = document.getElementById('tridenteCanvas');
     const ctx = canvas.getContext('2d');
 
-    // Ajuste de tamaño
     let width, height;
+    
+    // Variables de Geografía
+    let coastPoints = [];
+    const buoys = [];
+
     function resize() {
         width = window.innerWidth;
         height = window.innerHeight;
         canvas.width = width;
         canvas.height = height;
+        generateCoastline();
+        initBuoys();
     }
+    
     window.addEventListener('resize', resize);
-    resize();
+    
+    // ==========================================
+    // 1. GENERACIÓN DEL MAPA (Costa de Chile)
+    // ==========================================
+    function generateCoastline() {
+        coastPoints = [];
+        // La costa de Chile Central va diagonal hacia el SW
+        // Aquí simulamos el borde derecho (Tierra)
+        let steps = 50;
+        for(let i=0; i<=steps; i++) {
+            let y = (height / steps) * i;
+            // Una curva sinuosa para simular geografía
+            let baseX = width * 0.75; // La costa empieza al 75% del ancho
+            let irregularity = Math.sin(i * 0.5) * 20 + Math.cos(i * 0.2) * 40;
+            // Inclinación geográfica (más al oeste hacia el sur)
+            let tilt = (i / steps) * -50; 
+            
+            coastPoints.push({x: baseX + irregularity + tilt, y: y});
+        }
+    }
+
+    // Función para obtener X de la costa dada una Y (para colisiones)
+    function getCoastX(y) {
+        // Interpolación simple
+        let index = Math.floor((y / height) * (coastPoints.length - 1));
+        if (index < 0) index = 0;
+        if (index >= coastPoints.length) index = coastPoints.length - 1;
+        return coastPoints[index].x;
+    }
 
     // ==========================================
-    // CLASE 1: EL MOTOR FÍSICO (SUBMARINO)
+    // 2. CONFIGURACIÓN DE BOYAS (ZIGZAG)
     // ==========================================
-    const subTarget = {
-        x: width / 2,
-        y: height / 2,
-        speed: 0.5,
-        angle: Math.random() * Math.PI * 2,
-        turnRate: 0.005
-    };
+    function initBuoys() {
+        buoys.length = 0;
+        // 6 Boyas distribuidas verticalmente
+        const totalBuoys = 6;
+        const marginY = height * 0.15;
+        const availHeight = height - (marginY * 2);
+        
+        for(let i=0; i<totalBuoys; i++) {
+            // Zigzag en X
+            // Las pares más cerca de la costa, impares más mar adentro
+            let xOffset = (i % 2 === 0) ? width * 0.6 : width * 0.4;
+            
+            let bY = marginY + (availHeight / (totalBuoys - 1)) * i;
+            // Añadir un poco de "ruido" para que no sea perfecto artificial
+            let bX = xOffset + (Math.random() - 0.5) * 20; 
+
+            buoys.push({
+                id: `B-0${i+1}`,
+                x: bX,
+                y: bY,
+                range: 150, // Rango de detección visual en pixeles
+                active: false
+            });
+        }
+    }
 
     // ==========================================
-    // CLASE 2: MOTOR PREDICTIVO (MARKOV + TU PAPER)
+    // 3. IA PREDICTIVA (MARKOV + PAPER)
     // ==========================================
     class PredictiveEngine {
         constructor() {
-            this.particles = []; // "Niebla" de probabilidad
-            this.maxParticles = 100;
-            this.zNumber = 0.85; // Tu métrica Z (0 a 1)
+            this.particles = [];
+            this.maxParticles = 80;
+            this.zNumber = 0.85; 
         }
 
-        // Generar partículas basadas en la incertidumbre inicial
         spawnParticle(x, y) {
             this.particles.push({
-                x: x + (Math.random() - 0.5) * 50, // Incertidumbre espacial
-                y: y + (Math.random() - 0.5) * 50,
+                x: x + (Math.random() - 0.5) * 40,
+                y: y + (Math.random() - 0.5) * 40,
                 vx: (Math.random() - 0.5) * 2,
                 vy: (Math.random() - 0.5) * 2,
                 life: 1.0
@@ -151,167 +183,158 @@
         }
 
         update(targetX, targetY) {
-            // Lógica MCMC (Monte Carlo): Las partículas intentan adivinar el futuro
-            // Si el Z-Number es alto (tu paper), el caos se reduce.
-            
-            // Generar nuevas si faltan
-            if (this.particles.length < this.maxParticles) {
-                this.spawnParticle(targetX, targetY);
-            }
+            if (this.particles.length < this.maxParticles) this.spawnParticle(targetX, targetY);
 
             this.particles.forEach((p, index) => {
-                // Ecuación de movimiento de la partícula
                 p.x += p.vx;
                 p.y += p.vy;
                 
-                // ATRACCIÓN MARKOVIANA:
-                // Las partículas son "haladas" hacia la solución más probable
-                // simulando el colapso de la función de onda al recibir datos.
+                // Atracción Markoviana (Colapso hacia la verdad)
                 let dx = targetX - p.x;
                 let dy = targetY - p.y;
+                p.vx += dx * 0.02 * this.zNumber;
+                p.vy += dy * 0.02 * this.zNumber;
                 
-                // Aplicamos tu filtro Z_I aquí:
-                // Cuanto mayor es Z, más fuerte es la corrección hacia la verdad física
-                p.vx += dx * 0.01 * this.zNumber;
-                p.vy += dy * 0.01 * this.zNumber;
-                
-                // Fricción (simulando el medio viscoso)
-                p.vx *= 0.95; 
-                p.vy *= 0.95;
-
-                p.life -= 0.005;
-                
-                // Eliminar partículas muertas
+                p.vx *= 0.92; p.vy *= 0.92; // Fricción del medio
+                p.life -= 0.01;
                 if (p.life <= 0) this.particles.splice(index, 1);
             });
         }
 
         draw(ctx) {
-            // Dibujar la "Nube de Probabilidad"
-            ctx.fillStyle = "rgba(0, 255, 255, 0.4)";
+            ctx.fillStyle = "rgba(0, 255, 255, 0.3)";
             this.particles.forEach(p => {
                 ctx.beginPath();
-                ctx.arc(p.x, p.y, 2 * p.life, 0, Math.PI * 2); // El tamaño se reduce con la vida
+                ctx.arc(p.x, p.y, 2 * p.life, 0, Math.PI * 2);
                 ctx.fill();
             });
-
-            // Dibujar VECTOR PREDICTIVO (Flecha verde)
-            // Esto muestra hacia dónde cree Kolmogorov que va el submarino
-            let avgX = this.particles.reduce((sum, p) => sum + p.x, 0) / this.particles.length;
-            let avgY = this.particles.reduce((sum, p) => sum + p.y, 0) / this.particles.length;
-
-            ctx.strokeStyle = "#00FF00";
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(avgX, avgY);
-            // Proyección a futuro (simulada)
-            ctx.lineTo(avgX + (subTarget.x - avgX)*3, avgY + (subTarget.y - avgY)*3);
-            ctx.stroke();
-            
-            ctx.fillStyle = "#00FF00";
-            ctx.fillText("ESTIMACIÓN MARKOVIANA", avgX + 10, avgY);
         }
     }
+
+    // ==========================================
+    // 4. SUBMARINO
+    // ==========================================
+    const subTarget = {
+        x: width * 0.2, // Empieza mar adentro
+        y: height * 0.1,
+        speed: 0.8,
+        angle: Math.PI / 4, // Rumbo SE
+        turnRate: 0.02
+    };
 
     const tridenteAI = new PredictiveEngine();
 
     // ==========================================
-    // CLASE 3: GRID TÁCTICO (BATTLESHIP)
+    // ANIMACIÓN PRINCIPAL
     // ==========================================
-    function drawGrid() {
-        ctx.strokeStyle = "rgba(0, 85, 68, 0.3)"; // Verde oscuro tenue
-        ctx.lineWidth = 1;
-        ctx.fillStyle = "rgba(0, 255, 204, 0.5)"; // Texto Cyan
-        ctx.font = "10px Monospace";
-
-        const gridSize = 100; // Tamaño de cada celda
-        
-        // Coordenadas ficticias de inicio (Cerca de Valparaíso por ejemplo)
-        let startLat = -33.0;
-        let startLon = -71.6;
-
-        // Líneas Verticales (Meridianos)
-        for (let x = 0; x < width; x += gridSize) {
-            ctx.beginPath();
-            ctx.moveTo(x, 0);
-            ctx.lineTo(x, height);
-            ctx.stroke();
-            
-            // Texto de Longitud
-            let lon = startLon + (x / 1000);
-            ctx.fillText(`LON ${lon.toFixed(3)}°W`, x + 5, 15);
-        }
-
-        // Líneas Horizontales (Paralelos)
-        for (let y = 0; y < height; y += gridSize) {
-            ctx.beginPath();
-            ctx.moveTo(0, y);
-            ctx.lineTo(width, y);
-            ctx.stroke();
-
-            // Texto de Latitud
-            let lat = startLat - (y / 1000);
-            ctx.fillText(`LAT ${lat.toFixed(3)}°S`, 5, y - 5);
-        }
-    }
-
-    // ==========================================
-    // RENDER LOOP PRINCIPAL
-    // ==========================================
-    let sonarAngle = 0;
+    resize(); // Init inicial
 
     function animate() {
-        // 1. Limpiar pantalla con un rastro (efecto fade)
-        ctx.fillStyle = "rgba(0, 5, 8, 0.1)"; // Deja estela
+        // A. Fondo (Mar profundo) - No borramos todo para dejar estelas leves
+        ctx.fillStyle = "rgba(0, 9, 16, 0.2)"; 
         ctx.fillRect(0, 0, width, height);
 
-        // 2. Dibujar Grid Táctico
-        drawGrid();
+        // B. Dibujar Mapa (Tierra) - Debe tapar las estelas
+        ctx.beginPath();
+        ctx.moveTo(width, 0); // Esquina sup der
+        ctx.lineTo(width, height); // Esquina inf der
+        // Dibujar borde costero
+        for(let i=coastPoints.length-1; i>=0; i--) {
+            ctx.lineTo(coastPoints[i].x, coastPoints[i].y);
+        }
+        ctx.closePath();
+        ctx.fillStyle = "#0a1510"; // Color Tierra Oscura
+        ctx.fill();
+        ctx.strokeStyle = "#004433"; // Borde costero
+        ctx.lineWidth = 2;
+        ctx.stroke();
 
-        // 3. Actualizar Física del Submarino (Simulación)
+        // Etiquetas Geográficas
+        ctx.fillStyle = "#006655";
+        ctx.font = "12px Monospace";
+        ctx.fillText("LOS VILOS", width - 80, 30);
+        ctx.fillText("SAN ANTONIO", width - 100, height - 30);
+
+        // C. Lógica del Submarino
         subTarget.x += Math.cos(subTarget.angle) * subTarget.speed;
         subTarget.y += Math.sin(subTarget.angle) * subTarget.speed;
+
+        // --- COLISIONES ---
+        // 1. Rebote con la Costa (No puede tocar tierra)
+        let coastX = getCoastX(subTarget.y);
+        if (subTarget.x > coastX - 15) { // 15px de margen de seguridad
+            subTarget.angle = Math.PI - subTarget.angle + 0.2; // Rebote hacia el mar
+            subTarget.x = coastX - 20; // Empujar afuera
+        }
+        // 2. Rebote bordes pantalla
+        if (subTarget.x < 0) subTarget.angle = Math.PI - subTarget.angle;
+        if (subTarget.y < 0 || subTarget.y > height) subTarget.angle = -subTarget.angle;
         
-        // Cambio de rumbo suave
+        // Movimiento aleatorio suave
         subTarget.angle += (Math.random() - 0.5) * 0.05;
 
-        // Rebote en bordes
-        if (subTarget.x < 0 || subTarget.x > width) subTarget.angle = Math.PI - subTarget.angle;
-        if (subTarget.y < 0 || subTarget.y > height) subTarget.angle = -subTarget.angle;
+        // D. Dibujar Boyas y Detección
+        let detected = false;
+        buoys.forEach(buoy => {
+            // Dibujar Boya
+            ctx.fillStyle = "#ffff00";
+            ctx.beginPath();
+            ctx.arc(buoy.x, buoy.y, 4, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Texto ID
+            ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+            ctx.fillText(buoy.id, buoy.x + 8, buoy.y - 8);
 
-        // 4. Actualizar IA (Tridente Upgrade)
+            // Anillos de rango pasivos
+            ctx.strokeStyle = "rgba(255, 255, 0, 0.1)";
+            ctx.beginPath();
+            ctx.arc(buoy.x, buoy.y, buoy.range, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // DETECCIÓN: Calcular distancia al sub
+            let dist = Math.hypot(subTarget.x - buoy.x, subTarget.y - buoy.y);
+            if (dist < buoy.range) {
+                detected = true;
+                // Línea de contacto
+                ctx.strokeStyle = "red";
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(buoy.x, buoy.y);
+                ctx.lineTo(subTarget.x, subTarget.y);
+                ctx.stroke();
+                
+                // Círculo de alerta
+                ctx.strokeStyle = "red";
+                ctx.beginPath();
+                ctx.arc(buoy.x, buoy.y, dist, 0, Math.PI*2);
+                ctx.stroke();
+            }
+        });
+
+        // Actualizar HUD
+        const statusText = document.getElementById('target-status');
+        if(detected) {
+            statusText.innerText = "DETECTADO (FIRMA S42)";
+            statusText.style.color = "red";
+        } else {
+            statusText.innerText = "MONITOREANDO RUIDO AMBIENTE...";
+            statusText.style.color = "#00ffcc";
+        }
+
+        // E. Dibujar IA Predictiva (Nube Azul)
+        // Solo mostramos la predicción si hay alguna detección (o simulación constante)
         tridenteAI.update(subTarget.x, subTarget.y);
         tridenteAI.draw(ctx);
 
-        // 5. Dibujar el Submarino Real (El punto rojo oculto)
-        // En la vida real esto no se ve, pero para la demo lo mostramos tenue
-        ctx.fillStyle = "rgba(255, 0, 0, 0.5)";
+        // F. Submarino "Real" (Simulado visualmente tenue)
+        ctx.fillStyle = "rgba(255, 50, 50, 0.6)";
         ctx.beginPath();
-        ctx.arc(subTarget.x, subTarget.y, 4, 0, Math.PI * 2);
+        ctx.moveTo(subTarget.x, subTarget.y);
+        // Dibujarlo como un pequeño triángulo rotado
+        ctx.lineTo(subTarget.x - 10 * Math.cos(subTarget.angle - 0.5), subTarget.y - 10 * Math.sin(subTarget.angle - 0.5));
+        ctx.lineTo(subTarget.x - 10 * Math.cos(subTarget.angle + 0.5), subTarget.y - 10 * Math.sin(subTarget.angle + 0.5));
         ctx.fill();
-
-        // 6. Dibujar el Barrido del Sonar (Radar Sweep)
-        sonarAngle += 0.02;
-        ctx.save();
-        ctx.translate(width / 2, height / 2);
-        ctx.rotate(sonarAngle);
-        
-        // Haz del sonar
-        const gradient = ctx.createLinearGradient(0, 0, width, 0);
-        gradient.addColorStop(0, "rgba(0, 255, 204, 0.5)");
-        gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
-        
-        ctx.fillStyle = gradient;
-        ctx.beginPath();
-        ctx.moveTo(0, 0);
-        ctx.arc(0, 0, width, -0.1, 0.1); // Cono
-        ctx.fill();
-        ctx.restore();
-
-        // 7. Actualizar datos aleatorios del HUD (Simulación)
-        if (Math.random() > 0.95) {
-            document.getElementById('viscosity-val').innerText = (Math.random() * 0.005).toFixed(4);
-        }
 
         requestAnimationFrame(animate);
     }
