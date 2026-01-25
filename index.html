@@ -12,56 +12,43 @@
         body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; font-family: 'Segoe UI', 'Courier New', monospace; background: #000; }
         #main-container { display: flex; height: 100vh; width: 100vw; }
 
-        /* PANEL IZQUIERDO */
+        /* --- PANEL DE CONTROL --- */
         #control-panel {
-            width: 420px; /* Un poco más ancho para tantos datos */
+            width: 420px;
             background: #0b1013;
             border-right: 2px solid #005544;
             color: #00ffcc;
             display: flex; flex-direction: column;
             z-index: 1000;
             box-shadow: 10px 0 30px rgba(0,0,0,0.9);
-            font-size: 12px;
+            font-size: 13px;
         }
 
-        .panel-header {
-            padding: 15px;
-            background: linear-gradient(90deg, #002211 0%, #001108 100%);
-            border-bottom: 1px solid #005544;
-        }
-        h1 { font-size: 20px; margin: 0; text-shadow: 0 0 8px #00ffcc; letter-spacing: 2px; }
-        .subtitle { font-size: 10px; color: #008866; text-transform: uppercase; margin-top: 5px; }
-
+        .panel-header { padding: 15px; background: linear-gradient(90deg, #002211 0%, #001108 100%); border-bottom: 1px solid #005544; }
+        h1 { font-size: 20px; margin: 0; text-shadow: 0 0 5px #00ffcc; letter-spacing: 2px; }
+        
         .panel-content { padding: 15px; flex-grow: 1; overflow-y: auto; }
 
-        /* VISTA RED (GRID) */
-        .health-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; }
-        .buoy-card { 
-            background: rgba(0, 20, 20, 0.5); border: 1px solid #004433; padding: 8px; 
-            border-radius: 4px; position: relative;
-        }
-        .buoy-card.alert { border-color: #ffaa00; background: rgba(50, 40, 0, 0.2); }
-        
-        /* VISTA TÁCTICA (DATOS) */
-        .tactical-view { display: none; }
-        h3 { font-size: 12px; color: #008866; border-bottom: 1px solid #003322; padding-bottom: 5px; margin-top: 15px; text-transform: uppercase; }
-        
-        .data-row { display: flex; justify-content: space-between; margin-bottom: 4px; border-bottom: 1px dashed #003322; padding-bottom: 2px; }
-        .lbl { color: #88aa99; }
-        .val { color: #fff; font-weight: bold; font-family: 'Courier New'; }
-        .dynamic { color: #ffff00; }
-        .highlight { color: #ff3300; }
+        /* GRID DE DATOS */
+        .data-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; }
+        .data-box { background: rgba(0,20,20,0.5); border: 1px solid #004433; padding: 8px; }
+        .lbl { font-size: 10px; color: #008866; display: block; margin-bottom: 2px; }
+        .val { font-size: 14px; color: #fff; font-weight: bold; font-family: 'Courier New'; }
+        .val.alert { color: #ff3300; }
+        .val.warn { color: #ffcc00; }
 
+        /* ESTADO RED (SALUD) */
+        .buoy-row { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px dashed #333; font-size: 11px; }
+        
         /* BOTONES */
         .action-btn {
             background: #002211; border: 1px solid #00ffcc; color: #00ffcc; 
             padding: 10px; width: 100%; cursor: pointer; text-transform: uppercase; 
-            font-weight: bold; margin-top: 15px; transition: 0.2s;
-            display: flex; align-items: center; justify-content: center; gap: 10px;
+            font-weight: bold; margin-top: 5px; display: flex; align-items: center; justify-content: center; gap: 10px;
         }
-        .action-btn:hover { background: #00ffcc; color: #000; box-shadow: 0 0 15px #00ffcc; }
-        .action-btn.danger { border-color: #ff3300; color: #ff3300; }
-        .action-btn.danger:hover { background: #ff3300; color: #fff; }
+        .action-btn:hover { background: #00ffcc; color: #000; }
+        .action-btn.red { border-color: #ff3300; color: #ff3300; }
+        .action-btn.red:hover { background: #ff3300; color: #fff; }
 
         /* MAPA */
         #map-container { flex-grow: 1; position: relative; background: #000; cursor: crosshair; }
@@ -70,14 +57,13 @@
 
         /* MENU ENGAGE */
         #engage-menu {
-            position: absolute; display: none;
-            background: rgba(0, 10, 10, 0.95); border: 1px solid #ff3300;
-            padding: 10px; width: 220px; z-index: 2000;
-            box-shadow: 0 0 20px rgba(255, 50, 0, 0.4);
+            position: absolute; display: none; background: rgba(0, 15, 20, 0.95);
+            border: 1px solid #ff3300; width: 220px; z-index: 2000;
             top: 50%; left: 50%; transform: translate(-50%, -50%);
+            box-shadow: 0 0 30px rgba(255,0,0,0.2);
         }
-        .menu-opt { padding: 10px; color: #fff; cursor: pointer; border-bottom: 1px solid #330000; }
-        .menu-opt:hover { background: #330000; color: #ff3300; }
+        .menu-opt { padding: 12px; color: #fff; cursor: pointer; border-bottom: 1px solid #333; }
+        .menu-opt:hover { background: #ff3300; color: #000; font-weight: bold; }
 
     </style>
 </head>
@@ -86,53 +72,53 @@
 <div id="main-container">
     <div id="control-panel">
         <div class="panel-header">
-            <h1>ZORD TRIDENTE <span style="font-size:12px; color:#555">v9.0</span></h1>
-            <div class="subtitle">FULL SPECTRUM ASW CONSOLE</div>
+            <h1>ZORD TRIDENTE v9</h1>
+            <div style="font-size:10px; color:#aaa">SISTEMA INTEGRADO DE GUERRA ASW</div>
         </div>
 
         <div class="panel-content">
             
             <div id="view-network">
-                <h3><i class="fas fa-network-wired"></i> ESTADO DE LA RED</h3>
-                <div class="health-grid" id="buoy-grid">
+                <h3 style="color:#fff; border-left:3px solid #00ffcc; padding-left:10px;">SALUD DE LA RED</h3>
+                <div id="buoy-list">
                     </div>
-                <div style="margin-top:20px; padding:10px; border:1px solid #333; color:#777; text-align:center;">
-                    <i class="fas fa-mouse-pointer"></i><br>
-                    HAGA CLIC EN EL MAPA SOBRE UN OBJETIVO<br>PARA VER TELEMETRÍA DETALLADA.
+                <div style="margin-top:20px; font-size:11px; color:#777; padding:10px; border:1px solid #333;">
+                    <i class="fas fa-radar"></i> ESTADO: VIGILANCIA ACTIVA<br>
+                    HAGA CLIC EN UN OBJETIVO PARA VER TELEMETRÍA.
                 </div>
             </div>
 
-            <div id="view-tactical" class="tactical-view">
+            <div id="view-tactical" style="display:none;">
+                <h3 style="color:#ff3300; border-left:3px solid #ff3300; padding-left:10px;">DATOS DEL BLANCO</h3>
                 
-                <div style="background: rgba(255, 50, 0, 0.1); border: 1px solid #ff3300; padding: 10px; text-align: center; margin-bottom: 15px;">
-                    <i class="fas fa-radiation-alt fa-lg" style="color:#ff3300;"></i> 
-                    <span style="color:#ff3300; font-weight:bold; font-size:14px;"> TRACKING #S42-ALPHA</span>
+                <div class="data-grid">
+                    <div class="data-box"><span class="lbl">CLASE</span><span class="val alert">SCORPÈNE</span></div>
+                    <div class="data-box"><span class="lbl">ID</span><span class="val">S-42</span></div>
+                    
+                    <div class="data-box"><span class="lbl">RUMBO (HDG)</span><span class="val" id="ui-hdg">--</span></div>
+                    <div class="data-box"><span class="lbl">VELOCIDAD</span><span class="val warn" id="ui-spd">-- KTS</span></div>
+                    
+                    <div class="data-box"><span class="lbl">LATITUD</span><span class="val" id="ui-lat">--</span></div>
+                    <div class="data-box"><span class="lbl">LONGITUD</span><span class="val" id="ui-lon">--</span></div>
+                    
+                    <div class="data-box"><span class="lbl">PROFUNDIDAD</span><span class="val" id="ui-depth" style="font-size:12px">--</span></div>
+                    <div class="data-box"><span class="lbl">RPM MOTOR</span><span class="val" id="ui-rpm">--</span></div>
                 </div>
 
-                <h3><i class="fas fa-tachometer-alt"></i> CINEMÁTICA</h3>
-                <div class="data-row"><span class="lbl">VELOCIDAD (SOG):</span> <span class="val highlight" id="ui-spd">-- KTS</span></div>
-                <div class="data-row"><span class="lbl">RPM EJE:</span> <span class="val" id="ui-rpm">--</span></div>
-                <div class="data-row"><span class="lbl">RUMBO (HDG):</span> <span class="val" id="ui-hdg">--</span></div>
-                <div class="data-row"><span class="lbl">PROFUNDIDAD:</span> <span class="val" id="ui-depth">--</span></div>
-
-                <h3><i class="fas fa-map-marker-alt"></i> GEOLOCALIZACIÓN</h3>
-                <div class="data-row"><span class="lbl">LATITUD:</span> <span class="val" id="ui-lat">--</span></div>
-                <div class="data-row"><span class="lbl">LONGITUD:</span> <span class="val" id="ui-lon">--</span></div>
-                
-                <h3><i class="fas fa-wave-square"></i> ANÁLISIS ESPECTRAL</h3>
-                <div class="data-row"><span class="lbl">INTENSIDAD (SNR):</span> <span class="dynamic" id="ui-snr">-- dB</span></div>
-                <div class="data-row"><span class="lbl">PROBABILIDAD:</span> <span class="val" id="ui-prob">98%</span></div>
-                <div class="data-row"><span class="lbl">MÉTRICA $Z_I$:</span> <span class="val" id="ui-z">0.85 (SAT)</span></div>
-                <div class="data-row"><span class="lbl">NUBE MARKOV:</span> <span class="val" style="color:#00ffcc">VISIBLE</span></div>
-
-                <div style="margin-top:20px;">
-                    <button class="action-btn danger" onclick="openEngageMenu()">
-                        <i class="fas fa-crosshairs"></i> OPCIONES DE ENGAGE
-                    </button>
-                    <button class="action-btn" onclick="deselectTarget()" style="border-color:#555; color:#aaa; margin-top:10px;">
-                        <i class="fas fa-chevron-left"></i> VOLVER A RED
-                    </button>
+                <div class="data-box" style="margin-bottom:15px">
+                    <span class="lbl">ANÁLISIS MARKOV & ACÚSTICA</span>
+                    <div style="display:flex; justify-content:space-between; margin-top:5px;">
+                        <span class="val" style="color:#00ffcc" id="ui-markov">NUBE ACTIVA</span>
+                        <span class="val warn" id="ui-db">SNR: +0dB</span>
+                    </div>
                 </div>
+
+                <button class="action-btn red" onclick="document.getElementById('engage-menu').style.display='block'">
+                    <i class="fas fa-crosshairs"></i> ENGAGE (ATACAR)
+                </button>
+                <button class="action-btn" onclick="deselectTarget()" style="border-color:#555; color:#aaa">
+                    <i class="fas fa-undo"></i> VOLVER AL MAPA
+                </button>
             </div>
 
         </div>
@@ -143,20 +129,17 @@
         <canvas id="tactical-overlay"></canvas>
         
         <div id="engage-menu">
-            <div style="color:#ff3300; font-weight:bold; padding-bottom:10px; border-bottom:1px solid #550000; margin-bottom:5px;">
-                <i class="fas fa-exclamation-triangle"></i> PROTOCOLO DE INTERCEPTACIÓN
-            </div>
-            <div class="menu-opt" onclick="dispatchUnit('SH-32 COUGAR')"><i class="fas fa-helicopter"></i> DESPACHAR HELO ASW</div>
-            <div class="menu-opt" onclick="dispatchUnit('OPV PILOTO PARDO')"><i class="fas fa-ship"></i> DESPACHAR PATRULLA</div>
-            <div class="menu-opt" onclick="dispatchUnit('F-23 LYNCH')"><i class="fas fa-fighter-jet"></i> SOLICITAR FRAGATA</div>
-            <div class="menu-opt" style="color:#aaa; border:none;" onclick="closeMenu()">CANCELAR</div>
+            <div style="padding:10px; background:#300; color:#fff; font-weight:bold; border-bottom:1px solid #f00">OPCIONES DE RESPUESTA</div>
+            <div class="menu-opt" onclick="dispatchUnit('HELO')"><i class="fas fa-helicopter"></i> HELO ASW (RÁPIDO)</div>
+            <div class="menu-opt" onclick="dispatchUnit('SHIP')"><i class="fas fa-ship"></i> PATRULLERA (LENTO)</div>
+            <div class="menu-opt" onclick="document.getElementById('engage-menu').style.display='none'" style="color:#aaa">CANCELAR</div>
         </div>
     </div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    // 1. SETUP
+    // 1. CONFIGURACIÓN MAPA
     const map = L.map('map', { zoomControl: false, attributionControl: false, center: [-32.8, -72.4], zoom: 8 });
     L.control.zoom({ position: 'topright' }).addTo(map);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19, subdomains: 'abcd' }).addTo(map);
@@ -170,76 +153,72 @@
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
 
-    // 2. DATOS DE RED
+    // 2. BOYAS (GEOMETRÍA ZIGZAG ORIGINAL V5/V6)
+    // Estas coordenadas garantizan el solapamiento de 70km y separación de 35km
     const buoys = [
-        { id: "B1", lat: -32.00, lon: -72.10, bat: 98, link: 100, temp: 12 }, 
-        { id: "B2", lat: -32.30, lon: -72.90, bat: 85, link: 92, temp: 11 }, 
-        { id: "B3", lat: -32.65, lon: -72.15, bat: 45, link: 88, temp: 13, alert: true }, 
-        { id: "B4", lat: -32.95, lon: -72.95, bat: 92, link: 99, temp: 10 }, 
-        { id: "B5", lat: -33.30, lon: -72.20, bat: 95, link: 100, temp: 12 }, 
-        { id: "B6", lat: -33.65, lon: -73.00, bat: 90, link: 95, temp: 11 }  
+        { id: "B1-VILOS", lat: -32.00, lon: -72.10, bat: 98 }, 
+        { id: "B2-ALTA",  lat: -32.30, lon: -72.90, bat: 85 }, 
+        { id: "B3-PAPUD", lat: -32.65, lon: -72.15, bat: 42 }, // Batería baja
+        { id: "B4-ALTA",  lat: -32.95, lon: -72.95, bat: 91 }, 
+        { id: "B5-VALPO", lat: -33.30, lon: -72.20, bat: 96 }, 
+        { id: "B6-SANT",  lat: -33.65, lon: -73.00, bat: 89 }  
     ];
 
-    const grid = document.getElementById('buoy-grid');
+    // Rellenar lista de estado
+    const buoyList = document.getElementById('buoy-list');
     buoys.forEach(b => {
-        const div = document.createElement('div');
-        div.className = `buoy-card ${b.alert ? 'alert' : ''}`;
-        div.innerHTML = `<div style="font-weight:bold; color:#fff"><i class="fas fa-broadcast-tower"></i> ${b.id}</div>
-                         <div style="font-size:10px; color:#aaa; display:flex; justify-content:space-between">
-                            <span>BAT: <b style="color:${b.alert?'orange':'#0f0'}">${b.bat}%</b></span>
-                            <span>LNK: <b>${b.link}%</b></span>
-                         </div>`;
-        grid.appendChild(div);
+        buoyList.innerHTML += `
+            <div class="buoy-row">
+                <span style="font-weight:bold; color:${b.bat<50?'orange':'#fff'}">${b.id}</span>
+                <span>BAT: ${b.bat}% | LINK: 100% | <span style="color:#0f0">OK</span></span>
+            </div>
+        `;
     });
 
-    // 3. MOTOR MARKOV (NUBE)
-    class MarkovSystem {
-        constructor() { this.particles = []; }
-        update(targetLat, targetLon, intensity) {
-            // Solo generar si hay intensidad (detección)
-            if (intensity > 0 && this.particles.length < (intensity * 30)) {
-                this.particles.push({
-                    lat: targetLat + (Math.random()-0.5)*0.1,
-                    lon: targetLon + (Math.random()-0.5)*0.1,
-                    life: 1.0, vx: (Math.random()-0.5)*0.005, vy: (Math.random()-0.5)*0.005
-                });
-            }
-            this.particles.forEach((p, i) => {
-                const attraction = 0.05;
-                p.lat += (targetLat - p.lat) * attraction; p.lon += (targetLon - p.lon) * attraction;
-                p.lat += p.vx; p.lon += p.vy;
-                p.life -= 0.02; if(p.life <= 0) this.particles.splice(i,1);
+    // 3. VARIABLES DEL SISTEMA
+    let selectedTarget = false;
+    let activeUnit = null; // La unidad aliada
+
+    // SUBMARINO (Datos reales)
+    let sub = {
+        lat: -31.8, lon: -73.1, heading: 150, 
+        speedDeg: 0.0002, // Aprox 10-15 nudos
+        depth: "SUMERGIDO", // o SUPERFICIE
+        rpm: 120,
+        signalDB: 0,
+        detected: false
+    };
+
+    // MOTOR MARKOV (Partículas)
+    const particles = [];
+    function updateMarkov() {
+        if(particles.length < 50 && sub.detected) {
+            particles.push({
+                lat: sub.lat + (Math.random()-0.5)*0.1,
+                lon: sub.lon + (Math.random()-0.5)*0.1,
+                life: 1.0,
+                vx: (Math.random()-0.5)*0.002, vy: (Math.random()-0.5)*0.002
             });
         }
-        draw(mapObj) {
-            ctx.fillStyle = "rgba(0, 255, 255, 0.4)";
-            this.particles.forEach(p => {
-                const pt = mapObj.latLngToContainerPoint([p.lat, p.lon]);
-                ctx.beginPath(); ctx.arc(pt.x, pt.y, 3 * p.life, 0, Math.PI*2); ctx.fill();
-            });
+        for(let i=particles.length-1; i>=0; i--) {
+            let p = particles[i];
+            p.lat += p.vx + (sub.lat - p.lat)*0.05; // Atraer al sub
+            p.lon += p.vy + (sub.lon - p.lon)*0.05;
+            p.life -= 0.02;
+            if(p.life <= 0) particles.splice(i, 1);
         }
     }
-    const markov = new MarkovSystem();
 
-    // 4. SUBMARINO (FÍSICA)
-    let sub = { 
-        lat: -31.8, lon: -73.1, heading: 150, 
-        speed: 0.00015, // Velocidad base
-        isSubmerged: true,
-        snr: 0
-    };
-    
-    // Variables de estado
-    let selectedTarget = false;
-    let engagedUnit = null; 
-
-    // 5. INTERACCIÓN
+    // 4. INTERACTIVIDAD (CLIC PARA SELECCIONAR)
     document.getElementById('map-container').addEventListener('click', (e) => {
         const rect = canvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
         const subPx = map.latLngToContainerPoint([sub.lat, sub.lon]);
-        const dist = Math.hypot((e.clientX - rect.left) - subPx.x, (e.clientY - rect.top) - subPx.y);
         
-        if (dist < 30) selectTarget();
+        if (Math.hypot(mouseX - subPx.x, mouseY - subPx.y) < 30) {
+            selectTarget();
+        }
     });
 
     function selectTarget() {
@@ -250,108 +229,163 @@
 
     window.deselectTarget = function() {
         selectedTarget = false;
-        closeMenu();
+        document.getElementById('engage-menu').style.display = 'none';
         document.getElementById('view-network').style.display = 'block';
         document.getElementById('view-tactical').style.display = 'none';
     }
 
-    window.openEngageMenu = function() { document.getElementById('engage-menu').style.display = 'block'; }
-    window.closeMenu = function() { document.getElementById('engage-menu').style.display = 'none'; }
-    window.dispatchUnit = function(name) {
-        closeMenu();
-        alert(`UNIDAD ${name} EN RUTA DE INTERCEPTACIÓN.`);
-        engagedUnit = { name: name, lat: -33.0, lon: -71.6, progress: 0 };
+    window.dispatchUnit = function(type) {
+        document.getElementById('engage-menu').style.display = 'none';
+        // Velocidad realista:
+        // Sub = 0.0002 deg/frame
+        // Helo = 0.0015 deg/frame (7x más rápido)
+        // Ship = 0.0004 deg/frame (2x más rápido)
+        let speed = (type === 'HELO') ? 0.0015 : 0.0004;
+        
+        activeUnit = {
+            type: type,
+            lat: -33.0, // Sale de Valpo
+            lon: -71.6,
+            speed: speed,
+            label: (type === 'HELO') ? 'SH-32' : 'OPV PARDO'
+        };
+        alert("UNIDAD " + activeUnit.label + " EN CAMINO.");
     }
 
-    // 6. ANIMACIÓN PRINCIPAL
+    // 5. ANIMACIÓN PRINCIPAL
     function animate() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Movimiento Sub
-        sub.lat += Math.cos(sub.heading*Math.PI/180)*sub.speed;
-        sub.lon += Math.sin(sub.heading*Math.PI/180)*sub.speed;
-        if(sub.lon > -71.7) sub.heading += 100; // Rebote costa
-        if(sub.lat < -34 || sub.lat > -31) sub.heading += 180; // Rebote norte/sur
+        // --- LÓGICA SUBMARINO ---
+        sub.lat += Math.cos(sub.heading*Math.PI/180)*sub.speedDeg;
+        sub.lon += Math.sin(sub.heading*Math.PI/180)*sub.speedDeg;
+        
+        // Rebote Geo-Fence (Costa)
+        if(sub.lon > -71.65) { sub.heading = 200 + Math.random()*40; sub.lon = -71.67; }
+        // Rebote Límites Mapa
+        if(sub.lat < -34 || sub.lat > -31.5) sub.heading += 120;
+        
+        // Simular cambio de estado
+        if(Math.random() > 0.995) sub.depth = (sub.depth === "SUMERGIDO") ? "PERISCOPIO" : "SUMERGIDO";
+        sub.rpm = Math.round(100 + (sub.speedDeg * 100000)); 
 
         const subPx = map.latLngToContainerPoint([sub.lat, sub.lon]);
 
-        // Calcular dB (SNR) basado en cercanía a boyas
+        // --- DIBUJAR BOYAS & RANGOS ---
+        let detectedNow = false;
         let minDist = 9999;
-        buoys.forEach(b => {
-            const d = Math.hypot(sub.lat - b.lat, sub.lon - b.lon);
-            if(d < minDist) minDist = d;
-            
-            // Dibujar Boyas
-            const bp = map.latLngToContainerPoint([b.lat, b.lon]);
-            ctx.beginPath(); ctx.arc(bp.x, bp.y, 4, 0, Math.PI*2);
-            ctx.fillStyle = b.alert ? "orange" : "#00ffcc"; ctx.fill();
-            // Anillos
-            ctx.strokeStyle = "rgba(0,255,204,0.1)"; ctx.beginPath(); ctx.arc(bp.x, bp.y, 40, 0, Math.PI*2); ctx.stroke();
-        });
-        
-        // Simular dB (max 25dB si muy cerca, min 0)
-        sub.snr = Math.max(0, Math.round(30 - (minDist * 30)));
-        let detectionLevel = sub.snr > 5 ? 2 : (sub.snr > 0 ? 1 : 0);
 
-        // DIBUJAR MARKOV (Si hay detección)
-        if (detectionLevel > 0) {
-            markov.update(sub.lat, sub.lon, detectionLevel);
-            markov.draw(map);
+        buoys.forEach(b => {
+            const center = map.latLngToContainerPoint([b.lat, b.lon]);
+            
+            // Cálculo dinámico de radio en pixeles según zoom
+            // Usamos un punto desplazado para calcular pixel por kilometro
+            const p35 = map.latLngToContainerPoint([b.lat, b.lon + 0.37]); // ~35km
+            const p70 = map.latLngToContainerPoint([b.lat, b.lon + 0.74]); // ~70km
+            const r35 = Math.abs(p35.x - center.x);
+            const r70 = Math.abs(p70.x - center.x);
+
+            // Anillo 70km (Amarillo - Punteado)
+            ctx.beginPath(); ctx.arc(center.x, center.y, r70, 0, Math.PI*2);
+            ctx.strokeStyle = "rgba(255, 200, 0, 0.3)"; ctx.setLineDash([5, 5]); ctx.stroke(); ctx.setLineDash([]);
+            
+            // Anillo 35km (Rojo - Sólido)
+            ctx.beginPath(); ctx.arc(center.x, center.y, r35, 0, Math.PI*2);
+            ctx.strokeStyle = "rgba(255, 50, 50, 0.5)"; ctx.stroke();
+
+            // Centro Boya
+            ctx.fillStyle = b.bat<50 ? "orange" : "#00ffcc";
+            ctx.beginPath(); ctx.arc(center.x, center.y, 4, 0, Math.PI*2); ctx.fill();
+
+            // Detección
+            const dist = Math.hypot(subPx.x - center.x, subPx.y - center.y);
+            const distDeg = Math.hypot(sub.lat - b.lat, sub.lon - b.lon); // Para dB
+            if(distDeg < minDist) minDist = distDeg;
+
+            if (dist < r35) {
+                detectedNow = true;
+                ctx.beginPath(); ctx.moveTo(center.x, center.y); ctx.lineTo(subPx.x, subPx.y);
+                ctx.strokeStyle = "red"; ctx.lineWidth=1; ctx.stroke();
+            }
+        });
+
+        sub.detected = detectedNow;
+        // dB simulados (más cerca = más alto)
+        sub.signalDB = Math.max(0, Math.round(30 - (minDist * 40)));
+
+        // --- MARKOV CLOUD ---
+        if(sub.detected) {
+            updateMarkov();
+            ctx.fillStyle = "rgba(0, 255, 255, 0.5)";
+            particles.forEach(p => {
+                const pp = map.latLngToContainerPoint([p.lat, p.lon]);
+                ctx.beginPath(); ctx.arc(pp.x, pp.y, 2, 0, Math.PI*2); ctx.fill();
+            });
         }
 
-        // DIBUJAR SUBMARINO (ROMBO)
+        // --- DIBUJAR SUBMARINO ---
         ctx.save();
         ctx.translate(subPx.x, subPx.y);
-        
         // Etiqueta dB Flotante
-        ctx.fillStyle = "#ffff00"; ctx.font = "10px Monospace"; ctx.fillText(`SNR: +${sub.snr}dB`, 15, -10);
-
-        // Simbolo
+        ctx.fillStyle = "#ffff00"; ctx.font = "10px monospace"; 
+        ctx.fillText(`SNR:${sub.signalDB}dB`, 15, -10);
+        
+        // Rotar icono
+        ctx.rotate((sub.heading-90)*Math.PI/180);
+        
+        // Icono Táctico (Rombo)
         ctx.strokeStyle = selectedTarget ? "#fff" : "#ff3300";
-        ctx.lineWidth = selectedTarget ? 3 : 2;
+        ctx.lineWidth = 2;
         ctx.beginPath(); ctx.moveTo(0,-12); ctx.lineTo(10,0); ctx.lineTo(0,12); ctx.lineTo(-10,0); ctx.closePath(); ctx.stroke();
         
-        // Vector Líder
-        ctx.beginPath(); ctx.moveTo(0,-12); 
-        ctx.lineTo(Math.cos((sub.heading-90)*Math.PI/180)*20, Math.sin((sub.heading-90)*Math.PI/180)*20 - 20); 
-        ctx.stroke();
-
-        if(selectedTarget) {
-            // Anillo de selección
-            ctx.strokeStyle = "rgba(255,255,255,0.5)"; ctx.beginPath(); ctx.arc(0,0,25,0,Math.PI*2); ctx.stroke();
-            
-            // ACTUALIZAR DATOS PANEL (Aquí regresan los datos perdidos)
-            // Calculos físicos aproximados
-            let knots = (sub.speed / 0.00015) * 12; 
-            let rpm = Math.round(knots * 15 + Math.random()*5);
-            
-            document.getElementById('ui-spd').innerText = knots.toFixed(1) + " KTS";
-            document.getElementById('ui-rpm').innerText = rpm;
-            document.getElementById('ui-hdg').innerText = Math.round(sub.heading) + "°";
-            document.getElementById('ui-lat').innerText = sub.lat.toFixed(4) + " S";
-            document.getElementById('ui-lon').innerText = sub.lon.toFixed(4) + " W";
-            document.getElementById('ui-depth').innerText = sub.isSubmerged ? "SUMERGIDO" : "SUPERFICIE";
-            document.getElementById('ui-snr').innerText = "+" + sub.snr + " dB";
-            document.getElementById('ui-z').innerText = (0.8 + Math.random()*0.05).toFixed(2);
-        }
+        // Linea vector velocidad
+        ctx.beginPath(); ctx.moveTo(0,-12); ctx.lineTo(0,-25); ctx.stroke();
+        
         ctx.restore();
 
-        // DIBUJAR UNIDAD ENGAGE
-        if (engagedUnit) {
-            engagedUnit.lat += (sub.lat - engagedUnit.lat) * 0.01;
-            engagedUnit.lon += (sub.lon - engagedUnit.lon) * 0.01;
-            const up = map.latLngToContainerPoint([engagedUnit.lat, engagedUnit.lon]);
+        // --- DIBUJAR UNIDAD ALIADA (SI EXISTE) ---
+        if(activeUnit) {
+            // Mover hacia el sub
+            const angle = Math.atan2(sub.lon - activeUnit.lon, sub.lat - activeUnit.lat);
+            activeUnit.lat += Math.cos(angle) * activeUnit.speed;
+            activeUnit.lon += Math.sin(angle) * activeUnit.speed;
             
-            ctx.strokeStyle = "#0088ff"; ctx.setLineDash([5,5]);
-            ctx.beginPath(); ctx.moveTo(up.x, up.y); ctx.lineTo(subPx.x, subPx.y); ctx.stroke(); ctx.setLineDash([]);
+            const uPx = map.latLngToContainerPoint([activeUnit.lat, activeUnit.lon]);
             
-            ctx.fillStyle = "#0088ff"; ctx.fillRect(up.x-5, up.y-5, 10, 10);
-            ctx.fillStyle = "#fff"; ctx.fillText(engagedUnit.name, up.x+10, up.y);
+            // Icono Azul
+            ctx.fillStyle = "#0088ff";
+            ctx.fillRect(uPx.x-5, uPx.y-5, 10, 10);
+            ctx.fillStyle = "#fff"; ctx.font="10px Arial"; ctx.fillText(activeUnit.label, uPx.x+8, uPx.y);
+            
+            // Linea trayectoria
+            ctx.strokeStyle = "rgba(0,150,255,0.4)"; ctx.setLineDash([2,2]);
+            ctx.beginPath(); ctx.moveTo(uPx.x, uPx.y); ctx.lineTo(subPx.x, subPx.y); ctx.stroke(); ctx.setLineDash([]);
+            
+            // Llegada
+            if(Math.hypot(sub.lat-activeUnit.lat, sub.lon-activeUnit.lon) < 0.01) {
+                alert("UNIDAD " + activeUnit.label + " EN POSICIÓN. INICIANDO BARRIDO.");
+                activeUnit = null; // Reset
+            }
+        }
+
+        // --- ACTUALIZAR PANEL TÁCTICO ---
+        if(selectedTarget) {
+            document.getElementById('ui-hdg').innerText = Math.round(sub.heading) + "°";
+            document.getElementById('ui-spd').innerText = "14.2 KTS"; // Simulado
+            document.getElementById('ui-lat').innerText = sub.lat.toFixed(4);
+            document.getElementById('ui-lon').innerText = sub.lon.toFixed(4);
+            document.getElementById('ui-depth').innerText = sub.depth;
+            document.getElementById('ui-rpm').innerText = sub.rpm;
+            document.getElementById('ui-db').innerText = "SNR: +" + sub.signalDB + "dB";
+            document.getElementById('ui-markov').innerText = sub.detected ? "CONVERGENCIA" : "DISPERSIÓN";
+            document.getElementById('ui-markov').style.color = sub.detected ? "#0f0" : "#555";
         }
 
         requestAnimationFrame(animate);
     }
+
     animate();
+
 </script>
 </body>
 </html>
