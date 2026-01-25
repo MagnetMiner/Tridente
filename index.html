@@ -3,30 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ZORD TRIDENTE | DASHBOARD MATEMÁTICO</title>
+    <title>ZORD TRIDENTE v7 | C4I TACTICAL</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     
     <style>
         body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; font-family: 'Courier New', monospace; background: #000; }
-        
         #main-container { display: flex; height: 100vh; width: 100vw; }
 
-        /* PANEL DE CONTROL (IZQUIERDA) */
+        /* PANEL IZQUIERDO */
         #control-panel {
-            width: 380px; /* Un poco más ancho para los datos matemáticos */
+            width: 380px;
             background: #00090c;
             border-right: 2px solid #004433;
             color: #00ffcc;
             padding: 20px;
             box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
+            display: flex; flex-direction: column;
             z-index: 1000;
             box-shadow: 5px 0 15px rgba(0,0,0,0.8);
             font-size: 12px;
         }
-
         #map-container { flex-grow: 1; position: relative; background: #000; }
         #map { height: 100%; width: 100%; background: #000; }
         #tactical-overlay { position: absolute; top: 0; left: 0; pointer-events: none; z-index: 500; }
@@ -34,26 +31,19 @@
         /* TYPOGRAPHY */
         h1 { font-size: 20px; margin: 0 0 10px 0; text-shadow: 0 0 5px #00ffcc; border-bottom: 1px solid #004433; padding-bottom: 5px; }
         h2 { font-size: 11px; color: #008866; margin-top: 15px; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; border-left: 3px solid #008866; padding-left: 5px; }
-        
         .data-row { display: flex; justify-content: space-between; margin-bottom: 3px; border-bottom: 1px dashed #002211; padding-bottom: 2px; }
         .value { color: #fff; font-weight: bold; }
-        .dynamic { color: #ffff00; } /* Valores que cambian */
+        .dynamic { color: #ffff00; }
 
         /* ALERTAS */
         .status-box { padding: 10px; text-align: center; margin-top: 15px; border: 1px solid #333; min-height: 30px; background: rgba(0,0,0,0.3); }
-        .alert-p { color: #ff0000; font-weight: bold; animation: blink 0.2s infinite; font-size: 14px; }
-        .alert-s { color: #ffff00; font-weight: bold; animation: blink 1s infinite; font-size: 14px; }
+        .alert-p { color: #ff3300; font-weight: bold; animation: blink 0.5s infinite; font-size: 14px; }
+        .alert-s { color: #ffcc00; font-weight: bold; animation: blink 1s infinite; font-size: 14px; }
         .safe { color: #004433; font-size: 12px; line-height: 30px; }
-
-        @keyframes blink { 50% { opacity: 0.2; } }
-
-        /* LEYENDA */
-        .legend { margin-top: auto; font-size: 10px; color: #555; border-top: 1px solid #333; padding-top: 10px; }
-        .legend-item { display: flex; align-items: center; margin-bottom: 4px; }
-        .dot { width: 8px; height: 8px; margin-right: 8px; border-radius: 50%; }
+        @keyframes blink { 50% { opacity: 0.5; } }
 
         /* BOTON */
-        .btn-reset { margin-top:10px; background:#002211; border:1px solid #004433; color:#00ffcc; cursor:pointer; width:100%; padding: 8px; font-family: inherit; font-weight: bold; transition: 0.3s; }
+        .btn-reset { margin-top:auto; background:#002211; border:1px solid #004433; color:#00ffcc; cursor:pointer; width:100%; padding: 10px; font-family: inherit; font-weight: bold; transition: 0.3s; }
         .btn-reset:hover { background: #00ffcc; color: #000; }
 
     </style>
@@ -62,41 +52,33 @@
 
 <div id="main-container">
     <div id="control-panel">
-        <h1>ZORD TRIDENTE v6.0</h1>
-        <div style="font-size: 10px; color: #008866;">SISTEMA INTEGRADO DE VIGILANCIA ASW</div>
+        <h1>ZORD TRIDENTE v7.0</h1>
+        <div style="font-size: 10px; color: #008866;">C4I TACTICAL DISPLAY | THALES/RAYTHEON STYLE</div>
 
-        <h2>Estado de Sensores</h2>
-        <div class="data-row"><span>NODOS ACTIVOS:</span> <span class="value">6 (ZIG-ZAG)</span></div>
-        <div class="data-row"><span>COBERTURA SECUNDARIA:</span> <span class="value" style="color:#0f0">100% (LINKED)</span></div>
-        <div class="data-row"><span>GEO-FENCE COSTERO:</span> <span class="value" style="color:#0f0">ACTIVO</span></div>
+        <h2>Sensores & Geometría</h2>
+        <div class="data-row"><span>RED:</span> <span class="value">6 NODOS (OPTIMIZADO)</span></div>
+        <div class="data-row"><span>ZONA PRIMARIA (HARD):</span> <span class="value" style="color:#ff3300">35 KM</span></div>
+        <div class="data-row"><span>ZONA SECUNDARIA (SOFT):</span> <span class="value" style="color:#ffcc00">70 KM (LINKED)</span></div>
 
-        <h2>Motor Matemático & Físico</h2>
-        <div class="data-row"><span>MODELO:</span> <span class="value">Markov-Kolmogorov</span></div>
+        <h2>Análisis Espectral ($Z_I$) & Markov</h2>
         <div class="data-row"><span>PROBABILIDAD $P(X|Y)$:</span> <span class="dynamic" id="ui-prob">0.0%</span></div>
-        <div class="data-row"><span>ENTROPÍA ($S$):</span> <span class="dynamic" id="ui-entropy">MAX (RUIDO)</span></div>
-        <div class="data-row"><span>FLUJO ($dp/dt$):</span> <span class="value" id="ui-flow">ESTABLE</span></div>
+        <div class="data-row"><span>MÉTRICA $Z_I$ (PAPER):</span> <span class="dynamic" id="ui-zval">0.012</span></div>
+        <div class="data-row"><span>SATURACIÓN CAOS:</span> <span class="value" id="ui-sat">OFF</span></div>
+        <div class="data-row"><span>INCERTIDUMBRE VECTOR:</span> <span class="value" id="ui-flow">ESTABLE</span></div>
         
-        <h2>Métricas del Paper ($Z_I$)</h2>
-        <div class="data-row"><span>VISCOSIDAD CAOS:</span> <span class="dynamic" id="ui-chaos">ALTA</span></div>
-        <div class="data-row"><span>MÉTRICA $Z_I$:</span> <span class="dynamic" id="ui-zval">0.012</span></div>
-        <div class="data-row"><span>SATURACIÓN $C_{s8}$:</span> <span class="value" id="ui-sat">OFF</span></div>
-
-        <h2>Telemetría de Contacto</h2>
-        <div class="data-row"><span>LATITUD:</span> <span class="value" id="ui-lat">--</span></div>
-        <div class="data-row"><span>LONGITUD:</span> <span class="value" id="ui-lon">--</span></div>
-        <div class="data-row"><span>RUMBO / VEL:</span> <span class="value" id="ui-vec">--</span></div>
+        <h2>Telemetría de Contacto (NATO APP-6)</h2>
+        <div class="data-row"><span>ESTADO:</span> <span class="value" id="ui-state">--</span></div>
+        <div class="data-row"><span>PROFUNDIDAD:</span> <span class="value" id="ui-depth">--</span></div>
+        <div class="data-row"><span>POSICIÓN:</span> <span class="value" id="ui-pos">--</span></div>
+        <div class="data-row"><span>RUMBO (CO G):</span> <span class="value" id="ui-hdg">--</span></div>
+        <div class="data-row"><span>VELOCIDAD (SOG):</span> <span class="dynamic" id="ui-spd">-- KTS</span></div>
+        <div class="data-row"><span>RPM ESTIMADO (EJE):</span> <span class="value" id="ui-rpm">--</span></div>
         
         <div id="main-alert" class="status-box">
-            <div class="safe">ESCANANDO RUIDO AMBIENTE...</div>
+            <div class="safe">MONITOREO DE RUIDO AMBIENTE</div>
         </div>
 
-        <div class="legend">
-            <div class="legend-item"><div class="dot" style="background:none; border:2px solid #ff3333"></div> ZONA 1 (35km) - HARD LOCK</div>
-            <div class="legend-item"><div class="dot" style="background:none; border:1px dashed #ffff00"></div> ZONA 2 (70km) - EARLY WARNING</div>
-            <div class="legend-item"><div class="dot" style="background:rgba(0,255,255,0.6)"></div> NUBE MARKOVIANA (INCERTIDUMBRE)</div>
-        </div>
-        
-        <button class="btn-reset" onclick="resetSim()">REINICIAR SIMULACIÓN</button>
+        <button class="btn-reset" onclick="resetSim()">REINICIAR ESCENARIO TÁCTICO</button>
     </div>
 
     <div id="map-container">
@@ -107,12 +89,12 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    // 1. MAPA
-    const map = L.map('map', { zoomControl: false, attributionControl: false, center: [-32.8, -72.5], zoom: 8 });
+    // 1. MAPA SETUP
+    const map = L.map('map', { zoomControl: false, attributionControl: false, center: [-32.8, -72.4], zoom: 8 });
     L.control.zoom({ position: 'topright' }).addTo(map);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19, subdomains: 'abcd' }).addTo(map);
 
-    // 2. CANVAS
+    // 2. CANVAS SETUP
     const canvas = document.getElementById('tactical-overlay');
     const ctx = canvas.getContext('2d');
     function resizeCanvas() {
@@ -122,222 +104,230 @@
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
 
-    // 3. BOYAS (GEOMETRÍA OPTIMIZADA v5.0)
+    // 3. GEOMETRÍA BOYAS (OPTIMIZADA v5)
     const buoys = [
-        { id: "B1", lat: -32.00, lon: -72.10 }, 
-        { id: "B2", lat: -32.30, lon: -72.90 }, 
-        { id: "B3", lat: -32.65, lon: -72.15 }, 
-        { id: "B4", lat: -32.95, lon: -72.95 }, 
-        { id: "B5", lat: -33.30, lon: -72.20 }, 
-        { id: "B6", lat: -33.65, lon: -73.00 }  
+        { id: "B1", lat: -32.00, lon: -72.10 }, { id: "B2", lat: -32.30, lon: -72.90 }, 
+        { id: "B3", lat: -32.65, lon: -72.15 }, { id: "B4", lat: -32.95, lon: -72.95 }, 
+        { id: "B5", lat: -33.30, lon: -72.20 }, { id: "B6", lat: -33.65, lon: -73.00 }  
     ];
 
-    // 4. SISTEMA MARKOV & VISUALIZACIÓN
+    // 4. SISTEMA MARKOV (Incertidumbre)
     class MarkovSystem {
-        constructor() {
-            this.particles = [];
-        }
-        
-        // Genera la nube de puntos alrededor de la detección
+        constructor() { this.particles = []; }
         update(targetLat, targetLon, intensity) {
-            // intensity: 1 (baja/amarilla), 2 (alta/roja)
-            
-            // Cantidad de partículas depende de la intensidad
-            const targetCount = intensity === 2 ? 80 : 30;
-            
+            const targetCount = intensity === 2 ? 60 : 20;
             if (this.particles.length < targetCount) {
-                // Nacer partículas con cierta dispersión aleatoria (Incertidumbre)
-                const spread = intensity === 2 ? 0.05 : 0.15; // Más concentrado en rojo
+                const spread = intensity === 2 ? 0.04 : 0.12;
                 this.particles.push({
                     lat: targetLat + (Math.random() - 0.5) * spread,
                     lon: targetLon + (Math.random() - 0.5) * spread,
-                    life: 1.0,
-                    vx: (Math.random() - 0.5) * 0.005,
-                    vy: (Math.random() - 0.5) * 0.005
+                    life: 1.0, vx: (Math.random()-0.5)*0.003, vy: (Math.random()-0.5)*0.003
                 });
             }
-
             this.particles.forEach((p, i) => {
-                // Ecuación de Kolmogorov simplificada (Flujo hacia el objetivo)
-                // Cuanto mayor es la detección, más fuerte es la atracción
-                const attraction = intensity === 2 ? 0.1 : 0.02;
-                
-                p.lat += (targetLat - p.lat) * attraction;
-                p.lon += (targetLon - p.lon) * attraction;
-                
-                // Movimiento inercial
-                p.lat += p.vx;
-                p.lon += p.vy;
-
-                p.life -= 0.02; // Decaimiento
-                if (p.life <= 0) this.particles.splice(i, 1);
+                const attraction = intensity === 2 ? 0.08 : 0.02;
+                p.lat += (targetLat - p.lat) * attraction; p.lon += (targetLon - p.lon) * attraction;
+                p.lat += p.vx; p.lon += p.vy;
+                p.life -= 0.025; if (p.life <= 0) this.particles.splice(i, 1);
             });
         }
-        
         draw(mapObj) {
-            ctx.fillStyle = "rgba(0, 255, 255, 0.6)"; // Cian Markoviano
+            ctx.fillStyle = "rgba(0, 255, 255, 0.5)";
             this.particles.forEach(p => {
                 const point = mapObj.latLngToContainerPoint([p.lat, p.lon]);
-                ctx.beginPath();
-                ctx.arc(point.x, point.y, 2 * p.life, 0, Math.PI * 2);
-                ctx.fill();
+                ctx.beginPath(); ctx.arc(point.x, point.y, 2 * p.life, 0, Math.PI * 2); ctx.fill();
             });
         }
     }
     const markov = new MarkovSystem();
 
-    // 5. SUBMARINO
-    let sub = { lat: -31.8, lon: -73.2, heading: 140, speedDeg: 0.0007 };
+    // 5. SUBMARINO (FÍSICA REALISTA)
+    let sub = { 
+        lat: -31.8, lon: -73.1, heading: 150, 
+        currentSpeedDeg: 0.00015, // Velocidad MUY baja para realismo (grados/frame)
+        targetSpeedDeg: 0.00015,
+        isSubmerged: true,
+        depthTimer: 0
+    };
 
-    // 6. ANIMACIÓN
+    // 6. FUNCIÓN DE DIBUJO TÁCTICO (NATO SYMBOL)
+    function drawTacticalSymbol(ctx, x, y, heading, isHostile, isSubmerged) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate((heading - 90) * Math.PI / 180); // Orientar al rumbo
+        
+        const color = isHostile ? "#ff3300" : "#ffcc00"; // Rojo hostil, Amarillo desconocido
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.fillStyle = isHostile ? "rgba(255, 50, 0, 0.3)" : "rgba(255, 200, 0, 0.2)";
+
+        // 1. Rombo (Diamond) - Hostil/Desconocido
+        ctx.beginPath();
+        ctx.moveTo(0, -18); // Punta delantera
+        ctx.lineTo(14, 0);  // Derecha
+        ctx.lineTo(0, 18);  // Trasera
+        ctx.lineTo(-14, 0); // Izquierda
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // 2. Indicador de Submarino (Arco interno "U")
+        if (isSubmerged) {
+            ctx.beginPath();
+            ctx.arc(0, 2, 8, 0, Math.PI, false); // Medio círculo hacia abajo
+            ctx.stroke();
+        }
+
+        // 3. Vector de Velocidad (Línea líder)
+        ctx.beginPath();
+        ctx.moveTo(0, -18);
+        ctx.lineTo(0, -40); // Línea hacia adelante
+        ctx.stroke();
+
+        ctx.restore();
+    }
+
+
+    // 7. ANIMACIÓN PRINCIPAL
     function animate() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Movimiento Sub
-        let nextLat = sub.lat + Math.cos(sub.heading * Math.PI/180) * sub.speedDeg;
-        let nextLon = sub.lon + Math.sin(sub.heading * Math.PI/180) * sub.speedDeg;
+        // --- FÍSICA LENTA ---
+        // Cambio de velocidad suave
+        sub.currentSpeedDeg = sub.currentSpeedDeg * 0.98 + sub.targetSpeedDeg * 0.02;
         
-        // Geo-Fence (Muro Virtual Costero)
-        if (nextLon > -71.65) {
-            sub.heading = 200 + Math.random() * 40; // Rebote al mar
-            nextLon = -71.67;
-        }
-        // Limites mapa
-        if (nextLat < -34.0 || nextLat > -31.5) sub.heading += 150;
+        // Movimiento
+        let nextLat = sub.lat + Math.cos(sub.heading * Math.PI/180) * sub.currentSpeedDeg;
+        let nextLon = sub.lon + Math.sin(sub.heading * Math.PI/180) * sub.currentSpeedDeg;
         
-        sub.lat = nextLat;
-        sub.lon = nextLon;
-        sub.heading += (Math.random() - 0.5) * 2; // Ruido rumbo
+        // Geo-Fence & Límites
+        if (nextLon > -71.65) { sub.heading = 200 + Math.random()*40; nextLon = -71.67; }
+        if (nextLat < -34.1 || nextLat > -31.4) sub.heading += 140;
+        if (nextLon < -73.5) sub.heading -= 40;
 
-        // DIBUJO Y LÓGICA
+        sub.lat = nextLat; sub.lon = nextLon;
+        
+        // Cambio de rumbo inercial (muy lento)
+        sub.heading += (Math.random() - 0.5) * 0.8; 
+
+        // Lógica Superficie/Sumergido
+        sub.depthTimer++;
+        if(sub.depthTimer > 500 && Math.random() > 0.99) {
+            sub.isSubmerged = !sub.isSubmerged;
+            sub.depthTimer = 0;
+            // En superficie va más lento (diesel) o más rápido si es tránsito. Simulemos tránsito lento.
+            sub.targetSpeedDeg = sub.isSubmerged ? (0.0001 + Math.random()*0.0002) : 0.0001; 
+        }
+
+
+        // --- DIBUJO ---
         let maxAlertLevel = 0;
         const subPx = map.latLngToContainerPoint([sub.lat, sub.lon]);
 
         buoys.forEach(b => {
             const center = map.latLngToContainerPoint([b.lat, b.lon]);
-            const p35 = map.latLngToContainerPoint([b.lat + 0.315, b.lon]);
-            const p70 = map.latLngToContainerPoint([b.lat + 0.630, b.lon]);
-            const r35 = Math.abs(p35.y - center.y);
-            const r70 = Math.abs(p70.y - center.y);
+            // Cálculo preciso de radios basado en latitud actual para compensar proyección
+            const p35 = map.latLngToContainerPoint([b.lat, b.lon + 0.37]); // Aprox 35km este
+            const p70 = map.latLngToContainerPoint([b.lat, b.lon + 0.74]); // Aprox 70km este
+            const r35 = Math.hypot(p35.x - center.x, p35.y - center.y);
+            const r70 = Math.hypot(p70.x - center.x, p70.y - center.y);
 
             // Zonas
             ctx.beginPath(); ctx.arc(center.x, center.y, r70, 0, Math.PI*2);
-            ctx.strokeStyle = "rgba(200, 200, 0, 0.4)"; ctx.setLineDash([4, 4]); ctx.stroke(); ctx.setLineDash([]); // Sec
-
+            ctx.strokeStyle = "rgba(200, 180, 0, 0.3)"; ctx.setLineDash([6, 4]); ctx.lineWidth=1; ctx.stroke(); ctx.setLineDash([]);
             ctx.beginPath(); ctx.arc(center.x, center.y, r35, 0, Math.PI*2);
-            ctx.strokeStyle = "rgba(255, 50, 50, 0.5)"; ctx.stroke(); // Prim
+            ctx.strokeStyle = "rgba(255, 60, 0, 0.4)"; ctx.lineWidth=2; ctx.stroke();
 
             // Detección
             const dist = Math.hypot(subPx.x - center.x, subPx.y - center.y);
-            
             if (dist < r35) {
-                maxAlertLevel = 2; // ROJO
-                ctx.fillStyle = "rgba(255, 0, 0, 0.3)"; ctx.fill();
+                maxAlertLevel = 2;
+                ctx.fillStyle = "rgba(255, 50, 0, 0.2)"; ctx.fill(); // Relleno Hard Lock
                 ctx.beginPath(); ctx.moveTo(center.x, center.y); ctx.lineTo(subPx.x, subPx.y); 
-                ctx.strokeStyle="red"; ctx.stroke();
+                ctx.strokeStyle="rgba(255,50,0,0.8)"; ctx.lineWidth=2; ctx.stroke();
             } else if (dist < r70) {
-                if(maxAlertLevel < 1) maxAlertLevel = 1; // AMARILLO
-                ctx.fillStyle = "rgba(255, 255, 0, 0.1)"; ctx.beginPath(); ctx.arc(center.x, center.y, r70, 0, Math.PI*2); ctx.fill();
+                if(maxAlertLevel < 1) maxAlertLevel = 1;
+                ctx.fillStyle = "rgba(200, 180, 0, 0.08)"; ctx.beginPath(); ctx.arc(center.x, center.y, r70, 0, Math.PI*2); ctx.fill();
             }
-            
-            // Icono
-            ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(center.x, center.y, 3, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(center.x, center.y, 2.5, 0, Math.PI*2); ctx.fill();
         });
 
-        // ACTUALIZAR MATH & UI
         updateDashboard(maxAlertLevel);
         
         if (maxAlertLevel > 0) {
-            // Visualizar Markov (Nube)
             markov.update(sub.lat, sub.lon, maxAlertLevel);
             markov.draw(map);
-
-            // Dibujar Sub
-            ctx.save(); ctx.translate(subPx.x, subPx.y); ctx.rotate((sub.heading-90)*Math.PI/180);
-            ctx.fillStyle = maxAlertLevel === 2 ? "#ff0000" : "#ffff00";
-            ctx.beginPath(); ctx.moveTo(0,-8); ctx.lineTo(5,5); ctx.lineTo(-5,5); ctx.fill();
-            ctx.restore();
+            // DIBUJAR SIMBOLO TÁCTICO REALISTA
+            drawTacticalSymbol(ctx, subPx.x, subPx.y, sub.heading, maxAlertLevel === 2, sub.isSubmerged);
         }
 
         requestAnimationFrame(animate);
     }
 
+    // 8. ACTUALIZACIÓN DE DATOS (REALISTA)
     function updateDashboard(level) {
-        const elProb = document.getElementById('ui-prob');
-        const elZ = document.getElementById('ui-zval');
-        const elChaos = document.getElementById('ui-chaos');
-        const elSat = document.getElementById('ui-sat');
-        const elFlow = document.getElementById('ui-flow');
         const elAlert = document.getElementById('main-alert');
-        const elEntropy = document.getElementById('ui-entropy');
+        const statusColors = { 2: "#ff3300", 1: "#ffcc00", 0: "#00ffcc" };
+        const color = statusColors[level];
 
-        // Valores aleatorios base para simular lectura real
-        let zBase = 0.01 + Math.random() * 0.005;
-        let probBase = Math.random() * 5;
+        // Cálculos de Ingeniería (Simulados basados en física)
+        // 1 grado lat = 60 NM. speedDeg * 60 * 60fps * factor ajuste para que se vea bien
+        let realKnots = (sub.currentSpeedDeg / 0.00025) * 18; // Escalar para que 0.00025 sea ~18 kts
+        realKnots = Math.max(4, Math.min(22, realKnots)); // Limitar entre 4 y 22 kts
 
-        if (level === 2) { // HARD LOCK
-            elProb.innerText = (95 + Math.random() * 4).toFixed(1) + "%";
-            elProb.style.color = "red";
-            
-            // ZMétrica Saturada (Tu Paper)
-            elZ.innerText = (0.850 + Math.random() * 0.005).toFixed(3); 
-            elZ.style.color = "red";
-            elSat.innerText = "ACTIVE (LIMIT)";
-            elSat.style.color = "red";
-            elChaos.innerText = "COLAPSADO";
-            elEntropy.innerText = "MIN (ORDEN)";
-            elFlow.innerText = "CONVERGENTE";
-            
-            elAlert.innerHTML = "<div class='alert-p'>¡¡ ALERTA ROJA !!<br>BLANCO FIJADO</div>";
-            elAlert.style.borderColor = "red";
-            
-            // Telemetria
-            document.getElementById('ui-lat').innerText = sub.lat.toFixed(5);
-            document.getElementById('ui-lon').innerText = sub.lon.toFixed(5);
-            document.getElementById('ui-vec').innerText = Math.round(sub.heading)+"° / 22 KTS";
+        // RPM proporcional a la velocidad (ej. max 250rpm a 20kts) más ruido
+        let realRPM = Math.round((realKnots / 20) * 250 + (Math.random()*4-2));
+        
+        if (level > 0) {
+            // Estado y Profundidad
+            document.getElementById('ui-state').innerText = level === 2 ? "HOSTIL CONFIRMADO" : "DESCONOCIDO (TRACKING)";
+            document.getElementById('ui-state').style.color = color;
+            document.getElementById('ui-depth').innerText = sub.isSubmerged ? "SUMERGIDO (COTA TÁCTICA)" : "SUPERFICIE (SNORKEL/TRANSITO)";
+            document.getElementById('ui-depth').style.color = sub.isSubmerged ? "#00ccff" : "#ff9900";
 
-        } else if (level === 1) { // SECUNDARIO
-            elProb.innerText = (45 + Math.random() * 15).toFixed(1) + "%";
-            elProb.style.color = "yellow";
-            
-            elZ.innerText = (0.45 + Math.random() * 0.1).toFixed(3); // Z subiendo
-            elZ.style.color = "yellow";
-            elSat.innerText = "PENDING...";
-            elSat.style.color = "#aaa";
-            elChaos.innerText = "MEDIO";
-            elEntropy.innerText = "MEDIO";
-            elFlow.innerText = "CALCULANDO...";
+            // Telemetría Fina
+            document.getElementById('ui-pos').innerText = `${sub.lat.toFixed(4)}S / ${sub.lon.toFixed(4)}W`;
+            document.getElementById('ui-hdg').innerText = Math.round(sub.heading).toString().padStart(3, '0') + "°T";
+            document.getElementById('ui-spd').innerText = realKnots.toFixed(1) + " KTS";
+            document.getElementById('ui-rpm').innerText = realRPM + " RPM";
 
-            elAlert.innerHTML = "<div class='alert-s'>CONTACTO POSIBLE<br>ANALIZANDO...</div>";
-            elAlert.style.borderColor = "yellow";
-            
-             // Telemetria difusa
-             document.getElementById('ui-lat').innerText = sub.lat.toFixed(2) + "X";
-             document.getElementById('ui-lon').innerText = sub.lon.toFixed(2) + "X";
-             document.getElementById('ui-vec').innerText = "CALCULANDO";
+            // Matemática (Tu Paper y Markov)
+            const probBase = level === 2 ? 96 : 55;
+            const zBase = level === 2 ? 0.85 : 0.55;
+            document.getElementById('ui-prob').innerText = (probBase + Math.random()*3).toFixed(1) + "%";
+            document.getElementById('ui-zval').innerText = (zBase + Math.random()*0.01).toFixed(3);
+            document.getElementById('ui-sat').innerText = level === 2 ? "SATURACIÓN ACTIVA (8-bit)" : "PRE-SATURACIÓN";
+            document.getElementById('ui-sat').style.color = color;
+            document.getElementById('ui-flow').innerText = level === 2 ? "CONVERGENCIA FUERTE" : "TRAZANDO VECTOR...";
 
-        } else { // NADA
-            elProb.innerText = probBase.toFixed(1) + "%";
-            elProb.style.color = "#00ffcc";
-            elZ.innerText = zBase.toFixed(4);
-            elZ.style.color = "#00ffcc";
-            elSat.innerText = "OFF";
-            elSat.style.color = "#555";
-            elChaos.innerText = "ALTO (RUIDO)";
-            elEntropy.innerText = "MAX (RUIDO)";
-            elFlow.innerText = "ESTABLE";
+            // Alerta Principal
+            if(level === 2) {
+                elAlert.innerHTML = "<div class='alert-p'>¡¡ ALERTA ROJA !!<br>HARD LOCK - CLASE SCORPÈNE</div>";
+                elAlert.style.borderColor = "#ff3300";
+            } else {
+                elAlert.innerHTML = "<div class='alert-s'>CONTACTO SECUNDARIO<br>CLASIFICANDO FIRMA...</div>";
+                elAlert.style.borderColor = "#ffcc00";
+            }
 
-            elAlert.innerHTML = "<div class='safe'>MONITOREO ACTIVO</div>";
+        } else {
+            // Reset UI cuando se pierde
+            document.getElementById('ui-state').innerText = "--";
+            document.getElementById('ui-depth').innerText = "--";
+            document.getElementById('ui-pos').innerText = "--";
+            document.getElementById('ui-hdg').innerText = "--";
+            document.getElementById('ui-spd').innerText = "-- KTS";
+            document.getElementById('ui-rpm').innerText = "--";
+            document.getElementById('ui-prob').innerText = (Math.random()*5).toFixed(1)+"%";
+            document.getElementById('ui-zval').innerText = (0.01+Math.random()*0.005).toFixed(3);
+            document.getElementById('ui-sat').innerText = "OFF";
+            document.getElementById('ui-flow').innerText = "ESTABLE (RUIDO)";
+            elAlert.innerHTML = "<div class='safe'>MONITOREO ACTIVO - ZONA SEGURA</div>";
             elAlert.style.borderColor = "#333";
-            
-            document.getElementById('ui-lat').innerText = "--";
-            document.getElementById('ui-lon').innerText = "--";
-            document.getElementById('ui-vec').innerText = "--";
         }
     }
 
     function resetSim() {
-        sub.lat = -31.8; sub.lon = -73.2; sub.heading = 140;
+        sub.lat = -31.8; sub.lon = -73.1; sub.heading = 150; sub.currentSpeedDeg = 0.00015; sub.isSubmerged = true;
     }
 
     animate();
