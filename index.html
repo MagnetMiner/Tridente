@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ZORD TRIDENTE | MULTI-LAYER DEFENSE</title>
+    <title>ZORD TRIDENTE | DASHBOARD MATEMÁTICO</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     
@@ -12,9 +12,9 @@
         
         #main-container { display: flex; height: 100vh; width: 100vw; }
 
-        /* PANEL IZQUIERDO */
+        /* PANEL DE CONTROL (IZQUIERDA) */
         #control-panel {
-            width: 340px;
+            width: 380px; /* Un poco más ancho para los datos matemáticos */
             background: #00090c;
             border-right: 2px solid #004433;
             color: #00ffcc;
@@ -24,75 +24,79 @@
             flex-direction: column;
             z-index: 1000;
             box-shadow: 5px 0 15px rgba(0,0,0,0.8);
+            font-size: 12px;
         }
 
-        /* MAPA */
         #map-container { flex-grow: 1; position: relative; background: #000; }
         #map { height: 100%; width: 100%; background: #000; }
         #tactical-overlay { position: absolute; top: 0; left: 0; pointer-events: none; z-index: 500; }
 
-        /* UI ELEMENTS */
-        h1 { font-size: 22px; margin: 0 0 10px 0; text-shadow: 0 0 5px #00ffcc; border-bottom: 1px solid #004433; padding-bottom: 10px; }
-        h2 { font-size: 14px; color: #008866; margin-top: 15px; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
-        .data-row { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 5px; border-bottom: 1px dashed #002211; padding-bottom: 2px; }
-        .value { color: #fff; font-weight: bold; }
+        /* TYPOGRAPHY */
+        h1 { font-size: 20px; margin: 0 0 10px 0; text-shadow: 0 0 5px #00ffcc; border-bottom: 1px solid #004433; padding-bottom: 5px; }
+        h2 { font-size: 11px; color: #008866; margin-top: 15px; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; border-left: 3px solid #008866; padding-left: 5px; }
         
+        .data-row { display: flex; justify-content: space-between; margin-bottom: 3px; border-bottom: 1px dashed #002211; padding-bottom: 2px; }
+        .value { color: #fff; font-weight: bold; }
+        .dynamic { color: #ffff00; } /* Valores que cambian */
+
         /* ALERTAS */
-        .status-box { padding: 10px; text-align: center; margin-top: 20px; border: 1px solid #333; min-height: 40px; }
-        .alert-p { color: #ff0000; font-weight: bold; animation: blink 0.5s infinite; font-size: 14px; }
+        .status-box { padding: 10px; text-align: center; margin-top: 15px; border: 1px solid #333; min-height: 30px; background: rgba(0,0,0,0.3); }
+        .alert-p { color: #ff0000; font-weight: bold; animation: blink 0.2s infinite; font-size: 14px; }
         .alert-s { color: #ffff00; font-weight: bold; animation: blink 1s infinite; font-size: 14px; }
-        .safe { color: #004433; font-size: 12px; line-height: 40px; }
+        .safe { color: #004433; font-size: 12px; line-height: 30px; }
 
         @keyframes blink { 50% { opacity: 0.2; } }
 
         /* LEYENDA */
-        .legend { margin-top: auto; font-size: 10px; color: #555; }
+        .legend { margin-top: auto; font-size: 10px; color: #555; border-top: 1px solid #333; padding-top: 10px; }
         .legend-item { display: flex; align-items: center; margin-bottom: 4px; }
         .dot { width: 8px; height: 8px; margin-right: 8px; border-radius: 50%; }
 
-        /* EFECTO CRT */
-        .scanline {
-            width: 340px; height: 50px; position: absolute; top: 0; left: 0; pointer-events: none;
-            background: linear-gradient(0deg, rgba(0,0,0,0) 0%, rgba(0, 255, 204, 0.05) 50%, rgba(0,0,0,0) 100%);
-            animation: scan 6s linear infinite; opacity: 0.3;
-        }
-        @keyframes scan { 0% { top: -50px; } 100% { top: 100%; } }
+        /* BOTON */
+        .btn-reset { margin-top:10px; background:#002211; border:1px solid #004433; color:#00ffcc; cursor:pointer; width:100%; padding: 8px; font-family: inherit; font-weight: bold; transition: 0.3s; }
+        .btn-reset:hover { background: #00ffcc; color: #000; }
+
     </style>
 </head>
 <body>
 
 <div id="main-container">
     <div id="control-panel">
-        <div class="scanline"></div>
-        <h1>ZORD TRIDENTE v4.0</h1>
-        <div style="font-size: 10px; color: #008866;">LOS VILOS - SAN ANTONIO SECTOR</div>
+        <h1>ZORD TRIDENTE v6.0</h1>
+        <div style="font-size: 10px; color: #008866;">SISTEMA INTEGRADO DE VIGILANCIA ASW</div>
 
-        <h2>Sensores & Cobertura</h2>
-        <div class="data-row"><span>BOYAS ACTIVAS:</span> <span class="value">6/6</span></div>
-        <div class="data-row"><span>RANGO PRIMARIO:</span> <span class="value">35 KM (HARD LOCK)</span></div>
-        <div class="data-row"><span>RANGO SECUNDARIO:</span> <span class="value">70 KM (EARLY WARN)</span></div>
+        <h2>Estado de Sensores</h2>
+        <div class="data-row"><span>NODOS ACTIVOS:</span> <span class="value">6 (ZIG-ZAG)</span></div>
+        <div class="data-row"><span>COBERTURA SECUNDARIA:</span> <span class="value" style="color:#0f0">100% (LINKED)</span></div>
+        <div class="data-row"><span>GEO-FENCE COSTERO:</span> <span class="value" style="color:#0f0">ACTIVO</span></div>
+
+        <h2>Motor Matemático & Físico</h2>
+        <div class="data-row"><span>MODELO:</span> <span class="value">Markov-Kolmogorov</span></div>
+        <div class="data-row"><span>PROBABILIDAD $P(X|Y)$:</span> <span class="dynamic" id="ui-prob">0.0%</span></div>
+        <div class="data-row"><span>ENTROPÍA ($S$):</span> <span class="dynamic" id="ui-entropy">MAX (RUIDO)</span></div>
+        <div class="data-row"><span>FLUJO ($dp/dt$):</span> <span class="value" id="ui-flow">ESTABLE</span></div>
         
-        <h2>Telemetría Objetivo</h2>
-        <div class="data-row"><span>ESTADO:</span> <span class="value" id="ui-status">BUSCANDO...</span></div>
+        <h2>Métricas del Paper ($Z_I$)</h2>
+        <div class="data-row"><span>VISCOSIDAD CAOS:</span> <span class="dynamic" id="ui-chaos">ALTA</span></div>
+        <div class="data-row"><span>MÉTRICA $Z_I$:</span> <span class="dynamic" id="ui-zval">0.012</span></div>
+        <div class="data-row"><span>SATURACIÓN $C_{s8}$:</span> <span class="value" id="ui-sat">OFF</span></div>
+
+        <h2>Telemetría de Contacto</h2>
         <div class="data-row"><span>LATITUD:</span> <span class="value" id="ui-lat">--</span></div>
         <div class="data-row"><span>LONGITUD:</span> <span class="value" id="ui-lon">--</span></div>
         <div class="data-row"><span>RUMBO / VEL:</span> <span class="value" id="ui-vec">--</span></div>
         
-        <h2>Procesamiento IA</h2>
-        <div class="data-row"><span>MARKOV PROJECTION:</span> <span class="value" style="color:#0f0">ON</span></div>
-        <div class="data-row"><span>FILTRO $Z_I$ (PAPER):</span> <span class="value">0.85</span></div>
-
         <div id="main-alert" class="status-box">
-            <div class="safe">SIN CONTACTOS ACTIVOS</div>
+            <div class="safe">ESCANANDO RUIDO AMBIENTE...</div>
         </div>
 
         <div class="legend">
-            <div class="legend-item"><div class="dot" style="background:none; border:1px solid #00ffcc"></div> ZONA 1 (35km)</div>
-            <div class="legend-item"><div class="dot" style="background:none; border:1px dashed #008866"></div> ZONA 2 (70km)</div>
-            <div class="legend-item"><div class="dot" style="background:rgba(0,255,255,0.5)"></div> PROYECCIÓN MARKOV</div>
+            <div class="legend-item"><div class="dot" style="background:none; border:2px solid #ff3333"></div> ZONA 1 (35km) - HARD LOCK</div>
+            <div class="legend-item"><div class="dot" style="background:none; border:1px dashed #ffff00"></div> ZONA 2 (70km) - EARLY WARNING</div>
+            <div class="legend-item"><div class="dot" style="background:rgba(0,255,255,0.6)"></div> NUBE MARKOVIANA (INCERTIDUMBRE)</div>
         </div>
         
-        <button onclick="resetSim()" style="margin-top:10px; background:none; border:1px solid #333; color:#555; cursor:pointer; width:100%">RESET SIM</button>
+        <button class="btn-reset" onclick="resetSim()">REINICIAR SIMULACIÓN</button>
     </div>
 
     <div id="map-container">
@@ -103,267 +107,240 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    // ==========================================
-    // 1. CONFIGURACIÓN DEL MAPA (LEAFLET)
-    // ==========================================
-    const map = L.map('map', {
-        zoomControl: false,
-        attributionControl: false,
-        center: [-32.7, -72.0], // Centro entre Los Vilos y San Antonio
-        zoom: 8
-    });
-
+    // 1. MAPA
+    const map = L.map('map', { zoomControl: false, attributionControl: false, center: [-32.8, -72.5], zoom: 8 });
     L.control.zoom({ position: 'topright' }).addTo(map);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19, subdomains: 'abcd' }).addTo(map);
 
-    // Mapa Base Oscuro
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        maxZoom: 19,
-        subdomains: 'abcd'
-    }).addTo(map);
-
-    // ==========================================
-    // 2. CONFIGURACIÓN CANVAS
-    // ==========================================
+    // 2. CANVAS
     const canvas = document.getElementById('tactical-overlay');
     const ctx = canvas.getContext('2d');
-
     function resizeCanvas() {
         const container = document.getElementById('map-container');
-        canvas.width = container.offsetWidth;
-        canvas.height = container.offsetHeight;
+        canvas.width = container.offsetWidth; canvas.height = container.offsetHeight;
     }
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
 
-    // ==========================================
-    // 3. BOYAS (ZIGZAG OPTIMIZADO PARA 35/70km)
-    // ==========================================
-    // Calculadas para que los radios de 70km se solapen, 
-    // pero los de 35km mantengan cierta independencia.
+    // 3. BOYAS (GEOMETRÍA OPTIMIZADA v5.0)
     const buoys = [
-        { id: "T-N1", lat: -31.90, lon: -71.60 }, // Los Vilos (Costera)
-        { id: "T-N2", lat: -32.15, lon: -72.10 }, // Alta Mar (Zig)
-        { id: "T-C1", lat: -32.50, lon: -71.70 }, // Papudo/Zapallar (Costera)
-        { id: "T-C2", lat: -32.85, lon: -72.20 }, // Alta Mar (Zag)
-        { id: "T-S1", lat: -33.20, lon: -71.80 }, // Valparaíso (Costera)
-        { id: "T-S2", lat: -33.60, lon: -72.10 }  // San Antonio (Alta Mar)
+        { id: "B1", lat: -32.00, lon: -72.10 }, 
+        { id: "B2", lat: -32.30, lon: -72.90 }, 
+        { id: "B3", lat: -32.65, lon: -72.15 }, 
+        { id: "B4", lat: -32.95, lon: -72.95 }, 
+        { id: "B5", lat: -33.30, lon: -72.20 }, 
+        { id: "B6", lat: -33.65, lon: -73.00 }  
     ];
 
-    // ==========================================
-    // 4. LÓGICA DE SIMULACIÓN (SUBMARINO)
-    // ==========================================
-    let sub = {
-        lat: -31.8, 
-        lon: -72.5, // Empieza fuera, al NO
-        heading: 150, // Rumbo SE
-        speedKnots: 20, // Nudos
-        speedDeg: 0.0008 // Velocidad en grados/frame aprox
-    };
-
-    // MOTOR MARKOV (IA PREDICTIVA)
-    class MarkovEngine {
+    // 4. SISTEMA MARKOV & VISUALIZACIÓN
+    class MarkovSystem {
         constructor() {
             this.particles = [];
         }
-        update(targetLat, targetLon, precision) {
-            // Precision: 1.0 (Baja/Secundaria), 2.0 (Alta/Primaria)
-            if(this.particles.length < 60) {
+        
+        // Genera la nube de puntos alrededor de la detección
+        update(targetLat, targetLon, intensity) {
+            // intensity: 1 (baja/amarilla), 2 (alta/roja)
+            
+            // Cantidad de partículas depende de la intensidad
+            const targetCount = intensity === 2 ? 80 : 30;
+            
+            if (this.particles.length < targetCount) {
+                // Nacer partículas con cierta dispersión aleatoria (Incertidumbre)
+                const spread = intensity === 2 ? 0.05 : 0.15; // Más concentrado en rojo
                 this.particles.push({
-                    lat: targetLat + (Math.random()-0.5)*0.15,
-                    lon: targetLon + (Math.random()-0.5)*0.15,
-                    life: 1.0
+                    lat: targetLat + (Math.random() - 0.5) * spread,
+                    lon: targetLon + (Math.random() - 0.5) * spread,
+                    life: 1.0,
+                    vx: (Math.random() - 0.5) * 0.005,
+                    vy: (Math.random() - 0.5) * 0.005
                 });
             }
+
             this.particles.forEach((p, i) => {
-                // Atracción hacia el objetivo
-                p.lat += (targetLat - p.lat) * 0.03 * precision;
-                p.lon += (targetLon - p.lon) * 0.03 * precision;
-                p.life -= 0.015;
-                if(p.life <= 0) this.particles.splice(i,1);
+                // Ecuación de Kolmogorov simplificada (Flujo hacia el objetivo)
+                // Cuanto mayor es la detección, más fuerte es la atracción
+                const attraction = intensity === 2 ? 0.1 : 0.02;
+                
+                p.lat += (targetLat - p.lat) * attraction;
+                p.lon += (targetLon - p.lon) * attraction;
+                
+                // Movimiento inercial
+                p.lat += p.vx;
+                p.lon += p.vy;
+
+                p.life -= 0.02; // Decaimiento
+                if (p.life <= 0) this.particles.splice(i, 1);
+            });
+        }
+        
+        draw(mapObj) {
+            ctx.fillStyle = "rgba(0, 255, 255, 0.6)"; // Cian Markoviano
+            this.particles.forEach(p => {
+                const point = mapObj.latLngToContainerPoint([p.lat, p.lon]);
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, 2 * p.life, 0, Math.PI * 2);
+                ctx.fill();
             });
         }
     }
-    const markov = new MarkovEngine();
+    const markov = new MarkovSystem();
 
-    // ==========================================
-    // 5. HELPER: CONVERTIR METROS A PIXELES
-    // ==========================================
-    function getRadiusInPixels(lat, radiusMeters) {
-        // Obtenemos un punto desplazado hacia el este 'radiusMeters' metros
-        // Usamos la formula simplificada para este nivel de zoom, o funciones de Leaflet
-        const centerPoint = map.latLngToContainerPoint([lat, 0]);
-        // 1 grado latitud ~ 111320 metros
-        // No es exacto pero suficiente para visualización, mejor usar proyección real:
-        // Truco: Calcular distancia entre dos LatLngs reales
-        const p1 = L.latLng(lat, -70);
-        const p2 = L.latLng(lat, -71); // 1 grado dif
-        const distMeters = p1.distanceTo(p2); // Distancia real en metros de 1 grado long aqui
-        
-        // Cuantos grados de longitud son el radio deseado?
-        const degDiff = radiusMeters / distMeters; 
-        
-        const pointEdge = map.latLngToContainerPoint([lat, degDiff]); // Usamos 0 + diff
-        const pointZero = map.latLngToContainerPoint([lat, 0]);
-        
-        return Math.abs(pointEdge.x - pointZero.x);
-    }
+    // 5. SUBMARINO
+    let sub = { lat: -31.8, lon: -73.2, heading: 140, speedDeg: 0.0007 };
 
-    // ==========================================
-    // 6. ANIMACIÓN PRINCIPAL
-    // ==========================================
-    let radarSweep = 0;
-
+    // 6. ANIMACIÓN
     function animate() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // A. MOVER SUBMARINO
-        sub.lat += Math.cos(sub.heading * Math.PI/180) * sub.speedDeg;
-        sub.lon += Math.sin(sub.heading * Math.PI/180) * sub.speedDeg;
+        // Movimiento Sub
+        let nextLat = sub.lat + Math.cos(sub.heading * Math.PI/180) * sub.speedDeg;
+        let nextLon = sub.lon + Math.sin(sub.heading * Math.PI/180) * sub.speedDeg;
         
-        // Rebote simple para que no se pierda en la demo
-        if(sub.lat < -34 || sub.lat > -31.5) sub.heading += 160;
-        if(sub.lon > -71.4) sub.heading += 90; // Evitar tierra
+        // Geo-Fence (Muro Virtual Costero)
+        if (nextLon > -71.65) {
+            sub.heading = 200 + Math.random() * 40; // Rebote al mar
+            nextLon = -71.67;
+        }
+        // Limites mapa
+        if (nextLat < -34.0 || nextLat > -31.5) sub.heading += 150;
+        
+        sub.lat = nextLat;
+        sub.lon = nextLon;
+        sub.heading += (Math.random() - 0.5) * 2; // Ruido rumbo
 
+        // DIBUJO Y LÓGICA
+        let maxAlertLevel = 0;
         const subPx = map.latLngToContainerPoint([sub.lat, sub.lon]);
 
-        // B. DIBUJAR BOYAS Y ZONAS
-        let globalStatus = 0; // 0: Nada, 1: Secundaria, 2: Primaria
-        
         buoys.forEach(b => {
             const center = map.latLngToContainerPoint([b.lat, b.lon]);
+            const p35 = map.latLngToContainerPoint([b.lat + 0.315, b.lon]);
+            const p70 = map.latLngToContainerPoint([b.lat + 0.630, b.lon]);
+            const r35 = Math.abs(p35.y - center.y);
+            const r70 = Math.abs(p70.y - center.y);
+
+            // Zonas
+            ctx.beginPath(); ctx.arc(center.x, center.y, r70, 0, Math.PI*2);
+            ctx.strokeStyle = "rgba(200, 200, 0, 0.4)"; ctx.setLineDash([4, 4]); ctx.stroke(); ctx.setLineDash([]); // Sec
+
+            ctx.beginPath(); ctx.arc(center.x, center.y, r35, 0, Math.PI*2);
+            ctx.strokeStyle = "rgba(255, 50, 50, 0.5)"; ctx.stroke(); // Prim
+
+            // Detección
+            const dist = Math.hypot(subPx.x - center.x, subPx.y - center.y);
             
-            // Calcular radios dinámicos según Zoom
-            // Usamos Leaflet para calcular distancia real en pixeles
-            // LatLng de la boya
-            const centerLL = L.latLng(b.lat, b.lon);
-            // Punto a 35km al este
-            const p35 = map.latLngToContainerPoint(L.GeometryUtil ? L.GeometryUtil.destination(centerLL, 90, 35000) : dest(b.lat, b.lon, 90, 35000));
-            const p70 = map.latLngToContainerPoint(L.GeometryUtil ? L.GeometryUtil.destination(centerLL, 90, 70000) : dest(b.lat, b.lon, 90, 70000));
-            
-            // Calculo manual de distancia en pixeles (radio)
-            const r35 = Math.hypot(p35.x - center.x, p35.y - center.y);
-            const r70 = Math.hypot(p70.x - center.x, p70.y - center.y);
-
-            // 1. DIBUJAR ZONA SECUNDARIA (70KM) - Malla
-            ctx.beginPath();
-            ctx.arc(center.x, center.y, r70, 0, Math.PI * 2);
-            ctx.strokeStyle = "rgba(0, 100, 80, 0.4)";
-            ctx.setLineDash([5, 5]); // Punteada
-            ctx.lineWidth = 1;
-            ctx.stroke();
-            ctx.setLineDash([]); // Reset
-
-            // 2. DIBUJAR ZONA PRIMARIA (35KM) - Hard Lock
-            ctx.beginPath();
-            ctx.arc(center.x, center.y, r35, 0, Math.PI * 2);
-            ctx.strokeStyle = "rgba(0, 255, 204, 0.3)";
-            ctx.lineWidth = 2;
-            ctx.stroke();
-
-            // 3. DETECCIONES
-            const distPx = Math.hypot(subPx.x - center.x, subPx.y - center.y);
-            
-            if (distPx < r35) {
-                // ALERTA ROJA (PRIMARIA)
-                if(globalStatus < 2) globalStatus = 2;
-                
-                // Visual
-                ctx.fillStyle = "rgba(255, 0, 0, 0.2)";
-                ctx.fill(); // Relleno rojo zona primaria
-                ctx.strokeStyle = "red";
-                ctx.stroke(); // Borde rojo fuerte
-                
-                // Linea vector al objetivo
-                ctx.beginPath(); ctx.moveTo(center.x, center.y); ctx.lineTo(subPx.x, subPx.y); ctx.stroke();
-
-            } else if (distPx < r70) {
-                // ALERTA AMARILLA (SECUNDARIA)
-                if(globalStatus < 1) globalStatus = 1;
-
-                // Visual
-                ctx.fillStyle = "rgba(255, 255, 0, 0.05)";
-                ctx.beginPath(); ctx.arc(center.x, center.y, r70, 0, Math.PI*2); ctx.fill();
-                ctx.strokeStyle = "yellow";
-                ctx.beginPath(); ctx.arc(center.x, center.y, r70, 0, Math.PI*2); 
-                ctx.setLineDash([5, 5]); ctx.stroke(); ctx.setLineDash([]);
+            if (dist < r35) {
+                maxAlertLevel = 2; // ROJO
+                ctx.fillStyle = "rgba(255, 0, 0, 0.3)"; ctx.fill();
+                ctx.beginPath(); ctx.moveTo(center.x, center.y); ctx.lineTo(subPx.x, subPx.y); 
+                ctx.strokeStyle="red"; ctx.stroke();
+            } else if (dist < r70) {
+                if(maxAlertLevel < 1) maxAlertLevel = 1; // AMARILLO
+                ctx.fillStyle = "rgba(255, 255, 0, 0.1)"; ctx.beginPath(); ctx.arc(center.x, center.y, r70, 0, Math.PI*2); ctx.fill();
             }
-
-            // Dibujar Icono Boya
-            ctx.fillStyle = "#fff";
-            ctx.beginPath(); ctx.arc(center.x, center.y, 3, 0, Math.PI*2); ctx.fill();
-            ctx.fillText(b.id, center.x + 5, center.y - 5);
+            
+            // Icono
+            ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(center.x, center.y, 3, 0, Math.PI*2); ctx.fill();
         });
 
-        // C. PROCESAR RESULTADO
-        const alertBox = document.getElementById('main-alert');
+        // ACTUALIZAR MATH & UI
+        updateDashboard(maxAlertLevel);
         
-        if (globalStatus > 0) {
-            // Activar Markov Tracking
-            const precision = globalStatus === 2 ? 2.0 : 1.0;
-            markov.update(sub.lat, sub.lon, precision);
-            
-            // Dibujar Nube Markov
-            ctx.fillStyle = globalStatus === 2 ? "rgba(255, 0, 0, 0.6)" : "rgba(0, 255, 255, 0.4)";
-            markov.particles.forEach(p => {
-                const pPx = map.latLngToContainerPoint([p.lat, p.lon]);
-                ctx.beginPath(); ctx.arc(pPx.x, pPx.y, 2, 0, Math.PI*2); ctx.fill();
-            });
+        if (maxAlertLevel > 0) {
+            // Visualizar Markov (Nube)
+            markov.update(sub.lat, sub.lon, maxAlertLevel);
+            markov.draw(map);
 
-            // Dibujar Submarino (Identificado)
-            ctx.strokeStyle = globalStatus === 2 ? "red" : "yellow";
-            ctx.strokeRect(subPx.x - 10, subPx.y - 10, 20, 20);
-            
-            // UI Updates
-            if(globalStatus === 2) {
-                alertBox.innerHTML = "<div class='alert-p'>!!! ALERTA PRIMARIA !!!<br>ZONA DE EXCLUSIÓN VIOLADA</div>";
-                alertBox.style.borderColor = "red";
-            } else {
-                alertBox.innerHTML = "<div class='alert-s'>CONTACTO SECUNDARIO<br>TRAZANDO RUMBO...</div>";
-                alertBox.style.borderColor = "yellow";
-            }
-            
-            document.getElementById('ui-status').innerText = "TRACKING ID: S-42";
-            document.getElementById('ui-status').style.color = globalStatus === 2 ? "red" : "yellow";
-            document.getElementById('ui-lat').innerText = sub.lat.toFixed(4);
-            document.getElementById('ui-lon').innerText = sub.lon.toFixed(4);
-            document.getElementById('ui-vec').innerText = "140° / 18 KTS";
-
-        } else {
-            alertBox.innerHTML = "<div class='safe'>MONITOREO ACTIVO - ZONA SEGURA</div>";
-            alertBox.style.borderColor = "#004433";
-            document.getElementById('ui-status').innerText = "ESCANEANDO";
-            document.getElementById('ui-status').style.color = "#00ffcc";
-            document.getElementById('ui-lat').innerText = "--";
-            document.getElementById('ui-lon').innerText = "--";
-            document.getElementById('ui-vec').innerText = "--";
+            // Dibujar Sub
+            ctx.save(); ctx.translate(subPx.x, subPx.y); ctx.rotate((sub.heading-90)*Math.PI/180);
+            ctx.fillStyle = maxAlertLevel === 2 ? "#ff0000" : "#ffff00";
+            ctx.beginPath(); ctx.moveTo(0,-8); ctx.lineTo(5,5); ctx.lineTo(-5,5); ctx.fill();
+            ctx.restore();
         }
 
         requestAnimationFrame(animate);
     }
 
-    // Función auxiliar simple para calcular destino LatLon (Geodesia basica esferica)
-    // Para evitar depender de L.GeometryUtil externo
-    function dest(lat, lon, brng, dist) {
-        const R = 6371e3; // Radio tierra
-        const φ1 = lat * Math.PI/180;
-        const λ1 = lon * Math.PI/180;
-        const θ = brng * Math.PI/180;
-        const δ = dist / R;
+    function updateDashboard(level) {
+        const elProb = document.getElementById('ui-prob');
+        const elZ = document.getElementById('ui-zval');
+        const elChaos = document.getElementById('ui-chaos');
+        const elSat = document.getElementById('ui-sat');
+        const elFlow = document.getElementById('ui-flow');
+        const elAlert = document.getElementById('main-alert');
+        const elEntropy = document.getElementById('ui-entropy');
 
-        const φ2 = Math.asin( Math.sin(φ1)*Math.cos(δ) + Math.cos(φ1)*Math.sin(δ)*Math.cos(θ) );
-        const λ2 = λ1 + Math.atan2(Math.sin(θ)*Math.sin(δ)*Math.cos(φ1), Math.cos(δ)-Math.sin(φ1)*Math.sin(φ2));
-        
-        return L.latLng(φ2 * 180/Math.PI, λ2 * 180/Math.PI);
+        // Valores aleatorios base para simular lectura real
+        let zBase = 0.01 + Math.random() * 0.005;
+        let probBase = Math.random() * 5;
+
+        if (level === 2) { // HARD LOCK
+            elProb.innerText = (95 + Math.random() * 4).toFixed(1) + "%";
+            elProb.style.color = "red";
+            
+            // ZMétrica Saturada (Tu Paper)
+            elZ.innerText = (0.850 + Math.random() * 0.005).toFixed(3); 
+            elZ.style.color = "red";
+            elSat.innerText = "ACTIVE (LIMIT)";
+            elSat.style.color = "red";
+            elChaos.innerText = "COLAPSADO";
+            elEntropy.innerText = "MIN (ORDEN)";
+            elFlow.innerText = "CONVERGENTE";
+            
+            elAlert.innerHTML = "<div class='alert-p'>¡¡ ALERTA ROJA !!<br>BLANCO FIJADO</div>";
+            elAlert.style.borderColor = "red";
+            
+            // Telemetria
+            document.getElementById('ui-lat').innerText = sub.lat.toFixed(5);
+            document.getElementById('ui-lon').innerText = sub.lon.toFixed(5);
+            document.getElementById('ui-vec').innerText = Math.round(sub.heading)+"° / 22 KTS";
+
+        } else if (level === 1) { // SECUNDARIO
+            elProb.innerText = (45 + Math.random() * 15).toFixed(1) + "%";
+            elProb.style.color = "yellow";
+            
+            elZ.innerText = (0.45 + Math.random() * 0.1).toFixed(3); // Z subiendo
+            elZ.style.color = "yellow";
+            elSat.innerText = "PENDING...";
+            elSat.style.color = "#aaa";
+            elChaos.innerText = "MEDIO";
+            elEntropy.innerText = "MEDIO";
+            elFlow.innerText = "CALCULANDO...";
+
+            elAlert.innerHTML = "<div class='alert-s'>CONTACTO POSIBLE<br>ANALIZANDO...</div>";
+            elAlert.style.borderColor = "yellow";
+            
+             // Telemetria difusa
+             document.getElementById('ui-lat').innerText = sub.lat.toFixed(2) + "X";
+             document.getElementById('ui-lon').innerText = sub.lon.toFixed(2) + "X";
+             document.getElementById('ui-vec').innerText = "CALCULANDO";
+
+        } else { // NADA
+            elProb.innerText = probBase.toFixed(1) + "%";
+            elProb.style.color = "#00ffcc";
+            elZ.innerText = zBase.toFixed(4);
+            elZ.style.color = "#00ffcc";
+            elSat.innerText = "OFF";
+            elSat.style.color = "#555";
+            elChaos.innerText = "ALTO (RUIDO)";
+            elEntropy.innerText = "MAX (RUIDO)";
+            elFlow.innerText = "ESTABLE";
+
+            elAlert.innerHTML = "<div class='safe'>MONITOREO ACTIVO</div>";
+            elAlert.style.borderColor = "#333";
+            
+            document.getElementById('ui-lat').innerText = "--";
+            document.getElementById('ui-lon').innerText = "--";
+            document.getElementById('ui-vec').innerText = "--";
+        }
     }
 
     function resetSim() {
-        sub.lat = -31.8;
-        sub.lon = -72.5;
-        sub.heading = 150;
+        sub.lat = -31.8; sub.lon = -73.2; sub.heading = 140;
     }
 
     animate();
-
 </script>
 </body>
 </html>
