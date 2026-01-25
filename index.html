@@ -2,256 +2,322 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>ZORD S.p.A. | CIC TRIDENTE v10.2 [DEMO LOOP] 🔱</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SISTEMA TRIDENTE 🔱 | C4I TACTICAL DISPLAY</title>
     <style>
-        :root {
-            --bg-deep: #0A0B0C; --steel: #1A2B3C; --alert-yellow: #FFFF00;
-            --matrix-green: #00FF41; --hostile-red: #FF0000; --glow-blue: #00AAAA;
-        }
-        body { margin: 0; background: var(--bg-deep); font-family: 'Courier New', monospace; color: white; overflow: hidden; } /* [cite: 3, 5] */
-        
-        .main-container { display: grid; grid-template-columns: 1fr 400px; height: 100vh; gap: 2px; background: var(--steel); }
-        .quadrant { background: var(--bg-deep); display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--steel); } /* [cite: 8] */
-        .q-header { 
-            background: rgba(26, 43, 60, 0.8); padding: 10px 15px; font-size: 11px; 
-            color: var(--glow-blue); border-bottom: 1px solid var(--steel);
-            display: flex; justify-content: space-between; letter-spacing: 2px; text-transform: uppercase;
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #000508; /* Negro profundo oceánico */
+            color: #00ffcc;
+            font-family: 'Courier New', Courier, monospace;
+            overflow: hidden;
         }
 
-        #map { flex-grow: 1; background: #070809; z-index: 1; } /* [cite: 7] */
-        
-        .side-panel { display: flex; flex-direction: column; height: 100%; border-left: 2px solid var(--steel); }
-        .fixed-data { flex-shrink: 0; border-bottom: 2px solid var(--steel); background: rgba(5, 10, 15, 0.95); }
-        .data-section { padding: 15px 20px; } /* [cite: 10] */
-        
-        .log-container { flex-grow: 1; font-size: 10px; color: #8899AA; padding: 12px; overflow-y: auto; background: #050607; }
-        .log-line { margin-bottom: 6px; border-left: 2px solid var(--matrix-green); padding-left: 8px; }
-
-        .stat-bar { background: #111; height: 8px; margin: 6px 0; border: 1px solid var(--steel); }
-        .bar-fill { height: 100%; background: var(--matrix-green); width: 0%; transition: width 0.5s; }
-        .alert-text { color: var(--hostile-red); font-weight: bold; animation: blink 1s infinite; } /* [cite: 22, 28] */
-        .info-label { color: #556677; font-size: 9px; text-transform: uppercase; display: block; margin-top: 10px; }
-        .info-value { color: #fff; font-size: 12px; font-weight: bold; }
-
-        .buoy-label {
-            background: rgba(0, 20, 30, 0.9) !important;
-            border: 1px solid var(--glow-blue) !important;
-            color: var(--glow-blue) !important;
-            font-family: 'Courier New', monospace !important;
-            font-size: 9px !important;
-            letter-spacing: 2px !important;
-            padding: 2px 5px !important;
-            border-radius: 0 !important;
-            box-shadow: 0 0 8px rgba(0, 255, 255, 0.2);
-        } /* [cite: 36, 37] */
-
-        #action-menu {
-            position: absolute; display: none; background: rgba(10, 11, 12, 0.98); 
-            border: 1px solid var(--hostile-red); padding: 12px; z-index: 5000; width: 200px;
+        #sonar-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: radial-gradient(circle, #001a25 0%, #000000 90%);
         }
-        .action-btn {
-            width: 100%; background: #1a0505; color: var(--hostile-red); border: 1px solid var(--hostile-red);
-            padding: 8px; cursor: pointer; margin-top: 6px; font-family: inherit; font-size: 10px; font-weight: bold;
-        } /* [cite: 25, 26, 31] */
 
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-        #boot-screen { position: absolute; inset: 0; background: var(--bg-deep); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        /* UI OVERLAY - HUD TÁCTICO */
+        .hud-panel {
+            position: absolute;
+            padding: 15px;
+            border: 1px solid #005544;
+            background: rgba(0, 10, 10, 0.8);
+            box-shadow: 0 0 10px rgba(0, 255, 204, 0.2);
+            pointer-events: none; /* Dejar pasar clicks al canvas */
+        }
+
+        #top-left {
+            top: 20px;
+            left: 20px;
+        }
+
+        #bottom-right {
+            bottom: 20px;
+            right: 20px;
+            text-align: right;
+        }
+
+        h1 { margin: 0; font-size: 24px; text-shadow: 0 0 5px #00ffcc; }
+        h2 { margin: 0; font-size: 14px; color: #008866; margin-bottom: 5px; }
+        p { margin: 2px 0; font-size: 12px; }
+        
+        .alert { color: #ff3333; font-weight: bold; animation: blink 1s infinite; }
+        .math-metric { color: #ffff00; }
+
+        @keyframes blink { 50% { opacity: 0; } }
+        
+        /* Efecto CRT (Monitor Viejo) */
+        .scanline {
+            width: 100%;
+            height: 100px;
+            z-index: 10;
+            background: linear-gradient(0deg, rgba(0,0,0,0) 0%, rgba(0, 255, 204, 0.04) 50%, rgba(0,0,0,0) 100%);
+            opacity: 0.1;
+            position: absolute;
+            bottom: 100%;
+            animation: scanline 10s linear infinite;
+            pointer-events: none;
+        }
+        @keyframes scanline {
+            0% { bottom: 100%; }
+            100% { bottom: -100px; }
+        }
     </style>
 </head>
 <body>
 
-<div id="boot-screen">
-    <div style="color: var(--matrix-green); margin-bottom: 20px; font-size: 20px; letter-spacing: 10px;">ZORD TACTICAL SYSTEMS</div>
-    <button style="background:none; border: 1px solid var(--matrix-green); color: var(--matrix-green); padding: 15px 30px; font-family: inherit; cursor: pointer; font-weight: bold;" onclick="bootSystem()">INICIAR BUCLE DE DEMOSTRACIÓN</button>
-</div>
+    <div id="sonar-container">
+        <canvas id="tridenteCanvas"></canvas>
+        <div class="scanline"></div>
 
-<div id="action-menu">
-    <div style="font-size: 9px; color: var(--hostile-red); margin-bottom: 8px; text-align: center; border-bottom: 1px solid #300;">ORDEN DE ENGANCHE</div>
-    <button class="action-btn" onclick="takeAction('PATRULLA DESPACHADA')">INTERCEPCIÓN SUPERFICIE</button>
-    <button class="action-btn" style="color: var(--alert-yellow); border-color: var(--alert-yellow);" onclick="takeAction('ALERTA ASW ACTIVADA')">NEUTRALIZACIÓN ASW</button>
-    <button class="action-btn" style="color: #666; border-color: #333;" onclick="closeMenu()">CANCELAR</button>
-</div>
-
-<div class="main-container">
-    <div class="quadrant">
-        <div class="q-header">
-            <span>TSD: TACTICAL SITUATION DISPLAY</span>
-            <span id="coord-header" style="color: var(--matrix-green);">SYS_READY</span>
-        </div>
-        <div id="map"></div>
-    </div>
-
-    <div class="side-panel">
-        <div class="fixed-data">
-            <div class="q-header"><span>B: CINEMÁTICA Z-ENGINE</span></div>
-            <div class="data-section">
-                <div id="wait-msg" style="color: #445566; text-align: center; font-size: 11px; padding: 10px 0;">ESCANEO ACÚSTICO PASIVO...</div>
-                <div id="target-data" style="display:none;">
-                    <div class="alert-text" style="font-size: 11px; margin-bottom: 10px;">⚠️ CONTACTO HOSTIL VALIDADO</div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                        <div>
-                            <span class="info-label">GPS LAT</span><span class="info-value" id="side-lat">--</span>
-                            <span class="info-label">RUMBO (HDG)</span><span class="info-value" id="side-hdg">--</span>
-                        </div>
-                        <div>
-                            <span class="info-label">GPS LON</span><span class="info-value" id="side-lon">--</span>
-                            <span class="info-label">VELOCIDAD</span><span class="info-value" id="side-spd">--</span>
-                        </div>
-                    </div>
-                    <span class="info-label">CONFIANZA DE RED</span>
-                    <span class="info-value" id="side-conf">--</span>
-                    <span class="info-label">ETA PUERTO PROX.</span>
-                    <span class="info-value" id="side-tat">--</span>
-                </div>
-            </div>
+        <div id="top-left" class="hud-panel">
+            <h1>SISTEMA TRIDENTE 🔱</h1>
+            <h2>ANÁLISIS ESPECTRAL & PREDICTIVO</h2>
+            <p>ESTADO: <span class="alert">SEGUIMIENTO ACTIVO</span></p>
+            <p>OBJETIVO: CLASE SCORPÈNE (S42)</p>
+            <hr style="border-color: #004433">
+            <p>MÓDULO MARKOV: <span style="color:#0f0">ACTIVADO</span></p>
+            <p>ECUACIÓN MAESTRA (KOLMOGOROV): <span style="color:#0f0">CONVERGIENDO</span></p>
         </div>
 
-        <div class="fixed-data">
-            <div class="q-header"><span>C: ENGINE HEALTH & ENTROPY</span></div>
-            <div class="data-section" style="padding: 10px 20px;">
-                <div class="stat-bar"><div class="bar-fill" style="width: 88%;"></div></div>
-                <div style="font-size: 8px; color: var(--glow-blue);">L-SUSY LAYER: STABLE (99.9%)</div>
-            </div>
-        </div>
-
-        <div class="quadrant" style="flex-grow: 1; border-top: none;">
-            <div class="q-header"><span>D: MISSION LOG & SIGNATURES</span></div>
-            <div id="mission-log" class="log-container"></div>
+        <div id="bottom-right" class="hud-panel">
+            <h2>MÉTRICAS DEL MEDIO ($Z_I$)</h2>
+            <p>CONSTANTE $C_{s8}$: SATURADA (8-bit)</p>
+            <p>VISCOSIDAD EFECTIVA: <span class="math-metric" id="viscosity-val">0.00</span> Pa·s</p>
+            <p>ENTROPÍA ($S$): <span class="math-metric" id="entropy-val">BAJA</span></p>
+            <p>PROBABILIDAD ($P(X|Y)$): 98.4%</p>
         </div>
     </div>
-</div>
 
 <script>
-    const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([-33.00, -72.40], 8); /*  */
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { opacity: 0.6 }).addTo(map); /* [cite: 46] */
+    const canvas = document.getElementById('tridenteCanvas');
+    const ctx = canvas.getContext('2d');
 
-    const PORTS = { "VALPARAÍSO": [-33.03, -71.62], "SAN ANTONIO": [-33.58, -71.61] };
-    const R_PRIMARY = 35000; /* [cite: 51] */
-    const R_SECONDARY = 60000;
-    
-    const buoys = [
-        { id: "B01", lat: -32.10, lon: -72.60 }, { id: "B02", lat: -32.50, lon: -71.95 },
-        { id: "B03", lat: -32.90, lon: -72.55 }, { id: "B04", lat: -33.20, lon: -72.05 },
-        { id: "B05", lat: -33.60, lon: -72.50 }, { id: "B06", lat: -33.90, lon: -72.00 }
-    ]; /* [cite: 47, 48, 49] */
+    // Ajuste de tamaño
+    let width, height;
+    function resize() {
+        width = window.innerWidth;
+        height = window.innerHeight;
+        canvas.width = width;
+        canvas.height = height;
+    }
+    window.addEventListener('resize', resize);
+    resize();
 
-    const buoyLayers = [];
-    buoys.forEach(b => {
-        const sZone = L.circle([b.lat, b.lon], { radius: R_SECONDARY, color: 'var(--alert-yellow)', weight: 0.5, dashArray: '2, 4', fill: false, opacity: 0 }).addTo(map); /* [cite: 59] */
-        const pZone = L.circle([b.lat, b.lon], { radius: R_PRIMARY, color: 'var(--matrix-green)', weight: 0.8, fillOpacity: 0, opacity: 0 }).addTo(map); /* [cite: 58] */
-        L.circleMarker([b.lat, b.lon], { color: 'var(--glow-blue)', radius: 2, fillOpacity: 1 }).addTo(map)
-            .bindTooltip(b.id, { permanent: true, direction: 'top', className: 'buoy-label', offset: [0, -12], opacity: 0.9 }); /* [cite: 60] */
-        buoyLayers.push({ b, pZone, sZone });
-    });
+    // ==========================================
+    // CLASE 1: EL MOTOR FÍSICO (SUBMARINO)
+    // ==========================================
+    const subTarget = {
+        x: width / 2,
+        y: height / 2,
+        speed: 0.5,
+        angle: Math.random() * Math.PI * 2,
+        turnRate: 0.005
+    };
 
-    const waypoints = [
-        {lat: -31.80, lon: -73.00}, {lat: -32.30, lon: -72.40}, {lat: -32.70, lon: -72.05},
-        {lat: -33.10, lon: -72.50}, {lat: -33.50, lon: -72.15}, {lat: -34.80, lon: -73.00}
-    ]; /* [cite: 61] */
-    
-    let currentWP = 0;
-    let target = { lat: waypoints[0].lat, lon: waypoints[0].lon, heading: 0, speed: 22.4, marker: null, visible: false }; /* [cite: 65] */
+    // ==========================================
+    // CLASE 2: MOTOR PREDICTIVO (MARKOV + TU PAPER)
+    // ==========================================
+    class PredictiveEngine {
+        constructor() {
+            this.particles = []; // "Niebla" de probabilidad
+            this.maxParticles = 100;
+            this.zNumber = 0.85; // Tu métrica Z (0 a 1)
+        }
 
-    function addLog(text) {
-        const log = document.getElementById('mission-log');
-        log.innerHTML += `<div class="log-line">[${new Date().toLocaleTimeString('en-GB')}] ${text}</div>`;
-        log.scrollTop = log.scrollHeight;
+        // Generar partículas basadas en la incertidumbre inicial
+        spawnParticle(x, y) {
+            this.particles.push({
+                x: x + (Math.random() - 0.5) * 50, // Incertidumbre espacial
+                y: y + (Math.random() - 0.5) * 50,
+                vx: (Math.random() - 0.5) * 2,
+                vy: (Math.random() - 0.5) * 2,
+                life: 1.0
+            });
+        }
+
+        update(targetX, targetY) {
+            // Lógica MCMC (Monte Carlo): Las partículas intentan adivinar el futuro
+            // Si el Z-Number es alto (tu paper), el caos se reduce.
+            
+            // Generar nuevas si faltan
+            if (this.particles.length < this.maxParticles) {
+                this.spawnParticle(targetX, targetY);
+            }
+
+            this.particles.forEach((p, index) => {
+                // Ecuación de movimiento de la partícula
+                p.x += p.vx;
+                p.y += p.vy;
+                
+                // ATRACCIÓN MARKOVIANA:
+                // Las partículas son "haladas" hacia la solución más probable
+                // simulando el colapso de la función de onda al recibir datos.
+                let dx = targetX - p.x;
+                let dy = targetY - p.y;
+                
+                // Aplicamos tu filtro Z_I aquí:
+                // Cuanto mayor es Z, más fuerte es la corrección hacia la verdad física
+                p.vx += dx * 0.01 * this.zNumber;
+                p.vy += dy * 0.01 * this.zNumber;
+                
+                // Fricción (simulando el medio viscoso)
+                p.vx *= 0.95; 
+                p.vy *= 0.95;
+
+                p.life -= 0.005;
+                
+                // Eliminar partículas muertas
+                if (p.life <= 0) this.particles.splice(index, 1);
+            });
+        }
+
+        draw(ctx) {
+            // Dibujar la "Nube de Probabilidad"
+            ctx.fillStyle = "rgba(0, 255, 255, 0.4)";
+            this.particles.forEach(p => {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 2 * p.life, 0, Math.PI * 2); // El tamaño se reduce con la vida
+                ctx.fill();
+            });
+
+            // Dibujar VECTOR PREDICTIVO (Flecha verde)
+            // Esto muestra hacia dónde cree Kolmogorov que va el submarino
+            let avgX = this.particles.reduce((sum, p) => sum + p.x, 0) / this.particles.length;
+            let avgY = this.particles.reduce((sum, p) => sum + p.y, 0) / this.particles.length;
+
+            ctx.strokeStyle = "#00FF00";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(avgX, avgY);
+            // Proyección a futuro (simulada)
+            ctx.lineTo(avgX + (subTarget.x - avgX)*3, avgY + (subTarget.y - avgY)*3);
+            ctx.stroke();
+            
+            ctx.fillStyle = "#00FF00";
+            ctx.fillText("ESTIMACIÓN MARKOVIANA", avgX + 10, avgY);
+        }
     }
 
-    function bootSystem() {
-        document.getElementById('boot-screen').style.display = 'none';
-        addLog("MODO DEMOSTRACIÓN ACTIVADO."); /* [cite: 102] */
+    const tridenteAI = new PredictiveEngine();
+
+    // ==========================================
+    // CLASE 3: GRID TÁCTICO (BATTLESHIP)
+    // ==========================================
+    function drawGrid() {
+        ctx.strokeStyle = "rgba(0, 85, 68, 0.3)"; // Verde oscuro tenue
+        ctx.lineWidth = 1;
+        ctx.fillStyle = "rgba(0, 255, 204, 0.5)"; // Texto Cyan
+        ctx.font = "10px Monospace";
+
+        const gridSize = 100; // Tamaño de cada celda
         
-        const hostileIcon = L.divIcon({
-            className: 'hostile-icon',
-            html: `<div id="tgt-symbol" style="width:0; height:0; border-left:7px solid transparent; border-right:7px solid transparent; border-bottom:16px solid var(--hostile-red); filter: drop-shadow(0 0 5px red);"></div>`,
-            iconSize: [14, 16], iconAnchor: [7, 8]
-        }); /* [cite: 76, 77] */
+        // Coordenadas ficticias de inicio (Cerca de Valparaíso por ejemplo)
+        let startLat = -33.0;
+        let startLon = -71.6;
 
-        target.marker = L.marker([target.lat, target.lon], {icon: hostileIcon}); /* [cite: 78] */
-        target.marker.on('click', (e) => {
-            const menu = document.getElementById('action-menu');
-            menu.style.display = 'block'; menu.style.left = e.originalEvent.pageX + 'px'; menu.style.top = e.originalEvent.pageY + 'px';
-        });
+        // Líneas Verticales (Meridianos)
+        for (let x = 0; x < width; x += gridSize) {
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, height);
+            ctx.stroke();
+            
+            // Texto de Longitud
+            let lon = startLon + (x / 1000);
+            ctx.fillText(`LON ${lon.toFixed(3)}°W`, x + 5, 15);
+        }
 
-        setInterval(simulationLoop, 100);
+        // Líneas Horizontales (Paralelos)
+        for (let y = 0; y < height; y += gridSize) {
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(width, y);
+            ctx.stroke();
+
+            // Texto de Latitud
+            let lat = startLat - (y / 1000);
+            ctx.fillText(`LAT ${lat.toFixed(3)}°S`, 5, y - 5);
+        }
     }
 
-    function simulationLoop() {
-        let wp = waypoints[currentWP + 1];
+    // ==========================================
+    // RENDER LOOP PRINCIPAL
+    // ==========================================
+    let sonarAngle = 0;
+
+    function animate() {
+        // 1. Limpiar pantalla con un rastro (efecto fade)
+        ctx.fillStyle = "rgba(0, 5, 8, 0.1)"; // Deja estela
+        ctx.fillRect(0, 0, width, height);
+
+        // 2. Dibujar Grid Táctico
+        drawGrid();
+
+        // 3. Actualizar Física del Submarino (Simulación)
+        subTarget.x += Math.cos(subTarget.angle) * subTarget.speed;
+        subTarget.y += Math.sin(subTarget.angle) * subTarget.speed;
         
-        // Lógica de LOOP: Si no hay más waypoints, reiniciar
-        if (!wp) {
-            addLog("--- REINICIANDO ESCENARIO DE INCURSIÓN ---");
-            currentWP = 0;
-            target.lat = waypoints[0].lat;
-            target.lon = waypoints[0].lon;
-            target.visible = false;
-            map.removeLayer(target.marker);
-            hideHUD();
-            return;
-        }
+        // Cambio de rumbo suave
+        subTarget.angle += (Math.random() - 0.5) * 0.05;
 
-        let dy = wp.lat - target.lat; let dx = wp.lon - target.lon;
-        let distToWP = Math.sqrt(dy*dy + dx*dx);
-        if (distToWP < 0.04) currentWP++;
+        // Rebote en bordes
+        if (subTarget.x < 0 || subTarget.x > width) subTarget.angle = Math.PI - subTarget.angle;
+        if (subTarget.y < 0 || subTarget.y > height) subTarget.angle = -subTarget.angle;
 
-        let targetHeading = Math.atan2(dx, dy) * (180 / Math.PI);
-        if (targetHeading < 0) targetHeading += 360;
-        target.heading += (targetHeading - target.heading) * 0.1;
+        // 4. Actualizar IA (Tridente Upgrade)
+        tridenteAI.update(subTarget.x, subTarget.y);
+        tridenteAI.draw(ctx);
 
-        target.lat += Math.cos(target.heading * Math.PI/180) * 0.005; /* [cite: 82, 83] */
-        target.lon += Math.sin(target.heading * Math.PI/180) * 0.005;
+        // 5. Dibujar el Submarino Real (El punto rojo oculto)
+        // En la vida real esto no se ve, pero para la demo lo mostramos tenue
+        ctx.fillStyle = "rgba(255, 0, 0, 0.5)";
+        ctx.beginPath();
+        ctx.arc(subTarget.x, subTarget.y, 4, 0, Math.PI * 2);
+        ctx.fill();
 
-        let detections = 0;
-        buoyLayers.forEach(l => {
-            const d = map.distance([target.lat, target.lon], [l.b.lat, l.b.lon]); /* [cite: 91] */
-            if (d < R_SECONDARY) { detections++; l.sZone.setStyle({ opacity: 0.6 }); }
-            else { l.sZone.setStyle({ opacity: 0 }); }
-
-            if (d < R_PRIMARY) { l.pZone.setStyle({ opacity: 0.8, fillOpacity: 0.1 }); }
-            else { l.pZone.setStyle({ opacity: 0, fillOpacity: 0 }); }
-        });
-
-        if (detections > 0) {
-            if (!target.visible) { target.marker.addTo(map); target.visible = true; addLog("⚠️ DETECCIÓN DE ESTRUCTURA MECÁNICA."); }
-            updateHUD(detections);
-        } else if (target.visible) {
-            map.removeLayer(target.marker); target.visible = false; hideHUD(); addLog("CONTACTO FUERA DE RANGO OPERATIVO.");
-        }
-
-        if (target.visible) {
-            target.marker.setLatLng([target.lat, target.lon]); /*  */
-            document.getElementById('tgt-symbol').style.transform = `rotate(${target.heading}deg)`;
-            document.getElementById('coord-header').innerText = `${Math.abs(target.lat).toFixed(3)}°S | ${Math.abs(target.lon).toFixed(3)}°W`;
-        }
-    }
-
-    function updateHUD(count) {
-        document.getElementById('target-data').style.display = 'block';
-        document.getElementById('wait-msg').style.display = 'none';
-        document.getElementById('side-lat').innerText = Math.abs(target.lat).toFixed(4) + "° S";
-        document.getElementById('side-lon').innerText = Math.abs(target.lon).toFixed(4) + "° W";
-        document.getElementById('side-hdg').innerText = Math.round(target.heading).toString().padStart(3, '0') + "°";
-        document.getElementById('side-spd').innerText = (target.speed + (Math.random()*0.3)).toFixed(1) + " KTS";
+        // 6. Dibujar el Barrido del Sonar (Radar Sweep)
+        sonarAngle += 0.02;
+        ctx.save();
+        ctx.translate(width / 2, height / 2);
+        ctx.rotate(sonarAngle);
         
-        const confEl = document.getElementById('side-conf');
-        confEl.innerText = count > 1 ? "!!! JOINT LOCK !!!" : "60% PREDICTIVE";
-        confEl.style.color = count > 1 ? "var(--hostile-red)" : "var(--alert-yellow)";
+        // Haz del sonar
+        const gradient = ctx.createLinearGradient(0, 0, width, 0);
+        gradient.addColorStop(0, "rgba(0, 255, 204, 0.5)");
+        gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
+        
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.arc(0, 0, width, -0.1, 0.1); // Cono
+        ctx.fill();
+        ctx.restore();
 
-        let minDist = Infinity; let port = "";
-        for(let p in PORTS) {
-            let d = map.distance([target.lat, target.lon], PORTS[p]);
-            if(d < minDist) { minDist = d; port = p; }
+        // 7. Actualizar datos aleatorios del HUD (Simulación)
+        if (Math.random() > 0.95) {
+            document.getElementById('viscosity-val').innerText = (Math.random() * 0.005).toFixed(4);
         }
-        document.getElementById('side-tat').innerText = `${port} (${(minDist / (target.speed * 1852)).toFixed(1)} hrs)`;
+
+        requestAnimationFrame(animate);
     }
 
-    function hideHUD() { document.getElementById('target-data').style.display = 'none'; document.getElementById('wait-msg').style.display = 'block'; document.getElementById('coord-header').innerText = "ESCANEO PASIVO"; }
-    function takeAction(act) { addLog(`ACCIÓN: ${act}`); alert(`PROTOCOLO ACTIVADO: ${act}`); closeMenu(); }
-    function closeMenu() { document.getElementById('action-menu').style.display = 'none'; }
+    animate();
+
 </script>
 </body>
 </html>
