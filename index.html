@@ -3,23 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ZORD TRIDENTE | C4I SYSTEM</title>
+    <title>ZORD TRIDENTE | MULTI-LAYER DEFENSE</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     
     <style>
         body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; font-family: 'Courier New', monospace; background: #000; }
         
-        /* LAYOUT PRINCIPAL */
-        #main-container {
-            display: flex;
-            height: 100vh;
-            width: 100vw;
-        }
+        #main-container { display: flex; height: 100vh; width: 100vw; }
 
-        /* PANEL IZQUIERDO (UI TIPO TU IMAGEN) */
+        /* PANEL IZQUIERDO */
         #control-panel {
-            width: 320px;
+            width: 340px;
             background: #00090c;
             border-right: 2px solid #004433;
             color: #00ffcc;
@@ -28,45 +23,36 @@
             display: flex;
             flex-direction: column;
             z-index: 1000;
-            box-shadow: 5px 0 15px rgba(0,0,0,0.5);
+            box-shadow: 5px 0 15px rgba(0,0,0,0.8);
         }
 
-        /* MAPA DERECHA */
-        #map-container {
-            flex-grow: 1;
-            position: relative;
-            background: #000;
-        }
-
+        /* MAPA */
+        #map-container { flex-grow: 1; position: relative; background: #000; }
         #map { height: 100%; width: 100%; background: #000; }
+        #tactical-overlay { position: absolute; top: 0; left: 0; pointer-events: none; z-index: 500; }
 
-        /* CANVAS SUPERPUESTO AL MAPA */
-        #tactical-overlay {
-            position: absolute;
-            top: 0; left: 0;
-            pointer-events: none; /* Permite hacer click/zoom al mapa a través del canvas */
-            z-index: 500;
-        }
-
-        /* ESTILOS UI */
+        /* UI ELEMENTS */
         h1 { font-size: 22px; margin: 0 0 10px 0; text-shadow: 0 0 5px #00ffcc; border-bottom: 1px solid #004433; padding-bottom: 10px; }
-        h2 { font-size: 14px; color: #008866; margin-top: 20px; margin-bottom: 5px; text-transform: uppercase; }
-        .data-row { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px; }
+        h2 { font-size: 14px; color: #008866; margin-top: 15px; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
+        .data-row { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 5px; border-bottom: 1px dashed #002211; padding-bottom: 2px; }
         .value { color: #fff; font-weight: bold; }
-        .alert { color: #ff3333; animation: blink 1s infinite; }
-        .nominal { color: #00ffcc; }
-        .btn {
-            margin-top: 20px; background: rgba(0, 85, 68, 0.3); border: 1px solid #00ffcc; 
-            color: #00ffcc; padding: 10px; cursor: pointer; width: 100%; font-family: inherit;
-            transition: 0.3s;
-        }
-        .btn:hover { background: #00ffcc; color: #000; }
+        
+        /* ALERTAS */
+        .status-box { padding: 10px; text-align: center; margin-top: 20px; border: 1px solid #333; min-height: 40px; }
+        .alert-p { color: #ff0000; font-weight: bold; animation: blink 0.5s infinite; font-size: 14px; }
+        .alert-s { color: #ffff00; font-weight: bold; animation: blink 1s infinite; font-size: 14px; }
+        .safe { color: #004433; font-size: 12px; line-height: 40px; }
 
-        @keyframes blink { 50% { opacity: 0.3; } }
+        @keyframes blink { 50% { opacity: 0.2; } }
 
-        /* Estilo CRT para el panel */
+        /* LEYENDA */
+        .legend { margin-top: auto; font-size: 10px; color: #555; }
+        .legend-item { display: flex; align-items: center; margin-bottom: 4px; }
+        .dot { width: 8px; height: 8px; margin-right: 8px; border-radius: 50%; }
+
+        /* EFECTO CRT */
         .scanline {
-            width: 320px; height: 50px; position: absolute; top: 0; left: 0; pointer-events: none;
+            width: 340px; height: 50px; position: absolute; top: 0; left: 0; pointer-events: none;
             background: linear-gradient(0deg, rgba(0,0,0,0) 0%, rgba(0, 255, 204, 0.05) 50%, rgba(0,0,0,0) 100%);
             animation: scan 6s linear infinite; opacity: 0.3;
         }
@@ -78,31 +64,35 @@
 <div id="main-container">
     <div id="control-panel">
         <div class="scanline"></div>
-        <h1>ZORD TRIDENTE</h1>
-        <div style="font-size: 10px; color: #555;">MATRIZ ZIGZAG | DEFENSA EN PROFUNDIDAD</div>
+        <h1>ZORD TRIDENTE v4.0</h1>
+        <div style="font-size: 10px; color: #008866;">LOS VILOS - SAN ANTONIO SECTOR</div>
 
-        <h2>Estado del Sistema</h2>
-        <div class="data-row"><span>SISTEMA:</span> <span class="nominal value">NOMINAL</span></div>
-        <div class="data-row"><span>MODO:</span> <span class="value">ACÚSTICO PASIVO</span></div>
+        <h2>Sensores & Cobertura</h2>
         <div class="data-row"><span>BOYAS ACTIVAS:</span> <span class="value">6/6</span></div>
-
-        <h2>Datos del Contacto</h2>
-        <div class="data-row"><span>ID:</span> <span class="value" id="ui-id">--</span></div>
-        <div class="data-row"><span>COORD:</span> <span class="value" id="ui-coord">ESCANANDO...</span></div>
-        <div class="data-row"><span>RUMBO (HDG):</span> <span class="value" id="ui-hdg">--</span></div>
-        <div class="data-row"><span>VELOCIDAD:</span> <span class="value" id="ui-spd">--</span></div>
-        <div class="data-row"><span>CONFIDENCE:</span> <span class="value" id="ui-conf">0%</span></div>
-
-        <h2>Motor Matemático</h2>
-        <div class="data-row"><span>EC. KOLMOGOROV:</span> <span class="nominal value">RUNNING</span></div>
-        <div class="data-row"><span>METRICA Z (PAPER):</span> <span class="value">0.85 ($C_{s8}$)</span></div>
+        <div class="data-row"><span>RANGO PRIMARIO:</span> <span class="value">35 KM (HARD LOCK)</span></div>
+        <div class="data-row"><span>RANGO SECUNDARIO:</span> <span class="value">70 KM (EARLY WARN)</span></div>
         
-        <div id="alert-box" style="margin-top: 20px; border: 1px solid #333; padding: 10px; text-align: center; display: none;">
-            <span class="alert">!!! CONTACTO DETECTADO !!!</span><br>
-            <span style="font-size:10px">CLASE SCORPÈNE (S42)</span>
+        <h2>Telemetría Objetivo</h2>
+        <div class="data-row"><span>ESTADO:</span> <span class="value" id="ui-status">BUSCANDO...</span></div>
+        <div class="data-row"><span>LATITUD:</span> <span class="value" id="ui-lat">--</span></div>
+        <div class="data-row"><span>LONGITUD:</span> <span class="value" id="ui-lon">--</span></div>
+        <div class="data-row"><span>RUMBO / VEL:</span> <span class="value" id="ui-vec">--</span></div>
+        
+        <h2>Procesamiento IA</h2>
+        <div class="data-row"><span>MARKOV PROJECTION:</span> <span class="value" style="color:#0f0">ON</span></div>
+        <div class="data-row"><span>FILTRO $Z_I$ (PAPER):</span> <span class="value">0.85</span></div>
+
+        <div id="main-alert" class="status-box">
+            <div class="safe">SIN CONTACTOS ACTIVOS</div>
         </div>
 
-        <button class="btn" onclick="resetSim()">REINICIAR SIMULACIÓN</button>
+        <div class="legend">
+            <div class="legend-item"><div class="dot" style="background:none; border:1px solid #00ffcc"></div> ZONA 1 (35km)</div>
+            <div class="legend-item"><div class="dot" style="background:none; border:1px dashed #008866"></div> ZONA 2 (70km)</div>
+            <div class="legend-item"><div class="dot" style="background:rgba(0,255,255,0.5)"></div> PROYECCIÓN MARKOV</div>
+        </div>
+        
+        <button onclick="resetSim()" style="margin-top:10px; background:none; border:1px solid #333; color:#555; cursor:pointer; width:100%">RESET SIM</button>
     </div>
 
     <div id="map-container">
@@ -113,217 +103,265 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    // 1. INICIALIZAR MAPA (LEAFLET)
-    // Centrado entre Los Vilos y San Antonio
+    // ==========================================
+    // 1. CONFIGURACIÓN DEL MAPA (LEAFLET)
+    // ==========================================
     const map = L.map('map', {
         zoomControl: false,
-        attributionControl: false
-    }).setView([-32.75, -71.8], 9);
+        attributionControl: false,
+        center: [-32.7, -72.0], // Centro entre Los Vilos y San Antonio
+        zoom: 8
+    });
 
-    // Mover controles de zoom a la derecha arriba
     L.control.zoom({ position: 'topright' }).addTo(map);
 
-    // Capa de Mapa OSCURO (CartoDB Dark Matter) - Ideal para estilo militar
+    // Mapa Base Oscuro
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
         maxZoom: 19,
         subdomains: 'abcd'
     }).addTo(map);
 
-    // 2. CONFIGURACIÓN DEL CANVAS OVERLAY
+    // ==========================================
+    // 2. CONFIGURACIÓN CANVAS
+    // ==========================================
     const canvas = document.getElementById('tactical-overlay');
     const ctx = canvas.getContext('2d');
 
     function resizeCanvas() {
-        canvas.width = document.getElementById('map-container').offsetWidth;
-        canvas.height = document.getElementById('map-container').offsetHeight;
+        const container = document.getElementById('map-container');
+        canvas.width = container.offsetWidth;
+        canvas.height = container.offsetHeight;
     }
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
 
-    // 3. BOYAS (COORDENADAS REALES - ZIGZAG)
-    // Distribución aproximada para cubrir la zona
+    // ==========================================
+    // 3. BOYAS (ZIGZAG OPTIMIZADO PARA 35/70km)
+    // ==========================================
+    // Calculadas para que los radios de 70km se solapen, 
+    // pero los de 35km mantengan cierta independencia.
     const buoys = [
-        { id: "T-01", lat: -31.95, lon: -71.70, type: "EXT" }, // Los Vilos Norte
-        { id: "T-02", lat: -32.20, lon: -71.90, type: "INT" }, // Hacia afuera
-        { id: "T-03", lat: -32.50, lon: -71.75, type: "EXT" }, // Papudo area
-        { id: "T-04", lat: -32.80, lon: -72.00, type: "INT" }, // Quintero afuera
-        { id: "T-05", lat: -33.10, lon: -71.80, type: "EXT" }, // Valpo area
-        { id: "T-06", lat: -33.50, lon: -72.10, type: "INT" }  // San Antonio afuera
+        { id: "T-N1", lat: -31.90, lon: -71.60 }, // Los Vilos (Costera)
+        { id: "T-N2", lat: -32.15, lon: -72.10 }, // Alta Mar (Zig)
+        { id: "T-C1", lat: -32.50, lon: -71.70 }, // Papudo/Zapallar (Costera)
+        { id: "T-C2", lat: -32.85, lon: -72.20 }, // Alta Mar (Zag)
+        { id: "T-S1", lat: -33.20, lon: -71.80 }, // Valparaíso (Costera)
+        { id: "T-S2", lat: -33.60, lon: -72.10 }  // San Antonio (Alta Mar)
     ];
 
-    // 4. LÓGICA DEL SUBMARINO Y MARKOV
-    let subPos = { lat: -32.0, lon: -72.2 }; // Empieza al NO
-    let subHeading = 160; // Rumbo Sur-Este
-    let subSpeed = 0.0005; // Velocidad en grados lat/lon por frame
-    let detectionState = false;
+    // ==========================================
+    // 4. LÓGICA DE SIMULACIÓN (SUBMARINO)
+    // ==========================================
+    let sub = {
+        lat: -31.8, 
+        lon: -72.5, // Empieza fuera, al NO
+        heading: 150, // Rumbo SE
+        speedKnots: 20, // Nudos
+        speedDeg: 0.0008 // Velocidad en grados/frame aprox
+    };
 
-    // Motor Predictivo (Partículas de probabilidad)
-    class MarkovTracker {
+    // MOTOR MARKOV (IA PREDICTIVA)
+    class MarkovEngine {
         constructor() {
             this.particles = [];
-            this.zNumber = 0.85; // Tu constante del paper
         }
-
-        update(targetLat, targetLon) {
-            // Generar partículas alrededor del objetivo estimado
-            if (this.particles.length < 50) {
+        update(targetLat, targetLon, precision) {
+            // Precision: 1.0 (Baja/Secundaria), 2.0 (Alta/Primaria)
+            if(this.particles.length < 60) {
                 this.particles.push({
-                    lat: targetLat + (Math.random() - 0.5) * 0.1,
-                    lon: targetLon + (Math.random() - 0.5) * 0.1,
+                    lat: targetLat + (Math.random()-0.5)*0.15,
+                    lon: targetLon + (Math.random()-0.5)*0.15,
                     life: 1.0
                 });
             }
-
-            // Física de las partículas (Colapso hacia el objetivo)
             this.particles.forEach((p, i) => {
-                // Convergencia (Kolmogorov flow simulated)
-                p.lat += (targetLat - p.lat) * 0.05 * this.zNumber;
-                p.lon += (targetLon - p.lon) * 0.05 * this.zNumber;
-                p.life -= 0.02;
-                if(p.life <= 0) this.particles.splice(i, 1);
+                // Atracción hacia el objetivo
+                p.lat += (targetLat - p.lat) * 0.03 * precision;
+                p.lon += (targetLon - p.lon) * 0.03 * precision;
+                p.life -= 0.015;
+                if(p.life <= 0) this.particles.splice(i,1);
             });
         }
     }
+    const markov = new MarkovEngine();
 
-    const tracker = new MarkovTracker();
+    // ==========================================
+    // 5. HELPER: CONVERTIR METROS A PIXELES
+    // ==========================================
+    function getRadiusInPixels(lat, radiusMeters) {
+        // Obtenemos un punto desplazado hacia el este 'radiusMeters' metros
+        // Usamos la formula simplificada para este nivel de zoom, o funciones de Leaflet
+        const centerPoint = map.latLngToContainerPoint([lat, 0]);
+        // 1 grado latitud ~ 111320 metros
+        // No es exacto pero suficiente para visualización, mejor usar proyección real:
+        // Truco: Calcular distancia entre dos LatLngs reales
+        const p1 = L.latLng(lat, -70);
+        const p2 = L.latLng(lat, -71); // 1 grado dif
+        const distMeters = p1.distanceTo(p2); // Distancia real en metros de 1 grado long aqui
+        
+        // Cuantos grados de longitud son el radio deseado?
+        const degDiff = radiusMeters / distMeters; 
+        
+        const pointEdge = map.latLngToContainerPoint([lat, degDiff]); // Usamos 0 + diff
+        const pointZero = map.latLngToContainerPoint([lat, 0]);
+        
+        return Math.abs(pointEdge.x - pointZero.x);
+    }
 
-    // 5. BUCLE DE ANIMACIÓN
+    // ==========================================
+    // 6. ANIMACIÓN PRINCIPAL
+    // ==========================================
+    let radarSweep = 0;
+
     function animate() {
-        // A. Limpiar Canvas
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // B. Actualizar Posición Submarino (Simulación Física)
-        // Convertir rumbo a movimiento Lat/Lon
-        let rad = subHeading * (Math.PI / 180);
-        subPos.lat += Math.cos(rad) * subSpeed; // Lat es Y (invertido en mapa pero ok para sim)
-        subPos.lon += Math.sin(rad) * subSpeed; // Lon es X
-
-        // Rebote simple si se sale mucho
-        if(subPos.lat < -34 || subPos.lat > -31) subHeading += 180;
+        // A. MOVER SUBMARINO
+        sub.lat += Math.cos(sub.heading * Math.PI/180) * sub.speedDeg;
+        sub.lon += Math.sin(sub.heading * Math.PI/180) * sub.speedDeg;
         
-        // C. Proyectar Coordenadas a Pixeles (La magia de Leaflet + Canvas)
-        // Obtenemos el punto X,Y actual del submarino en la pantalla
-        const subPoint = map.latLngToContainerPoint([subPos.lat, subPos.lon]);
+        // Rebote simple para que no se pierda en la demo
+        if(sub.lat < -34 || sub.lat > -31.5) sub.heading += 160;
+        if(sub.lon > -71.4) sub.heading += 90; // Evitar tierra
 
-        // D. DIBUJAR BOYAS
-        let activeDetection = false;
+        const subPx = map.latLngToContainerPoint([sub.lat, sub.lon]);
+
+        // B. DIBUJAR BOYAS Y ZONAS
+        let globalStatus = 0; // 0: Nada, 1: Secundaria, 2: Primaria
         
         buoys.forEach(b => {
-            const point = map.latLngToContainerPoint([b.lat, b.lon]);
+            const center = map.latLngToContainerPoint([b.lat, b.lon]);
             
-            // Solo dibujar si está dentro de la pantalla
-            if (point.x > -50 && point.x < canvas.width + 50 && point.y > -50 && point.y < canvas.height + 50) {
+            // Calcular radios dinámicos según Zoom
+            // Usamos Leaflet para calcular distancia real en pixeles
+            // LatLng de la boya
+            const centerLL = L.latLng(b.lat, b.lon);
+            // Punto a 35km al este
+            const p35 = map.latLngToContainerPoint(L.GeometryUtil ? L.GeometryUtil.destination(centerLL, 90, 35000) : dest(b.lat, b.lon, 90, 35000));
+            const p70 = map.latLngToContainerPoint(L.GeometryUtil ? L.GeometryUtil.destination(centerLL, 90, 70000) : dest(b.lat, b.lon, 90, 70000));
+            
+            // Calculo manual de distancia en pixeles (radio)
+            const r35 = Math.hypot(p35.x - center.x, p35.y - center.y);
+            const r70 = Math.hypot(p70.x - center.x, p70.y - center.y);
+
+            // 1. DIBUJAR ZONA SECUNDARIA (70KM) - Malla
+            ctx.beginPath();
+            ctx.arc(center.x, center.y, r70, 0, Math.PI * 2);
+            ctx.strokeStyle = "rgba(0, 100, 80, 0.4)";
+            ctx.setLineDash([5, 5]); // Punteada
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            ctx.setLineDash([]); // Reset
+
+            // 2. DIBUJAR ZONA PRIMARIA (35KM) - Hard Lock
+            ctx.beginPath();
+            ctx.arc(center.x, center.y, r35, 0, Math.PI * 2);
+            ctx.strokeStyle = "rgba(0, 255, 204, 0.3)";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // 3. DETECCIONES
+            const distPx = Math.hypot(subPx.x - center.x, subPx.y - center.y);
+            
+            if (distPx < r35) {
+                // ALERTA ROJA (PRIMARIA)
+                if(globalStatus < 2) globalStatus = 2;
                 
-                // Anillos de Rango (Calculados en Pixeles para que escalen con el zoom no es trivial, 
-                // pero para efecto visual fijo usaremos pixeles)
-                // Para hacerlo realista geográficamente, deberíamos calcular metros a pixeles según zoom.
-                // Usaremos una aproximación simple basada en zoom.
-                let zoomScale = Math.pow(2, map.getZoom() - 9); 
-                let rangePx = 60 * zoomScale; // 60px base al zoom 9
+                // Visual
+                ctx.fillStyle = "rgba(255, 0, 0, 0.2)";
+                ctx.fill(); // Relleno rojo zona primaria
+                ctx.strokeStyle = "red";
+                ctx.stroke(); // Borde rojo fuerte
+                
+                // Linea vector al objetivo
+                ctx.beginPath(); ctx.moveTo(center.x, center.y); ctx.lineTo(subPx.x, subPx.y); ctx.stroke();
 
-                // Detectar si el sub está en rango
-                let dx = subPoint.x - point.x;
-                let dy = subPoint.y - point.y;
-                let dist = Math.sqrt(dx*dx + dy*dy);
+            } else if (distPx < r70) {
+                // ALERTA AMARILLA (SECUNDARIA)
+                if(globalStatus < 1) globalStatus = 1;
 
-                if (dist < rangePx) {
-                    activeDetection = true;
-                    // Línea de contacto
-                    ctx.strokeStyle = "red";
-                    ctx.lineWidth = 2;
-                    ctx.beginPath(); ctx.moveTo(point.x, point.y); ctx.lineTo(subPoint.x, subPoint.y); ctx.stroke();
-                    
-                    // Boya en Alerta
-                    ctx.fillStyle = "red";
-                    ctx.beginPath(); ctx.arc(point.x, point.y, 6, 0, Math.PI*2); ctx.fill();
-                    
-                    // Círculo de rango rojo
-                    ctx.strokeStyle = "rgba(255, 0, 0, 0.5)";
-                    ctx.beginPath(); ctx.arc(point.x, point.y, rangePx, 0, Math.PI*2); ctx.stroke();
-                } else {
-                    // Boya Normal (Cyan)
-                    ctx.fillStyle = "#00ffcc";
-                    ctx.beginPath(); ctx.arc(point.x, point.y, 4, 0, Math.PI*2); ctx.fill();
-                    
-                    // Círculo de rango pasivo (punteado)
-                    ctx.strokeStyle = "rgba(0, 255, 204, 0.2)";
-                    ctx.setLineDash([5, 5]);
-                    ctx.beginPath(); ctx.arc(point.x, point.y, rangePx, 0, Math.PI*2); ctx.stroke();
-                    ctx.setLineDash([]);
-                }
-
-                // Texto ID
-                ctx.fillStyle = "#fff";
-                ctx.font = "10px Monospace";
-                ctx.fillText(b.id, point.x + 10, point.y - 10);
+                // Visual
+                ctx.fillStyle = "rgba(255, 255, 0, 0.05)";
+                ctx.beginPath(); ctx.arc(center.x, center.y, r70, 0, Math.PI*2); ctx.fill();
+                ctx.strokeStyle = "yellow";
+                ctx.beginPath(); ctx.arc(center.x, center.y, r70, 0, Math.PI*2); 
+                ctx.setLineDash([5, 5]); ctx.stroke(); ctx.setLineDash([]);
             }
+
+            // Dibujar Icono Boya
+            ctx.fillStyle = "#fff";
+            ctx.beginPath(); ctx.arc(center.x, center.y, 3, 0, Math.PI*2); ctx.fill();
+            ctx.fillText(b.id, center.x + 5, center.y - 5);
         });
 
-        // E. DIBUJAR MARKOV TRACKER (NUBE PREDICTIVA)
-        if (activeDetection) {
-            tracker.update(subPos.lat, subPos.lon);
-            ctx.fillStyle = "rgba(0, 255, 255, 0.4)";
-            tracker.particles.forEach(p => {
-                let pPoint = map.latLngToContainerPoint([p.lat, p.lon]);
-                ctx.beginPath();
-                ctx.arc(pPoint.x, pPoint.y, 2 * p.life, 0, Math.PI*2);
-                ctx.fill();
+        // C. PROCESAR RESULTADO
+        const alertBox = document.getElementById('main-alert');
+        
+        if (globalStatus > 0) {
+            // Activar Markov Tracking
+            const precision = globalStatus === 2 ? 2.0 : 1.0;
+            markov.update(sub.lat, sub.lon, precision);
+            
+            // Dibujar Nube Markov
+            ctx.fillStyle = globalStatus === 2 ? "rgba(255, 0, 0, 0.6)" : "rgba(0, 255, 255, 0.4)";
+            markov.particles.forEach(p => {
+                const pPx = map.latLngToContainerPoint([p.lat, p.lon]);
+                ctx.beginPath(); ctx.arc(pPx.x, pPx.y, 2, 0, Math.PI*2); ctx.fill();
             });
 
             // Dibujar Submarino (Identificado)
-            ctx.strokeStyle = "#ff3333";
-            ctx.lineWidth = 2;
-            ctx.strokeRect(subPoint.x - 10, subPoint.y - 10, 20, 20); // Caja de target
-            ctx.fillStyle = "#ff3333";
-            ctx.font = "10px Monospace";
-            ctx.fillText("CONTACT-S42", subPoint.x + 15, subPoint.y);
+            ctx.strokeStyle = globalStatus === 2 ? "red" : "yellow";
+            ctx.strokeRect(subPx.x - 10, subPx.y - 10, 20, 20);
             
-            updateUI(true);
+            // UI Updates
+            if(globalStatus === 2) {
+                alertBox.innerHTML = "<div class='alert-p'>!!! ALERTA PRIMARIA !!!<br>ZONA DE EXCLUSIÓN VIOLADA</div>";
+                alertBox.style.borderColor = "red";
+            } else {
+                alertBox.innerHTML = "<div class='alert-s'>CONTACTO SECUNDARIO<br>TRAZANDO RUMBO...</div>";
+                alertBox.style.borderColor = "yellow";
+            }
+            
+            document.getElementById('ui-status').innerText = "TRACKING ID: S-42";
+            document.getElementById('ui-status').style.color = globalStatus === 2 ? "red" : "yellow";
+            document.getElementById('ui-lat').innerText = sub.lat.toFixed(4);
+            document.getElementById('ui-lon').innerText = sub.lon.toFixed(4);
+            document.getElementById('ui-vec').innerText = "140° / 18 KTS";
+
         } else {
-            updateUI(false);
+            alertBox.innerHTML = "<div class='safe'>MONITOREO ACTIVO - ZONA SEGURA</div>";
+            alertBox.style.borderColor = "#004433";
+            document.getElementById('ui-status').innerText = "ESCANEANDO";
+            document.getElementById('ui-status').style.color = "#00ffcc";
+            document.getElementById('ui-lat').innerText = "--";
+            document.getElementById('ui-lon').innerText = "--";
+            document.getElementById('ui-vec').innerText = "--";
         }
 
         requestAnimationFrame(animate);
     }
 
-    // 6. ACTUALIZAR INTERFAZ
-    function updateUI(detected) {
-        if (detected && !detectionState) {
-            detectionState = true;
-            document.getElementById('alert-box').style.display = 'block';
-            document.getElementById('ui-id').innerText = "CONTACT-X1";
-            document.getElementById('ui-id').style.color = "red";
-            document.getElementById('ui-conf').innerText = "98.4% (HIGH)";
-            document.getElementById('ui-conf').style.color = "red";
-        } else if (!detected && detectionState) {
-            detectionState = false;
-            document.getElementById('alert-box').style.display = 'none';
-            document.getElementById('ui-id').innerText = "--";
-            document.getElementById('ui-conf').innerText = "0%";
-            document.getElementById('ui-conf').style.color = "#fff";
-        }
+    // Función auxiliar simple para calcular destino LatLon (Geodesia basica esferica)
+    // Para evitar depender de L.GeometryUtil externo
+    function dest(lat, lon, brng, dist) {
+        const R = 6371e3; // Radio tierra
+        const φ1 = lat * Math.PI/180;
+        const λ1 = lon * Math.PI/180;
+        const θ = brng * Math.PI/180;
+        const δ = dist / R;
 
-        if (detected) {
-            document.getElementById('ui-coord').innerText = `${subPos.lat.toFixed(4)}S ${subPos.lon.toFixed(4)}W`;
-            document.getElementById('ui-hdg').innerText = `${subHeading}°`;
-            document.getElementById('ui-spd').innerText = "19 KTS";
-        }
+        const φ2 = Math.asin( Math.sin(φ1)*Math.cos(δ) + Math.cos(φ1)*Math.sin(δ)*Math.cos(θ) );
+        const λ2 = λ1 + Math.atan2(Math.sin(θ)*Math.sin(δ)*Math.cos(φ1), Math.cos(δ)-Math.sin(φ1)*Math.sin(φ2));
+        
+        return L.latLng(φ2 * 180/Math.PI, λ2 * 180/Math.PI);
     }
 
-    // Resetear posición para demostración
-    window.resetSim = function() {
-        subPos = { lat: -32.0, lon: -72.2 };
-        subHeading = 160;
-        detectionState = false;
-    };
+    function resetSim() {
+        sub.lat = -31.8;
+        sub.lon = -72.5;
+        sub.heading = 150;
+    }
 
-    // Manejar eventos del mapa para redibujar rápido si se arrastra
-    map.on('move', () => {
-        // En animaciones complejas, a veces conviene pausar o limpiar, 
-        // pero nuestro animate() corre a 60fps y se adaptará solo.
-    });
-
-    // INICIAR
     animate();
 
 </script>
