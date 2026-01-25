@@ -12,61 +12,50 @@
         body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; font-family: 'Segoe UI', 'Courier New', monospace; background: #000; }
         #main-container { display: flex; height: 100vh; width: 100vw; }
 
-        /* PANEL IZQUIERDO */
+        /* --- PANEL DE CONTROL (HUD) --- */
         #control-panel {
-            width: 440px;
-            background: #080a0c;
+            width: 450px;
+            background: #0b1013;
             border-right: 2px solid #004433;
             color: #00ffcc;
             display: flex; flex-direction: column;
             z-index: 1000;
             box-shadow: 10px 0 30px rgba(0,0,0,0.9);
-            font-size: 12px;
+            font-size: 13px;
         }
 
-        .panel-header { padding: 15px; background: linear-gradient(90deg, #001a11 0%, #000 100%); border-bottom: 1px solid #004433; }
-        h1 { font-size: 20px; margin: 0; letter-spacing: 2px; text-shadow: 0 0 5px #00ffcc; }
+        .panel-header { padding: 15px; background: linear-gradient(90deg, #002211 0%, #001108 100%); border-bottom: 1px solid #005544; }
+        h1 { font-size: 20px; margin: 0; text-shadow: 0 0 5px #00ffcc; letter-spacing: 2px; }
+        .mode-indicator { font-size: 11px; font-weight: bold; padding: 4px; background: #003322; display: inline-block; margin-top:5px;}
         
         .panel-content { padding: 15px; flex-grow: 1; overflow-y: auto; }
 
-        /* DATA GRIDS */
-        .section-title { color: #008866; border-bottom: 1px solid #004433; margin-bottom: 10px; padding-bottom: 3px; font-weight: bold; }
+        /* SECCIONES DE DATOS */
+        .section-title { color: #555; border-bottom: 1px solid #333; margin-bottom: 10px; font-size: 11px; font-weight: bold; }
+        .data-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; }
+        .data-box { background: rgba(0,20,20,0.5); border: 1px solid #004433; padding: 8px; position: relative; }
         
-        .data-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-        .data-box { background: rgba(0,20,20,0.4); border: 1px solid #003322; padding: 8px; position: relative; }
-        .data-box.locked { border-color: #00ffcc; background: rgba(0, 50, 50, 0.3); }
+        .lbl { font-size: 10px; color: #008866; display: block; margin-bottom: 2px; }
+        .val { font-size: 14px; color: #fff; font-weight: bold; font-family: 'Courier New'; }
         
-        .lbl { font-size: 9px; color: #669988; display: block; margin-bottom: 2px; text-transform: uppercase; }
-        .val { font-size: 13px; color: #fff; font-weight: bold; font-family: 'Courier New'; }
-        
-        /* ESTADOS DE TEXTO */
-        .txt-blur { color: #555; filter: blur(2px); user-select: none; } /* Texto oculto por niebla */
-        .txt-alert { color: #ff3300; }
-        .txt-warn { color: #ffcc00; }
-        .txt-ok { color: #00ffcc; }
+        /* COLORES DE ESTADO */
+        .val.encrypted { color: #555; text-shadow: none; letter-spacing: 3px; } /* Dato oculto */
+        .val.partial { color: #ffcc00; } /* Dato parcial */
+        .val.locked { color: #ff3300; } /* Dato confirmado */
 
         /* BOTONES */
         .action-btn {
-            background: #002211; border: 1px solid #00ffcc; color: #00ffcc; 
-            padding: 12px; width: 100%; cursor: pointer; font-weight: bold; margin-top: 10px;
-            display: flex; align-items: center; justify-content: center; gap: 10px; transition: 0.3s;
+            background: #002211; border: 1px solid #555; color: #777; 
+            padding: 12px; width: 100%; cursor: not-allowed; text-transform: uppercase; 
+            font-weight: bold; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 10px;
         }
-        .action-btn:hover { background: #00ffcc; color: #000; }
-        .action-btn.disabled { opacity: 0.3; pointer-events: none; border-color: #555; }
+        .action-btn.active { border-color: #ff3300; color: #ff3300; cursor: pointer; }
+        .action-btn.active:hover { background: #ff3300; color: #fff; }
 
         /* MAPA */
         #map-container { flex-grow: 1; position: relative; background: #000; cursor: crosshair; }
         #map { height: 100%; width: 100%; background: #000; }
         #tactical-overlay { position: absolute; top: 0; left: 0; pointer-events: none; z-index: 500; }
-
-        /* MENU FLOTANTE */
-        #engage-menu {
-            position: absolute; display: none; background: rgba(0, 10, 10, 0.95);
-            border: 1px solid #ff3300; width: 220px; z-index: 2000;
-            top: 50%; left: 50%; transform: translate(-50%, -50%);
-        }
-        .menu-opt { padding: 12px; color: #fff; cursor: pointer; border-bottom: 1px solid #333; }
-        .menu-opt:hover { background: #ff3300; color: #000; }
 
     </style>
 </head>
@@ -75,88 +64,62 @@
 <div id="main-container">
     <div id="control-panel">
         <div class="panel-header">
-            <h1>ZORD TRIDENTE <span style="font-size:10px; color:#555">v10</span></h1>
-            <div style="font-size:10px; color:#008866">FOG OF WAR | PROGRESSIVE TRACKING</div>
+            <h1>ZORD TRIDENTE v10</h1>
+            <div id="sys-mode" class="mode-indicator" style="color:#aaa">ESCANEO PASIVO</div>
         </div>
 
         <div class="panel-content">
             
-            <div class="section-title">FIRMA ACÚSTICA (RAW DATA)</div>
+            <div class="section-title">FIRMA ACÚSTICA (ANÁLISIS ESPECTRAL)</div>
             <div class="data-grid">
-                <div class="data-box">
-                    <span class="lbl">INTENSIDAD DE SEÑAL</span>
-                    <span class="val" id="ui-db">--</span>
-                </div>
-                <div class="data-box">
-                    <span class="lbl">DOPPLER (VEL RELATIVA)</span>
-                    <span class="val" id="ui-doppler">--</span>
-                </div>
-                <div class="data-box">
-                    <span class="lbl">ANÁLISIS DE ESPECTRO</span>
-                    <span class="val" id="ui-rpm">--</span>
-                </div>
-                <div class="data-box">
-                    <span class="lbl">ESTADO DE MEDIO</span>
-                    <span class="val" id="ui-depth">--</span>
-                </div>
+                <div class="data-box"><span class="lbl">RPM MOTOR</span><span class="val" id="ui-rpm">--</span></div>
+                <div class="data-box"><span class="lbl">PERFIL</span><span class="val" id="ui-profile">--</span></div>
+                <div class="data-box"><span class="lbl">SNR (MAX)</span><span class="val" id="ui-snr">--</span></div>
+                <div class="data-box"><span class="lbl">DOPPLER</span><span class="val" id="ui-doppler">--</span></div>
             </div>
 
-            <div class="section-title">SOLUCIÓN DE TIRO (GPS/TMA)</div>
+            <div class="section-title">SOLUCIÓN DE NAVEGACIÓN (GPS/TMA)</div>
             <div class="data-grid">
-                <div class="data-box">
-                    <span class="lbl">UBICACIÓN EXACTA</span>
-                    <span class="val txt-blur" id="ui-gps">32.444S 72.111W</span>
-                </div>
-                <div class="data-box">
-                    <span class="lbl">ETA PUERTO (SAN ANTONIO)</span>
-                    <span class="val txt-blur" id="ui-eta">04H 20M</span>
-                </div>
-                <div class="data-box">
-                    <span class="lbl">VELOCIDAD ABSOLUTA</span>
-                    <span class="val txt-blur" id="ui-spd">14 KTS</span>
-                </div>
-                <div class="data-box">
-                    <span class="lbl">MÉTRICA Z (PRECISIÓN)</span>
-                    <span class="val" id="ui-entropy">INCERTIDUMBRE</span>
+                <div class="data-box"><span class="lbl">UBICACIÓN</span><span class="val encrypted" id="ui-pos">NO DATA</span></div>
+                <div class="data-box"><span class="lbl">RUMBO</span><span class="val encrypted" id="ui-hdg">---°</span></div>
+                <div class="data-box"><span class="lbl">VELOCIDAD ABS</span><span class="val encrypted" id="ui-spd">-- KTS</span></div>
+                <div class="data-box"><span class="lbl">ETA PUERTO (S.A.)</span><span class="val encrypted" id="ui-eta">--:--</span></div>
+            </div>
+
+            <div class="section-title">FÍSICA DEL CAOS ($Z_I$)</div>
+            <div class="data-grid">
+                <div class="data-box"><span class="lbl">ENTROPÍA</span><span class="val" id="ui-entropy">MAXIMA</span></div>
+                <div class="data-box"><span class="lbl">NÚMERO Z</span><span class="val" id="ui-z">0.000</span></div>
+            </div>
+            
+            <div id="blue-force-panel" style="display:none; border:1px solid #0088ff; padding:10px; margin-bottom:10px; background:rgba(0,50,100,0.3)">
+                <span class="lbl" style="color:#0088ff">INTERCEPTOR ASW (SH-32)</span>
+                <div style="display:flex; justify-content:space-between; align-items:center">
+                    <span style="font-weight:bold; color:#fff">EN CURSO</span>
+                    <span id="ui-tat" style="font-family:'Courier New'; font-weight:bold; color:#00ffcc">TAT: 00:00</span>
                 </div>
             </div>
 
-            <div class="section-title">UNIDADES DE RESPUESTA</div>
-            <div class="data-box" style="margin-bottom:10px; border-color:#005544">
-                <span class="lbl">UNIDAD DESPLEGADA</span>
-                <span class="val" id="ui-unit-name">NINGUNA</span>
-            </div>
-            <div class="data-box" style="margin-bottom:10px; border-color:#005544">
-                <span class="lbl">TAT (TIEMPO AL OBJETIVO)</span>
-                <span class="val" id="ui-tat" style="color:#0088ff">--:--</span>
-            </div>
-
-            <button id="btn-engage" class="action-btn disabled" onclick="showMenu()">
+            <button id="btn-engage" class="action-btn" onclick="engageTarget()">
                 <i class="fas fa-crosshairs"></i> ENGAGE TARGET
             </button>
-            <div style="font-size:9px; color:#555; text-align:center; margin-top:5px;">
-                * ENGAGE REQUIERE TRIANGULACIÓN (2+ BOYAS)
-            </div>
 
+            <div style="margin-top:20px; font-size:10px; color:#555;">
+                * DATOS GPS REQUIEREN TRIANGULACIÓN (2+ NODOS).<br>
+                * DETECCIÓN INICIA A -15dB (SUB-RUIDO).
+            </div>
         </div>
     </div>
 
     <div id="map-container">
         <div id="map"></div>
         <canvas id="tactical-overlay"></canvas>
-        
-        <div id="engage-menu">
-            <div style="padding:10px; background:#200; color:#f00; font-weight:bold; border-bottom:1px solid #500">OPCIONES ENGAGE</div>
-            <div class="menu-opt" onclick="dispatchUnit('HELO')"><i class="fas fa-helicopter"></i> HELICÓPTERO (RÁPIDO)</div>
-            <div class="menu-opt" onclick="dispatchUnit('PATRULLA')"><i class="fas fa-ship"></i> PATRULLA (LENTO)</div>
-            <div class="menu-opt" onclick="closeMenu()" style="color:#aaa">CANCELAR</div>
-        </div>
     </div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    // 1. MAPA
+    // 1. CONFIGURACIÓN MAPA
     const map = L.map('map', { zoomControl: false, attributionControl: false, center: [-32.8, -72.4], zoom: 8 });
     L.control.zoom({ position: 'topright' }).addTo(map);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19, subdomains: 'abcd' }).addTo(map);
@@ -170,287 +133,288 @@
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
 
-    // 2. BOYAS (GEOMETRÍA OPTIMIZADA)
+    // 2. CONFIGURACIÓN BOYAS (ZIGZAG V9 - INALTERADO)
     const buoys = [
-        { id: "B1", lat: -32.00, lon: -72.10 }, { id: "B2", lat: -32.30, lon: -72.90 }, 
-        { id: "B3", lat: -32.65, lon: -72.15 }, { id: "B4", lat: -32.95, lon: -72.95 }, 
-        { id: "B5", lat: -33.30, lon: -72.20 }, { id: "B6", lat: -33.65, lon: -73.00 }  
+        { id: "B1", lat: -32.00, lon: -72.10 }, 
+        { id: "B2", lat: -32.30, lon: -72.90 }, 
+        { id: "B3", lat: -32.65, lon: -72.15 }, 
+        { id: "B4", lat: -32.95, lon: -72.95 }, 
+        { id: "B5", lat: -33.30, lon: -72.20 }, 
+        { id: "B6", lat: -33.65, lon: -73.00 }  
     ];
+    // Puerto de San Antonio (Referencia para ETA)
+    const portLoc = { lat: -33.58, lon: -71.62 };
 
-    // 3. VARIABLES DE SIMULACIÓN
+    // 3. ESTADO DEL SUBMARINO
     let sub = {
-        lat: -31.8, lon: -73.1, heading: 150, speedDeg: 0.00015,
-        rpm: 120, depth: "SUMERGIDO",
-        lastDistances: [999,999,999,999,999,999] // Para calcular Doppler
+        lat: -31.7, lon: -73.0, heading: 150, 
+        speedDeg: 0.00018, // ~12 nudos
+        rpm: 120,
+        depth: "SUMERGIDO",
+        activeSources: 0, // Cuantas boyas lo ven
+        maxSNR: -99
     };
 
-    let blueForce = null; // Unidad aliada
-    
-    // Motor de Niebla (Fog of War)
-    let detectionState = 0; // 0=Nada, 1=Mono(Borroso), 2=Stereo(Preciso)
-    let activeBuoys = [];   // Cuales boyas lo escuchan
+    let interceptor = null; // Unidad aliada
 
-    // 4. LÓGICA DE DETECCIÓN (-15dB Logic)
-    // El paper dice: podemos detectar bajo el ruido. 
-    // Umbral Visual (Anillos mapa) = 35km (Rojo) y 70km (Amarillo).
-    // Pero matemáticamente detectamos "Firma Espectral" un poco más allá, aunque débil.
+    // 4. CÁLCULOS MATEMÁTICOS AUXILIARES
+    function getDistance(lat1, lon1, lat2, lon2) { // En grados aprox
+        return Math.hypot(lat1-lat2, lon1-lon2);
+    }
     
-    function calculateSignal(distKm) {
-        // Modelo simplificado de Pérdida de Propagación
-        // Ruido Base = 0 dB relativo.
-        // Fuente = 120 dB.
-        // Perdida = 20 log(R).
-        // Adaptado a la escala visual de 70km.
-        // Si dist < 35km -> > +10dB
-        // Si dist 35-70km -> -5dB a +10dB
-        // Si dist 70-80km -> -15dB a -5dB (Detectado por paper Z, pero muy debil)
-        
-        let signal = 0;
-        if (distKm > 80) return -99; // Indetectable
-        
-        // Mapeo lineal simple para la demo
-        if (distKm < 10) signal = 30;
-        else if (distKm < 35) signal = 15 + (35-distKm)*0.6;
-        else if (distKm < 70) signal = -5 + (70-distKm)*0.57; // -5 a +15
-        else signal = -15 + (80-distKm); // -15 a -5 (Zona Z-Paper)
-        
-        return Math.round(signal);
+    // Simula cálculo de SNR: Base - Perdida por distancia
+    // Rango max detección ~ 0.8 grados
+    function calculateSNR(dist) {
+        // A 0 distancia = +40dB. A 0.8 distancia = -20dB.
+        return 40 - (dist * 75); 
     }
 
-    // 5. ANIMACIÓN LOOP
+    // 5. ANIMACIÓN Y LÓGICA TÁCTICA
     function animate() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // --- MOVER SUBMARINO ---
+        // A. MOVIMIENTO SUB
         sub.lat += Math.cos(sub.heading*Math.PI/180)*sub.speedDeg;
         sub.lon += Math.sin(sub.heading*Math.PI/180)*sub.speedDeg;
-        if(sub.lon > -71.65) { sub.heading = 200 + Math.random()*40; sub.lon = -71.67; } // Costa
-        if(sub.lat < -34 || sub.lat > -31.5) sub.heading += 120; // Limites
+        // Rebotes
+        if(sub.lon > -71.65) { sub.heading = 200 + Math.random()*40; sub.lon = -71.67; }
+        if(sub.lat < -34 || sub.lat > -31.5) sub.heading += 120;
         
-        // --- CÁLCULOS DE SENSORES ---
-        activeBuoys = [];
-        let maxSignal = -99;
-        let closestBuoy = null;
-
-        buoys.forEach((b, index) => {
-            const center = map.latLngToContainerPoint([b.lat, b.lon]);
-            
-            // Distancia Real Geodésica (aprox) para física
-            const distDeg = Math.hypot(sub.lat - b.lat, sub.lon - b.lon);
-            const distKm = distDeg * 111; // 1 deg ~ 111km
-            
-            // 1. Calcular dB
-            const db = calculateSignal(distKm);
-            
-            // 2. Calcular Doppler (Comparar con frame anterior)
-            let doppler = "ESTABLE";
-            if (distDeg < sub.lastDistances[index]) doppler = "ACERCANDO (+)";
-            else if (distDeg > sub.lastDistances[index]) doppler = "ALEJANDO (-)";
-            sub.lastDistances[index] = distDeg;
-
-            // 3. Determinar detección (-15dB umbral del paper)
-            if (db > -15) {
-                activeBuoys.push({ id: b.id, db: db, doppler: doppler, x: center.x, y: center.y });
-                if(db > maxSignal) { maxSignal = db; closestBuoy = b; }
-            }
-
-            // DIBUJAR ANILLOS DE ALCANCE (Visual Táctico)
-            // Solo dibujamos los anillos, NO la linea roja al objetivo a menos que haya detección
-            // Calcular pixeles
-            const p35 = map.latLngToContainerPoint([b.lat, b.lon+0.37]);
-            const r35 = Math.abs(p35.x - center.x);
-            
-            ctx.beginPath(); ctx.arc(center.x, center.y, r35, 0, Math.PI*2);
-            ctx.strokeStyle = "rgba(0, 100, 80, 0.3)"; ctx.stroke();
-            
-            // Icono Boya
-            ctx.fillStyle = (db > -15) ? "#00ffcc" : "#555"; // Se ilumina si detecta algo
-            ctx.beginPath(); ctx.arc(center.x, center.y, 4, 0, Math.PI*2); ctx.fill();
-        });
-
-        // --- ESTADO DE "FOG OF WAR" ---
-        detectionState = activeBuoys.length >= 2 ? 2 : (activeBuoys.length === 1 ? 1 : 0);
-
-        // --- RENDERIZADO TÁCTICO SEGÚN ESTADO ---
+        // Simulación RPM y Profundidad
+        sub.rpm = 100 + Math.round(Math.sin(Date.now()/1000)*5); 
+        
         const subPx = map.latLngToContainerPoint([sub.lat, sub.lon]);
 
-        if (detectionState === 0) {
-            // NADA VISIBLE
-            updateDashboard(null);
-        } 
-        else if (detectionState === 1) {
-            // ESTADO 1: CONTACTO MONO-AURAL (Borroso)
-            const b = activeBuoys[0];
+        // B. LÓGICA DE DETECCIÓN (EL CEREBRO DEL SISTEMA)
+        let activeSources = 0;
+        let maxSNR = -100;
+        let bestBuoy = null;
+
+        buoys.forEach(b => {
+            const center = map.latLngToContainerPoint([b.lat, b.lon]);
+            const distDeg = getDistance(sub.lat, sub.lon, b.lat, b.lon);
+            const snr = calculateSNR(distDeg);
+
+            // DIBUJAR ANILLOS DE BOYA
+            const p35 = map.latLngToContainerPoint([b.lat, b.lon+0.37]);
+            const r35 = Math.abs(p35.x - center.x);
+
+            ctx.beginPath(); ctx.arc(center.x, center.y, r35, 0, Math.PI*2);
+            ctx.strokeStyle = "rgba(0, 100, 80, 0.3)"; ctx.lineWidth=1; ctx.stroke();
+            ctx.fillStyle = "#00ffcc"; ctx.beginPath(); ctx.arc(center.x, center.y, 3, 0, Math.PI*2); ctx.fill();
+
+            // UMBRAL DE DETECCIÓN (-15dB)
+            if (snr > -15) {
+                activeSources++;
+                if(snr > maxSNR) { maxSNR = snr; bestBuoy = b; }
+
+                // Linea de detección (fina si es débil, gruesa si es fuerte)
+                let alpha = (snr + 15) / 40; // 0 a 1
+                if(alpha>1) alpha=1;
+                
+                ctx.beginPath(); ctx.moveTo(center.x, center.y); ctx.lineTo(subPx.x, subPx.y);
+                ctx.strokeStyle = `rgba(255, ${255-snr*5}, 0, ${alpha})`; 
+                ctx.stroke();
+
+                // Etiqueta dB en la boya
+                ctx.fillStyle = snr > 0 ? "#ff3300" : "#ffcc00";
+                ctx.font = "9px monospace";
+                ctx.fillText(Math.round(snr)+"dB", center.x+5, center.y-5);
+            }
+        });
+
+        sub.activeSources = activeSources;
+        sub.maxSNR = maxSNR;
+
+        // C. VISUALIZACIÓN SEGÚN "NIEBLA DE GUERRA"
+        if (activeSources === 0) {
+            // NADA DETECTADO
+            updateHUD_None();
+
+        } else if (activeSources === 1) {
+            // DETECCIÓN PARCIAL (1 BOYA) - FOG OF WAR
+            // Dibujamos una "Nube de Incertidumbre" en lugar del sub exacto
+            const cloudRadius = 40; // Pixeles
+            const gradient = ctx.createRadialGradient(subPx.x, subPx.y, 5, subPx.x, subPx.y, cloudRadius);
+            gradient.addColorStop(0, "rgba(255, 200, 0, 0.4)");
+            gradient.addColorStop(1, "rgba(255, 200, 0, 0)");
             
-            // Dibujar Linea de Marcación (Bearing Line) desde la boya hacia el objetivo
-            // No mostramos la distancia exacta, solo la dirección
-            const angle = Math.atan2(subPx.y - b.y, subPx.x - b.x);
-            const endX = b.x + Math.cos(angle) * 1000; // Linea infinita
-            const endY = b.y + Math.sin(angle) * 1000;
-
-            ctx.beginPath(); ctx.moveTo(b.x, b.y); ctx.lineTo(endX, endY);
-            ctx.strokeStyle = "rgba(0, 255, 255, 0.3)"; ctx.setLineDash([10, 10]); ctx.stroke(); ctx.setLineDash([]);
-
-            // Dibujar "Nube de Incertidumbre" (Area Probable)
-            // Un circulo cian difuso alrededor del objetivo, pero grande
-            ctx.fillStyle = "rgba(0, 255, 255, 0.15)";
-            ctx.beginPath(); ctx.arc(subPx.x, subPx.y, 40, 0, Math.PI*2); ctx.fill(); // Radio 40px incertidumbre
+            ctx.fillStyle = gradient;
+            ctx.beginPath(); ctx.arc(subPx.x, subPx.y, cloudRadius, 0, Math.PI*2); ctx.fill();
             
-            // Texto en mapa
-            ctx.fillStyle = "#00ffcc"; ctx.font = "10px Courier";
-            ctx.fillText(`CONTACTO POSIBLE (${b.db}dB)`, subPx.x + 20, subPx.y - 20);
+            // Texto de Incertidumbre
+            ctx.fillStyle = "#ffcc00"; ctx.font="10px Arial"; ctx.textAlign="center";
+            ctx.fillText("?", subPx.x, subPx.y+4);
 
-            updateDashboard({ state: 1, db: b.db, doppler: b.doppler });
-        } 
-        else if (detectionState === 2) {
-            // ESTADO 2: TRIANGULACIÓN (Preciso)
+            // Calcular Doppler Relativo (Acerca/Aleja)
+            // Producto punto simple entre vector velocidad sub y vector hacia boya
+            const toBuoyLat = bestBuoy.lat - sub.lat;
+            const toBuoyLon = bestBuoy.lon - sub.lon;
+            // Vector velocidad sub
+            const vLat = Math.cos(sub.heading*Math.PI/180);
+            const vLon = Math.sin(sub.heading*Math.PI/180);
             
-            // Dibujar Lineas de Triangulación
-            activeBuoys.forEach(b => {
-                ctx.beginPath(); ctx.moveTo(b.x, b.y); ctx.lineTo(subPx.x, subPx.y);
-                ctx.strokeStyle = "rgba(255, 50, 50, 0.6)"; ctx.lineWidth = 1; ctx.stroke();
-            });
+            const dot = (vLat * toBuoyLat) + (vLon * toBuoyLon);
+            const doppler = dot > 0 ? "ACERCANDO (BLUE SHIFT)" : "ALEJANDO (RED SHIFT)";
 
-            // Dibujar ROMBO TÁCTICO (Símbolo Exacto)
+            updateHUD_Partial(sub, doppler);
+
+        } else {
+            // DETECCIÓN TOTAL (2+ BOYAS) - SOLUCIÓN DE TIRO
+            // Dibujamos el Rombo Táctico Exacto
             ctx.save();
             ctx.translate(subPx.x, subPx.y);
-            ctx.rotate((sub.heading-90)*Math.PI/180);
             
-            ctx.strokeStyle = "#ff3300"; ctx.lineWidth = 2;
+            // Simbolo
+            ctx.strokeStyle = "#ff3300"; ctx.lineWidth=2;
             ctx.beginPath(); ctx.moveTo(0,-12); ctx.lineTo(10,0); ctx.lineTo(0,12); ctx.lineTo(-10,0); ctx.closePath(); ctx.stroke();
-            ctx.beginPath(); ctx.moveTo(0,-12); ctx.lineTo(0,-25); ctx.stroke(); // Vector velocidad
-            
+            // Vector
+            ctx.rotate((sub.heading-90)*Math.PI/180);
+            ctx.beginPath(); ctx.moveTo(0,-12); ctx.lineTo(0,-30); ctx.stroke();
             ctx.restore();
 
-            // Etiqueta Diferencial dB (Muestra el dB de la boya más fuerte)
-            const strongest = activeBuoys.reduce((prev, curr) => prev.db > curr.db ? prev : curr);
-            ctx.fillStyle = "#ffcc00"; ctx.font = "bold 11px Courier";
-            ctx.fillText(`HARD LOCK [${strongest.db}dB]`, subPx.x + 15, subPx.y);
-
-            updateDashboard({ state: 2, db: strongest.db, doppler: "N/A (GPS LOCK)" });
-        }
-
-
-        // --- DIBUJAR BLUE FORCE (SI EXISTE) ---
-        if (blueForce) {
-            // Mover unidad
-            const dx = sub.lat - blueForce.lat;
-            const dy = sub.lon - blueForce.lon;
-            const dist = Math.hypot(dx, dy);
-            
-            if (dist > 0.01) {
-                blueForce.lat += (dx / dist) * blueForce.speed;
-                blueForce.lon += (dy / dist) * blueForce.speed;
+            // Nube Markoviana (Z-Number Visualization)
+            ctx.fillStyle = "rgba(0, 255, 255, 0.6)";
+            for(let k=0; k<10; k++) {
+                ctx.beginPath(); 
+                ctx.arc(subPx.x+(Math.random()-0.5)*15, subPx.y+(Math.random()-0.5)*15, 1.5, 0, Math.PI*2); 
+                ctx.fill();
             }
 
-            const bfPx = map.latLngToContainerPoint([blueForce.lat, blueForce.lon]);
+            // Calcular ETA
+            const distToPort = getDistance(sub.lat, sub.lon, portLoc.lat, portLoc.lon); // grados
+            // 0.00018 deg/frame ~ 12 kts. Distancia real ~ distToPort * 60 nm.
+            // Simplificado para demo:
+            const hours = Math.round(distToPort * 20); 
+
+            updateHUD_Full(sub, hours);
+        }
+
+        // D. INTERCEPTOR (BLUE FORCE)
+        if(interceptor) {
+            // Mover
+            const angle = Math.atan2(sub.lon - interceptor.lon, sub.lat - interceptor.lat);
+            interceptor.lat += Math.cos(angle) * interceptor.speed;
+            interceptor.lon += Math.sin(angle) * interceptor.speed;
             
-            // Linea TAT
-            ctx.strokeStyle = "#0088ff"; ctx.setLineDash([5,5]);
-            ctx.beginPath(); ctx.moveTo(bfPx.x, bfPx.y); ctx.lineTo(subPx.x, subPx.y); ctx.stroke(); ctx.setLineDash([]);
+            const iPx = map.latLngToContainerPoint([interceptor.lat, interceptor.lon]);
             
-            // Icono
-            ctx.fillStyle = "#0088ff"; ctx.fillRect(bfPx.x-5, bfPx.y-5, 10, 10);
-            
-            // Calcular TAT (Tiempo real estimado)
-            // Distancia restante / Velocidad
-            const framesRemaining = dist / blueForce.speed;
-            const secondsRemaining = Math.round(framesRemaining / 60); // Asumiendo 60fps
-            const min = Math.floor(secondsRemaining / 60);
-            const sec = secondsRemaining % 60;
-            
-            // Actualizar UI TAT
-            document.getElementById('ui-tat').innerText = `T-${min.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`;
+            // Dibujar
+            ctx.fillStyle = "#0088ff"; ctx.fillRect(iPx.x-4, iPx.y-4, 8, 8);
+            ctx.strokeStyle="rgba(0,136,255,0.5)"; ctx.beginPath(); ctx.moveTo(iPx.x, iPx.y); ctx.lineTo(subPx.x, subPx.y); ctx.stroke();
+
+            // Calcular TAT (Time to Target)
+            const distI = getDistance(interceptor.lat, interceptor.lon, sub.lat, sub.lon);
+            const tatSec = Math.round(distI / interceptor.speed); // Frames aprox
+            const tatMin = Math.floor(tatSec/60);
+            const tatS = tatSec % 60;
+            document.getElementById('ui-tat').innerText = `TAT: 00:${tatMin.toString().padStart(2,'0')}`;
+
+            if(distI < 0.005) { alert("IMPACTO CONFIRMADO."); interceptor = null; document.getElementById('blue-force-panel').style.display='none'; }
         }
 
         requestAnimationFrame(animate);
     }
 
-    // 6. ACTUALIZAR HUD (LÓGICA FOG OF WAR)
-    function updateDashboard(data) {
-        const btnEngage = document.getElementById('btn-engage');
-
-        if (!data) {
-            // NADA DETECTADO
-            resetUI();
-            return;
-        }
-
-        // DATOS COMUNES (Estado 1 y 2)
-        // dB y Doppler siempre visibles si hay al menos 1 boya
-        document.getElementById('ui-db').innerText = (data.db > 0 ? "+" : "") + data.db + " dB";
-        document.getElementById('ui-db').className = "val " + (data.db > 0 ? "txt-alert" : "txt-warn");
-        
-        document.getElementById('ui-doppler').innerText = data.doppler;
-        document.getElementById('ui-rpm').innerText = "120-130 (DIESEL)"; // Análisis espectral funciona con 1 boya
-        document.getElementById('ui-depth').innerText = sub.depth;
-
-        // DATOS EXCLUSIVOS ESTADO 2 (TRIANGULACIÓN)
-        if (data.state === 2) {
-            // DESBLOQUEAR SOLUCIÓN DE TIRO
-            document.getElementById('ui-gps').className = "val txt-alert";
-            document.getElementById('ui-gps').innerText = `${sub.lat.toFixed(4)}S ${sub.lon.toFixed(4)}W`;
-            
-            // ETA A PUERTO (Cálculo Ficticio a San Antonio -33.58)
-            const distToPort = Math.hypot(sub.lat - (-33.58), sub.lon - (-71.62)) * 111; // km
-            const speedKmh = 14 * 1.852; // 14 kts a kmh
-            const hours = distToPort / speedKmh;
-            document.getElementById('ui-eta').className = "val txt-alert";
-            document.getElementById('ui-eta').innerText = `T-${Math.floor(hours)}H ${Math.round((hours%1)*60)}M`;
-
-            document.getElementById('ui-spd').className = "val txt-warn";
-            document.getElementById('ui-spd').innerText = "14.2 KTS";
-
-            document.getElementById('ui-entropy').innerText = "0.85 (Z-LOCK)";
-            document.getElementById('ui-entropy').className = "val txt-ok";
-
-            // HABILITAR ENGAGE
-            btnEngage.className = "action-btn"; // Activar botón
-        } else {
-            // BLOQUEAR SOLUCIÓN DE TIRO (FOG OF WAR)
-            document.getElementById('ui-gps').className = "val txt-blur";
-            document.getElementById('ui-gps').innerText = "???.???S ???.???W";
-            
-            document.getElementById('ui-eta').className = "val txt-blur";
-            document.getElementById('ui-eta').innerText = "--H --M";
-            
-            document.getElementById('ui-spd').className = "val txt-blur";
-            document.getElementById('ui-spd').innerText = "-- KTS";
-            
-            document.getElementById('ui-entropy').innerText = "ALTA (DISPERSO)";
-            document.getElementById('ui-entropy').className = "val";
-
-            // DESHABILITAR ENGAGE
-            btnEngage.className = "action-btn disabled";
-        }
-    }
-
-    function resetUI() {
-        document.getElementById('ui-db').innerText = "--";
-        document.getElementById('ui-doppler').innerText = "--";
-        document.getElementById('ui-rpm').innerText = "--";
-        document.getElementById('ui-depth').innerText = "--";
-        document.getElementById('ui-gps').innerText = "ESCANANDO...";
-        document.getElementById('ui-gps').className = "val";
-        document.getElementById('ui-eta').innerText = "--";
-        document.getElementById('ui-spd').innerText = "--";
-        document.getElementById('ui-entropy').innerText = "--";
-        document.getElementById('btn-engage').className = "action-btn disabled";
-    }
-
-    // 7. FUNCIONES ENGAGE
-    function showMenu() { document.getElementById('engage-menu').style.display = 'block'; }
-    function closeMenu() { document.getElementById('engage-menu').style.display = 'none'; }
+    // 6. ACTUALIZACIÓN DEL HUD (TEXTOS)
     
-    function dispatchUnit(type) {
-        closeMenu();
-        const speed = type === 'HELO' ? 0.002 : 0.0005; // Helo rápido, Barco lento
-        blueForce = { 
-            lat: -33.0, lon: -71.6, speed: speed, 
-            name: type === 'HELO' ? 'SH-32 COUGAR' : 'OPV-81'
-        };
-        document.getElementById('ui-unit-name').innerText = blueForce.name;
-        document.getElementById('ui-unit-name').className = "val txt-ok";
+    // CASO 0: NADA
+    function updateHUD_None() {
+        document.getElementById('sys-mode').innerText = "ESCANEO PASIVO - SILENCIO";
+        document.getElementById('sys-mode').style.color = "#aaa";
+        document.getElementById('sys-mode').style.background = "#222";
+        
+        setVal('ui-rpm', '--');
+        setVal('ui-profile', '--');
+        setVal('ui-snr', '--');
+        setVal('ui-doppler', '--');
+        
+        lockData(false); // Ocultar GPS
+        
+        setVal('ui-entropy', 'MAXIMA');
+        setVal('ui-z', '0.000');
+        
+        btnEnable(false);
+    }
+
+    // CASO 1: UNA BOYA (PARCIAL)
+    function updateHUD_Partial(s, doppler) {
+        document.getElementById('sys-mode').innerText = "CONTACTO UNICO - DATOS PARCIALES";
+        document.getElementById('sys-mode').style.color = "#ffcc00";
+        document.getElementById('sys-mode').style.background = "#332200";
+
+        setVal('ui-rpm', s.rpm);
+        setVal('ui-profile', s.depth); // Superficie/Sumergido se detecta por audio
+        setVal('ui-snr', Math.round(s.maxSNR) + " dB");
+        setVal('ui-doppler', doppler); // ESTO ES CLAVE
+        document.getElementById('ui-doppler').className = "val partial";
+
+        // GPS OCULTO
+        lockData(false);
+
+        setVal('ui-entropy', 'ALTA (INCERTIDUMBRE)');
+        setVal('ui-z', '0.450 (PRE-SAT)');
+        
+        btnEnable(false); // No se puede disparar sin solución de tiro
+    }
+
+    // CASO 2: FULL (TRIANGULACIÓN)
+    function updateHUD_Full(s, etaHours) {
+        document.getElementById('sys-mode').innerText = "TRIANGULACIÓN ACTIVA - SOLUCIÓN DE TIRO";
+        document.getElementById('sys-mode').style.color = "#ff3300";
+        document.getElementById('sys-mode').style.background = "#330000";
+
+        setVal('ui-rpm', s.rpm);
+        setVal('ui-profile', "SCORPÈNE (CONFIRMADO)");
+        setVal('ui-snr', Math.round(s.maxSNR) + " dB");
+        setVal('ui-doppler', "N/A (TRACKING ABSOLUTO)");
+
+        // GPS VISIBLE
+        lockData(true);
+        setVal('ui-pos', `${s.lat.toFixed(4)}S ${s.lon.toFixed(4)}W`);
+        setVal('ui-hdg', Math.round(s.heading) + "°");
+        setVal('ui-spd', "12.4 KTS"); // Velocidad real calculada
+        setVal('ui-eta', `+${etaHours}h (SAN ANTONIO)`);
+
+        setVal('ui-entropy', 'MINIMA (COLAPSO)');
+        setVal('ui-z', '0.852 (SATURADO)');
+
+        btnEnable(true); // FUEGO AUTORIZADO
+    }
+
+    // UTILS UI
+    function setVal(id, txt) { document.getElementById(id).innerText = txt; }
+    
+    function lockData(show) {
+        const ids = ['ui-pos', 'ui-hdg', 'ui-spd', 'ui-eta'];
+        ids.forEach(id => {
+            const el = document.getElementById(id);
+            if(show) {
+                el.className = "val locked";
+            } else {
+                el.className = "val encrypted";
+                el.innerText = "ENCRYPTED";
+            }
+        });
+    }
+
+    function btnEnable(enable) {
+        const btn = document.getElementById('btn-engage');
+        if(enable) {
+            btn.className = "action-btn active";
+            btn.innerHTML = '<i class="fas fa-crosshairs"></i> ENGAGE (SOLUCIÓN LISTA)';
+        } else {
+            btn.className = "action-btn";
+            btn.innerHTML = '<i class="fas fa-ban"></i> ENGAGE (REQUIERE TRIANGULACIÓN)';
+        }
+    }
+
+    // ACCIÓN
+    window.engageTarget = function() {
+        if(document.getElementById('btn-engage').className.includes('active')) {
+            document.getElementById('blue-force-panel').style.display = 'block';
+            interceptor = { lat: -33.5, lon: -71.6, speed: 0.0012 }; // Sale de San Antonio
+        }
     }
 
     animate();
