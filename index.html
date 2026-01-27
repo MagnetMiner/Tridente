@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ZORD TRIDENTE v10 | FOG OF WAR - LINEAL SAFE</title>
+    <title>ZORD TRIDENTE v10 | FOG OF WAR - DEPLOYMENT READY</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
@@ -58,6 +58,7 @@
         .menu-opt:hover { background: #ff3300; color: #000; }
 
         .tat-display { position: absolute; top: 20px; right: 15px; background: rgba(0,50,100,0.8); color:#fff; padding:10px; border:1px solid #0088ff; z-index:600; font-family: 'Courier New'; display: none; }
+
     </style>
 </head>
 <body>
@@ -66,21 +67,21 @@
     <div id="control-panel">
         <div class="panel-header">
             <h1>ZORD TRIDENTE v10</h1>
-            <div style="font-size:10px; color:#aaa">DISEÑO DE FONDEO SEGURO (< 800M)</div>
+            <div style="font-size:10px; color:#aaa">DESPLIEGUE EN TALUD CONTINENTAL</div>
         </div>
 
         <div class="panel-content">
+            
             <div id="status-panel" class="alert-box" style="color:#008866; border-color:#004433">
-                ESCANEO PASIVO - RUIDO AMBIENTE NORMAL
+                ESCANEO PASIVO - MONITOREO DE ISÓBATA < 1000M
             </div>
 
             <div id="hud-basic" class="hud-section" style="opacity: 0.3;">
                 <div class="hud-title">ANÁLISIS ESPECTRAL (MONO-SENSOR)</div>
                 <div class="data-row"><span class="lbl">CLASIFICACIÓN</span> <span class="val" id="val-class">--</span></div>
-                <div class="data-row"><span class="lbl">ESTADO</span> <span class="val" id="val-status">--</span></div>
                 <div class="data-row"><span class="lbl">RPM MOTOR</span> <span class="val" id="val-rpm">--</span></div>
                 <div class="data-row"><span class="lbl">INTENSIDAD</span> <span class="val" id="val-db">-- dB</span></div>
-                <div class="data-row"><span class="lbl">DOPPLER RELATIVO</span> <span class="val" id="val-doppler">--</span></div>
+                
                 <div style="margin-top:5px;">
                     <span class="lbl">ENTROPÍA (INCERTIDUMBRE)</span>
                     <div class="bar-container"><div id="bar-entropy" class="bar-fill" style="width:100%; background:red"></div></div>
@@ -88,11 +89,11 @@
             </div>
 
             <div id="hud-tactical" class="hud-section" style="display:none;">
-                <div class="hud-title">SOLUCIÓN DE TIRO (TRIANGULACIÓN)</div>
+                <div class="hud-title">SOLUCIÓN DE TIRO (JOINT LOCK)</div>
                 <div class="data-row"><span class="lbl">COORDENADAS GPS</span> <span class="val" id="val-gps" style="color:#00ffcc">--</span></div>
                 <div class="data-row"><span class="lbl">RUMBO EXACTO</span> <span class="val" id="val-hdg">--</span></div>
                 <div class="data-row"><span class="lbl">VELOCIDAD SOG</span> <span class="val" id="val-spd">-- KTS</span></div>
-                <div class="data-row"><span class="lbl">MÉTRICA Z (PAPER)</span> <span class="val" id="val-z">0.85 (SAT)</span></div>
+                
                 <div style="margin-top:10px; padding-top:5px; border-top:1px dashed #333;">
                     <div class="data-row"><span class="lbl">ETA VALPARAÍSO</span> <span class="val warn" id="val-eta-v">--</span></div>
                     <div class="data-row"><span class="lbl">ETA SAN ANTONIO</span> <span class="val warn" id="val-eta-s">--</span></div>
@@ -108,23 +109,25 @@
     <div id="map-container">
         <div id="map"></div>
         <canvas id="tactical-overlay"></canvas>
+        
         <div id="tat-panel" class="tat-display">
-            UNIDAD ASW EN CURSO<br>
+            UNIDAD EN CURSO<br>
             TAT: <span id="tat-timer" style="font-weight:bold; font-size:18px">00:00</span>
         </div>
+
         <div id="engage-menu">
             <div style="padding:10px; background:#500; color:#fff; font-weight:bold;">PROTOCOLO ENGAGE</div>
-            <div class="menu-opt" onclick="launchUnit('HELO')"><i class="fas fa-helicopter"></i> HELO ASW</div>
-            <div class="menu-opt" onclick="launchUnit('SHIP')"><i class="fas fa-ship"></i> PATRULLERA</div>
-            <div class="menu-opt" onclick="document.getElementById('engage-menu').style.display='none'">CANCELAR</div>
+            <div class="menu-opt" onclick="launchUnit('HELO')"><i class="fas fa-helicopter"></i> HELO ASW (RÁPIDO)</div>
+            <div class="menu-opt" onclick="launchUnit('SHIP')"><i class="fas fa-ship"></i> PATRULLERA (LENTO)</div>
+            <div class="menu-opt" style="color:#aaa" onclick="document.getElementById('engage-menu').style.display='none'">CANCELAR</div>
         </div>
     </div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    const map = L.map('map', { zoomControl: false, attributionControl: false, center: [-32.8, -72.2], zoom: 8 });
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
+    const map = L.map('map', { zoomControl: false, attributionControl: false, center: [-32.8, -72.0], zoom: 8 });
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
 
     const canvas = document.getElementById('tactical-overlay');
     const ctx = canvas.getContext('2d');
@@ -135,17 +138,23 @@
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
 
-    // --- CONFIGURACIÓN LINEAL SEGURA (Profundidad < 800m) ---
+    // --- CONFIGURACIÓN TÁCTICA < 1000M ---
     const buoys = [
         { id: "B1-VILOS", lat: -32.00, lon: -71.88 }, 
         { id: "B2-PAPUD", lat: -32.35, lon: -71.88 }, 
-        { id: "B3-ZAPAL", lat: -32.70, lon: -71.88 }, 
-        { id: "B4-QUINT", lat: -33.05, lon: -71.88 }, 
-        { id: "B5-VALPO", lat: -33.40, lon: -71.88 }, 
-        { id: "B6-SANTO", lat: -33.75, lon: -71.88 }  
+        { id: "B3-QUINT", lat: -32.70, lon: -71.88 }, 
+        { id: "B4-VALPO", lat: -33.05, lon: -71.88 }, 
+        { id: "B5-CURAU", lat: -33.40, lon: -71.97 }, // Desplazada al Oeste
+        { id: "B6-SANTO", lat: -33.75, lon: -71.97 }  // Desplazada al Oeste
     ];
 
-    let sub = { lat: -31.7, lon: -72.6, heading: 155, speedKnots: 12, speedDeg: 0.0002, depth: "SUMERGIDO", rpm: 110, detections: [] };
+    let sub = {
+        lat: -31.7, lon: -72.5, heading: 165, 
+        speedKnots: 12, speedDeg: 0.0002, 
+        depth: "SUMERGIDO", rpm: 110,
+        detections: []
+    };
+
     let activeUnit = null;
     let markovParticles = [];
     const ports = { "VALPO": {lat: -33.0, lon: -71.6}, "SANT": {lat: -33.5, lon: -71.6} };
@@ -157,14 +166,17 @@
         const spread = intensity === 2 ? 0.02 : 0.15;
         if(markovParticles.length < count) {
             markovParticles.push({
-                lat: sub.lat + (Math.random()-0.5)*spread, lon: sub.lon + (Math.random()-0.5)*spread,
+                lat: sub.lat + (Math.random()-0.5)*spread,
+                lon: sub.lon + (Math.random()-0.5)*spread,
                 life: 1.0, vx: (Math.random()-0.5)*0.001, vy: (Math.random()-0.5)*0.001
             });
         }
         markovParticles.forEach((p, i) => {
             let attract = intensity === 2 ? 0.1 : 0.01;
-            p.lat += p.vx + (sub.lat - p.lat)*attract; p.lon += p.vy + (sub.lon - p.lon)*attract;
-            p.life -= 0.02; if(p.life <= 0) markovParticles.splice(i, 1);
+            p.lat += p.vx + (sub.lat - p.lat)*attract;
+            p.lon += p.vy + (sub.lon - p.lon)*attract;
+            p.life -= 0.02;
+            if(p.life <= 0) markovParticles.splice(i, 1);
         });
     }
 
@@ -172,31 +184,32 @@
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         sub.lat += Math.cos(sub.heading*Math.PI/180)*sub.speedDeg;
         sub.lon += Math.sin(sub.heading*Math.PI/180)*sub.speedDeg;
-        if(sub.lon > -71.8) sub.heading += 10; 
-        sub.rpm = 100 + Math.round(Math.sin(Date.now()/1000)*5);
+        if(sub.lon > -71.7) sub.heading += 10; 
+        
         const subPx = map.latLngToContainerPoint([sub.lat, sub.lon]);
         sub.detections = [];
 
         buoys.forEach(b => {
             const center = map.latLngToContainerPoint([b.lat, b.lon]);
-            const r35 = Math.abs(map.latLngToContainerPoint([b.lat, b.lon+0.37]).x - center.x);
-            const r70 = Math.abs(map.latLngToContainerPoint([b.lat, b.lon+0.74]).x - center.x);
+            const p35 = map.latLngToContainerPoint([b.lat, b.lon+0.35]);
+            const p60 = map.latLngToContainerPoint([b.lat, b.lon+0.60]);
+            const r35 = Math.abs(p35.x - center.x);
+            const r60 = Math.abs(p60.x - center.x);
 
-            ctx.beginPath(); ctx.arc(center.x, center.y, r70, 0, Math.PI*2);
-            ctx.strokeStyle = "rgba(200, 200, 0, 0.2)"; ctx.setLineDash([5, 5]); ctx.stroke(); ctx.setLineDash([]);
+            ctx.beginPath(); ctx.arc(center.x, center.y, r60, 0, Math.PI*2);
+            ctx.strokeStyle = "rgba(200, 200, 0, 0.15)"; ctx.setLineDash([5, 5]); ctx.stroke();
+            
             ctx.beginPath(); ctx.arc(center.x, center.y, r35, 0, Math.PI*2);
-            ctx.strokeStyle = "rgba(0, 255, 204, 0.3)"; ctx.stroke();
+            ctx.strokeStyle = "rgba(0, 255, 204, 0.2)"; ctx.setLineDash([]); ctx.stroke();
+
             ctx.fillStyle = "#00ffcc"; ctx.beginPath(); ctx.arc(center.x, center.y, 4, 0, Math.PI*2); ctx.fill();
 
-            const dPx = Math.hypot(subPx.x - center.x, subPx.y - center.y);
             const dDeg = distDeg(sub, b);
-            let rawDB = (0.37 - dDeg) * 40; 
-            
-            if (dPx < r70) {
-                sub.detections.push({ id: b.id, dist: dDeg, px: center, db: rawDB.toFixed(1) });
+            if (dDeg < 0.60) {
+                let rawDB = (0.35 - dDeg) * 40;
+                sub.detections.push({ id: b.id, db: rawDB.toFixed(1) });
                 ctx.beginPath(); ctx.moveTo(center.x, center.y); 
-                ctx.lineTo(center.x + Math.cos(Math.atan2(subPx.y-center.y, subPx.x-center.x)) * r70, center.y + Math.sin(Math.atan2(subPx.y-center.y, subPx.x-center.x)) * r70);
-                ctx.strokeStyle = "rgba(0, 255, 255, 0.4)"; ctx.setLineDash([2, 8]); ctx.stroke(); ctx.setLineDash([]);
+                ctx.lineTo(subPx.x, subPx.y); ctx.strokeStyle = "rgba(0, 255, 255, 0.2)"; ctx.stroke();
             }
         });
 
@@ -216,7 +229,9 @@
                 const pp = map.latLngToContainerPoint([p.lat, p.lon]);
                 ctx.beginPath(); ctx.arc(pp.x, pp.y, 2, 0, Math.PI*2); ctx.fill();
             });
-            ctx.save(); ctx.translate(subPx.x, subPx.y); ctx.rotate((sub.heading-90)*Math.PI/180);
+            ctx.save();
+            ctx.translate(subPx.x, subPx.y);
+            ctx.rotate((sub.heading-90)*Math.PI/180);
             ctx.strokeStyle = "#ff3300"; ctx.lineWidth=2;
             ctx.beginPath(); ctx.moveTo(0,-12); ctx.lineTo(10,0); ctx.lineTo(0,12); ctx.lineTo(-10,0); ctx.closePath(); ctx.stroke();
             ctx.restore();
@@ -225,12 +240,14 @@
         if(activeUnit) {
             const uPx = map.latLngToContainerPoint([activeUnit.lat, activeUnit.lon]);
             const ang = Math.atan2(sub.lon-activeUnit.lon, sub.lat-activeUnit.lat);
-            activeUnit.lat += Math.cos(ang)*activeUnit.speed; activeUnit.lon += Math.sin(ang)*activeUnit.speed;
+            activeUnit.lat += Math.cos(ang)*activeUnit.speed;
+            activeUnit.lon += Math.sin(ang)*activeUnit.speed;
             ctx.fillStyle = "#0088ff"; ctx.fillRect(uPx.x-5, uPx.y-5, 10, 10);
             const distRem = distDeg(sub, activeUnit);
-            document.getElementById('tat-timer').innerText = new Date(Math.floor((distRem/activeUnit.speed)/60) * 1000).toISOString().substr(14, 5);
-            if(distRem < 0.01) { activeUnit = null; document.getElementById('tat-panel').style.display = 'none'; alert("INTERCEPCIÓN COMPLETADA"); }
+            document.getElementById('tat-timer').innerText = new Date(Math.floor(distRem/activeUnit.speed/60) * 1000).toISOString().substr(14, 5);
+            if(distRem < 0.01) { activeUnit = null; document.getElementById('tat-panel').style.display = 'none'; alert("OBJETIVO INTERCEPTADO"); }
         }
+
         requestAnimationFrame(animate);
     }
 
@@ -242,40 +259,39 @@
         const btnEngage = document.getElementById('btn-engage');
 
         if (count === 0) {
-            panelStatus.innerText = "ESCANEO PASIVO - RUIDO AMBIENTE NORMAL";
-            panelStatus.className = "alert-box"; hudBasic.style.opacity = "0.3";
-            hudTac.style.display = "none"; btnEngage.style.display = "none";
+            panelStatus.innerText = "ESCANEO PASIVO - MONITOREO DE ISÓBATA < 1000M";
+            hudBasic.style.opacity = "0.3";
+            hudTac.style.display = "none";
+            btnEngage.style.display = "none";
             return;
         }
 
-        panelStatus.innerText = count === 1 ? "¡CONTACTO POSIBLE! (MONO-SENSOR)" : "¡¡TRIANGULACIÓN ACTIVA!!";
+        panelStatus.innerText = count === 1 ? "DETECCIÓN MONO-SENSOR" : "JOINT LOCK CONFIRMADO";
         panelStatus.className = count === 1 ? "alert-box alert-yellow" : "alert-box alert-red";
         hudBasic.style.opacity = "1.0";
         document.getElementById('val-class').innerText = "CLASE SCORPÈNE";
-        document.getElementById('val-status').innerText = sub.depth;
-        document.getElementById('val-rpm').innerText = sub.rpm;
-        
-        const bestSignal = detections.reduce((prev, curr) => (parseFloat(prev.db) > parseFloat(curr.db)) ? prev : curr);
-        document.getElementById('val-db').innerText = bestSignal.db + " dB";
-        document.getElementById('bar-entropy').style.width = count === 1 ? "80%" : "10%";
+        document.getElementById('val-rpm').innerText = "112 RPM";
+        document.getElementById('val-db').innerText = detections[0].db + " dB";
+        document.getElementById('bar-entropy').style.width = count === 1 ? "75%" : "5%";
         document.getElementById('bar-entropy').style.background = count === 1 ? "red" : "#00ffcc";
 
         if (count >= 2) {
-            hudTac.style.display = "block"; btnEngage.style.display = "block";
+            hudTac.style.display = "block";
+            btnEngage.style.display = "block";
             document.getElementById('val-gps').innerText = `${sub.lat.toFixed(4)}S ${sub.lon.toFixed(4)}W`;
             document.getElementById('val-hdg').innerText = Math.round(sub.heading) + "°T";
-            document.getElementById('val-spd').innerText = sub.speedKnots + " KTS";
+            document.getElementById('val-spd').innerText = "12 KTS";
             let distV = Math.hypot(sub.lat - ports.VALPO.lat, sub.lon - ports.VALPO.lon) * 111;
-            document.getElementById('val-eta-v').innerText = (distV / (sub.speedKnots * 1.852)).toFixed(1) + " HRS";
-        } else { hudTac.style.display = "none"; btnEngage.style.display = "none"; }
+            document.getElementById('val-eta-v').innerText = (distV / 22).toFixed(1) + " HRS";
+        }
     }
 
-    window.showEngageMenu = () => { document.getElementById('engage-menu').style.display = 'block'; };
-    window.launchUnit = (type) => {
+    function showEngageMenu() { document.getElementById('engage-menu').style.display = 'block'; }
+    function launchUnit(type) {
         document.getElementById('engage-menu').style.display = 'none';
-        activeUnit = { lat: -33.0, lon: -71.6, speed: type === 'HELO' ? 0.0015 : 0.0004, type: type };
         document.getElementById('tat-panel').style.display = 'block';
-    };
+        activeUnit = { lat: -33.0, lon: -71.6, speed: type === 'HELO' ? 0.0018 : 0.0005, type: type };
+    }
 
     animate();
 </script>
